@@ -11,6 +11,7 @@ import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 
+import java.awt.*;
 import java.util.Optional;
 import java.util.regex.Matcher;
 
@@ -27,10 +28,12 @@ public class Temperature extends CommandExecutor {
             message.delete().queue();
         }
         message.getChannel().sendMessage(new EmbedBuilder()
+                .setAuthor(message.getAuthor().getName(), null, message.getAuthor().getAvatarUrl())
+                .setColor(Color.GREEN)
                 .addField("Celsius", Double.toString(unit.convert(temp, TemperatureUnit.CELSIUS)) + 'C', true)
                 .addField("Kelvin", Double.toString(unit.convert(temp, TemperatureUnit.KELVIN)) + 'K', true)
                 .addField("Fahrenheit", Double.toString(unit.convert(temp, TemperatureUnit.FAHRENHEIT)) + 'F', true)
-                .build()).queue();
+                .build()).complete();
     }
 
     private Optional<TemperatureUnit> getUnit(String string) {
