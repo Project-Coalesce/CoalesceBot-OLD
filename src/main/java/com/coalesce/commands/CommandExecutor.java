@@ -4,8 +4,9 @@ import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 
-public abstract class Executor {
+public abstract class CommandExecutor {
     protected JDA jda;
-
-    protected abstract void execute(MessageChannel channel, Message message) throws Exception;
+    
+    protected abstract void execute(MessageChannel channel, Message message, String[] args)
+            throws Exception;
 }
