@@ -9,4 +9,8 @@ public abstract class CommandExecutor {
     
     protected abstract void execute(MessageChannel channel, Message message, String[] args)
             throws Exception;
+
+    protected Command getAnnotation() {
+        return getClass().getAnnotation(Command.class);
+    }
 }
