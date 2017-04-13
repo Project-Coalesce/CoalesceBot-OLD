@@ -9,12 +9,21 @@ import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
 
+import java.io.File;
+
 public class Bot {
     public static final String COMMAND_PREFIX = "!";
+    public static final File DATA_DIRECTORY = new File("data");
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().serializeNulls().disableHtmlEscaping().create();
     private JDA jda;
 
     void run(String token) throws Exception {
+        if (!DATA_DIRECTORY.exists()) {
+            if (DATA_DIRECTORY.mkdirs()) {
+                System.out.println("The data directory didn't exist already and was created.");
+            }
+        }
+
         jda = new JDABuilder(AccountType.BOT).setAudioEnabled(false).setCorePoolSize(4).setToken(token).buildBlocking();
         jda.getGuilds().stream()
                 .map(Guild::getPublicChannel)
