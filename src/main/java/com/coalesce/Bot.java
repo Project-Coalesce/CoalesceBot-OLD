@@ -8,10 +8,9 @@ import net.dv8tion.jda.core.entities.TextChannel;
 
 public class Bot {
     public static final String COMMAND_PREFIX = "!";
-
     private JDA jda;
 
-    public void run(String token) throws Exception {
+    void run(String token) throws Exception {
         jda = new JDABuilder(AccountType.BOT).setAudioEnabled(false).setCorePoolSize(4).setToken(token).buildBlocking();
         for (Guild guild : jda.getGuilds()) {
             TextChannel channel = guild.getPublicChannel();
