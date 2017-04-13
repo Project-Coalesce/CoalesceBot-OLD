@@ -2,6 +2,7 @@ package com.coalesce.commands;
 
 import com.coalesce.Bot;
 import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
@@ -49,6 +50,10 @@ public class CommandListener extends ListenerAdapter {
             executor.jda = event.getJDA();
 
             executor.execute(event.getChannel(), event.getMessage(), args);
+
+            if (event.getMessage().getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE)) {
+                event.getMessage().delete().queue();
+            }
         } catch (Exception ex) {
             if (ex instanceof CommandError) {
                 event.getChannel().sendMessage(new MessageBuilder().append(event.getMessage().getAuthor()).appendFormat(": %s", ex.getMessage()).build()).queue();
