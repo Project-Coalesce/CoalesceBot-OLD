@@ -15,9 +15,16 @@ public class Bot {
     public static final String COMMAND_PREFIX = "!";
     public static final File DATA_DIRECTORY = new File("data");
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().serializeNulls().disableHtmlEscaping().create();
+    private static Bot instance;
     private JDA jda;
+    private CommandListener commandListener;
+
+    public static Bot getInstance() {
+        return instance;
+    }
 
     void run(String token) throws Exception {
+        instance = this;
         if (!DATA_DIRECTORY.exists()) {
             if (DATA_DIRECTORY.mkdirs()) {
                 System.out.println("The data directory didn't exist already and was created.");
@@ -30,10 +37,11 @@ public class Bot {
                 .filter(TextChannel::canTalk)
                 .forEach(it -> it.sendMessage("The bot is now enabled and ready for user input.").queue());
 
-        jda.addEventListener(new CommandListener());
+        jda.addEventListener(commandListener = new CommandListener());
     }
 
     public JDA getJDA() {
         return jda;
     }
+    public CommandListener getCommandListener() { return commandListener; }
 }
