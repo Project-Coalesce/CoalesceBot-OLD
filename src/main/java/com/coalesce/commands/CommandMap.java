@@ -1,8 +1,6 @@
 package com.coalesce.commands;
 
 import org.reflections.Reflections;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ConfigurationBuilder;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -16,6 +14,7 @@ public class CommandMap {
     }
 
     private void register(Class<? extends CommandExecutor> clazz) {
+        System.out.println("Registering command: " + clazz.getSimpleName());
         CommandEntry entry = new CommandEntry(clazz);
 
         registerCommand(entry.meta.name().toLowerCase(), entry);
@@ -34,9 +33,7 @@ public class CommandMap {
     }
 
     private void detectCommands() {
-        Reflections ref = new Reflections(new ConfigurationBuilder()
-                .addScanners(new TypeAnnotationsScanner())
-                .forPackages(""));
+        Reflections ref = new Reflections("com.coalesce.commands.executors");
 
         ref.getSubTypesOf(CommandExecutor.class).forEach(this::register);
     }

@@ -8,14 +8,10 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import java.util.Arrays;
 
 public class CommandListener extends ListenerAdapter {
-    private final CommandMap commandMap;
+    private final CommandMap commandMap = new CommandMap();
 
     public CommandMap getCommandMap() {
         return commandMap;
-    }
-
-    {
-        commandMap = new CommandMap();
     }
 
     @Override
@@ -25,6 +21,8 @@ public class CommandListener extends ListenerAdapter {
         if (!commandLine.startsWith(Bot.COMMAND_PREFIX)) {
             return;
         }
+
+        System.out.printf("Command from %s: %s\n", event.getAuthor().getName(), commandLine);
 
         commandLine = commandLine.substring(Bot.COMMAND_PREFIX.length());
 
@@ -40,7 +38,7 @@ public class CommandListener extends ListenerAdapter {
         CommandMap.CommandEntry entry = commandMap.getEntry(cmd);
 
         if (entry == null) {
-            // TODO: Add error message. Exception maybe?
+            event.getChannel().sendMessage(new MessageBuilder().append(event.getMessage().getAuthor()).append(": The command doesn't exist.").build());
             return;
         }
 
@@ -53,7 +51,7 @@ public class CommandListener extends ListenerAdapter {
             executor.execute(event.getChannel(), event.getMessage(), args);
         } catch (Exception ex) {
             if (ex instanceof CommandError) {
-                event.getChannel().sendMessage(new MessageBuilder().append(event.getMessage().getAuthor()).appendFormat(": %s", ex.getMessage()).build());
+                event.getChannel().sendMessage(new MessageBuilder().append(event.getMessage().getAuthor()).appendFormat(": %s", ex.getMessage()).build()).queue();
                 return;
             }
             System.err.printf("An error occurred while executing command %s\n", cmd);
