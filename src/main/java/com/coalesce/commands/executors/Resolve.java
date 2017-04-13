@@ -1,8 +1,10 @@
 package com.coalesce.commands.executors;
 
+import com.coalesce.Bot;
 import com.coalesce.commands.Command;
 import com.coalesce.commands.CommandError;
 import com.coalesce.commands.CommandExecutor;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 
@@ -18,13 +20,14 @@ public class Resolve extends CommandExecutor {
             throw new CommandError("Please use the correct syntax: %s", getAnnotation().usage());
         }
         String url = String.join("%20", args);
-        String resolved;
-        try {
-            resolved = getFinalUrl(url);
-        } catch (IOException ex) {
-            throw new CommandError("Couldn't resolve the URL.");
-        }
-        throw new CommandError("Resolved URL to: %s", resolved);
+        Bot.getInstance().executor.execute(() -> {
+            try {
+                String resolved = getFinalUrl(url);
+                message.getChannel().sendMessage(new MessageBuilder().append(message.getAuthor()).append(": The URL was resolved to ").append(resolved).build()).complete();
+            } catch (IOException ex) {
+                message.getChannel().sendMessage(new MessageBuilder().append(message.getAuthor()).appendFormat(": Couldn't resolve the URL.").build()).complete();
+            }
+        });
     }
 
     private String getFinalUrl(String url) throws IOException {
