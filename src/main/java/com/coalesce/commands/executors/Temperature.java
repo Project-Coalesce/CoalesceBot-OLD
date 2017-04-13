@@ -7,7 +7,6 @@ import com.coalesce.utils.Parsing;
 import com.coalesce.utils.Patterns;
 import com.coalesce.utils.TemperatureUnit;
 import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 
@@ -24,9 +23,6 @@ public class Temperature extends CommandExecutor {
         }
         TemperatureUnit unit = getUnit(args[1]).orElseThrow(() -> new CommandError("Please enter a valid temperature of following: K(elvin), F(ahrenheit), C(elsius)"));
         double temp = Parsing.parseDouble(args[0]).orElseThrow(() -> new CommandError("Please enter a valid temperature."));
-        if (message.getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE)) {
-            message.delete().queue();
-        }
         message.getChannel().sendMessage(new EmbedBuilder()
                 .setAuthor(message.getAuthor().getName(), null, message.getAuthor().getAvatarUrl())
                 .setColor(Color.GREEN)
