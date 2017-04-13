@@ -44,7 +44,7 @@ public class Whois extends CommandExecutor {
                 member = message.getGuild().getMember(jda.getUsersByName(args[0], true).stream().findFirst().orElseThrow(() -> new CommandError("Please specify a valid username.")));
             }
         }
-        
+
         message.getChannel().sendMessage(new EmbedBuilder()
                 .setColor(new Color(0.0f, 0.5f, 0.0f))
                 .setAuthor(member.getUser().getName(), null, member.getUser().getAvatarUrl())
