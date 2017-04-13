@@ -36,7 +36,7 @@ public class CommandListener extends ListenerAdapter {
         CommandMap.CommandEntry entry = commandMap.getEntry(cmd);
         
         if (entry == null) {
-            // maybe some sort of error message? - Alice
+            // TODO: Add error message. Exception maybe?
             return;
         }
         
@@ -48,7 +48,7 @@ public class CommandListener extends ListenerAdapter {
             
             executor.execute(event.getChannel(), event.getMessage(), args);
         } catch (Exception ex) {
-            // maybe an error message in the channel? idk - Alice
+            // TODO: Add error message. Exception maybe?
             System.err.println("An error occurred while executing command " + cmd);
             ex.printStackTrace();
         }

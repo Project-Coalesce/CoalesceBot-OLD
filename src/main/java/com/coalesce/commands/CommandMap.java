@@ -9,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class CommandMap {
-    
     private final Map<String, CommandEntry> entries = new LinkedHashMap<>();
     
     CommandMap() {
