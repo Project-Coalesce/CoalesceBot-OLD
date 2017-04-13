@@ -33,7 +33,7 @@ public class Temperature extends CommandExecutor {
                 .addField("Celsius", Double.toString(unit.convert(temp, TemperatureUnit.CELSIUS)) + 'C', true)
                 .addField("Kelvin", Double.toString(unit.convert(temp, TemperatureUnit.KELVIN)) + 'K', true)
                 .addField("Fahrenheit", Double.toString(unit.convert(temp, TemperatureUnit.FAHRENHEIT)) + 'F', true)
-                .build()).complete();
+                .build()).queue();
     }
 
     private Optional<TemperatureUnit> getUnit(String string) {
