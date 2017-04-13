@@ -10,6 +10,8 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Bot {
     public static final String COMMAND_PREFIX = "!";
@@ -18,6 +20,7 @@ public class Bot {
     private static Bot instance;
     private JDA jda;
     private CommandListener commandListener;
+    public ExecutorService executor = Executors.newFixedThreadPool(6);
 
     public static Bot getInstance() {
         return instance;
@@ -43,5 +46,8 @@ public class Bot {
     public JDA getJDA() {
         return jda;
     }
-    public CommandListener getCommandListener() { return commandListener; }
+
+    public CommandListener getCommandListener() {
+        return commandListener;
+    }
 }
