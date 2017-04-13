@@ -13,17 +13,14 @@ public class Bot {
 
     void run(String token) throws Exception {
         jda = new JDABuilder(AccountType.BOT).setAudioEnabled(false).setCorePoolSize(4).setToken(token).buildBlocking();
-        for (Guild guild : jda.getGuilds()) {
-            TextChannel channel = guild.getPublicChannel();
-            if (!channel.canTalk()) {
-                continue;
-            }
-            channel.sendMessage("The bot is now enabled and ready for user input.").queue();
-        }
-        
+        jda.getGuilds().stream()
+                .map(Guild::getPublicChannel)
+                .filter(TextChannel::canTalk)
+                .forEach(it -> it.sendMessage("The bot is now enabled and ready for user input.").queue());
+
         jda.addEventListener(new CommandListener());
     }
-    
+
     public JDA getJDA() {
         return jda;
     }
