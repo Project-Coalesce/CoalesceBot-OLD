@@ -23,6 +23,7 @@ public class RankManager {
         return inst;
     }
 
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection") // TODO: Update the map with ranks from json files.
     private final Map<Role, Double> ranks = new HashMap<>();
 
     private RankManager() {
