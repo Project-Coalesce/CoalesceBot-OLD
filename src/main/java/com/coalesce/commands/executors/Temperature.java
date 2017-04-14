@@ -26,9 +26,9 @@ public class Temperature extends CommandExecutor {
         message.getChannel().sendMessage(new EmbedBuilder()
                 .setAuthor(message.getAuthor().getName(), null, message.getAuthor().getAvatarUrl())
                 .setColor(Color.GREEN)
-                .addField("Celsius", Double.toString(unit.convert(temp, TemperatureUnit.CELSIUS)) + 'C', true)
-                .addField("Kelvin", Double.toString(unit.convert(temp, TemperatureUnit.KELVIN)) + 'K', true)
-                .addField("Fahrenheit", Double.toString(unit.convert(temp, TemperatureUnit.FAHRENHEIT)) + 'F', true)
+                .addField("Celsius", Double.toString(TemperatureUnit.CELSIUS.convert(temp, unit)) + 'C', true)
+                .addField("Kelvin", Double.toString(TemperatureUnit.KELVIN.convert(temp, unit)) + 'K', true)
+                .addField("Fahrenheit", Double.toString(TemperatureUnit.FAHRENHEIT.convert(temp, unit)) + 'F', true)
                 .build()).queue();
     }
 
