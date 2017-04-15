@@ -57,7 +57,7 @@ public class CommandMap {
         
         private CommandEntry(Class<? extends CommandExecutor> clazz, CommandMap map) throws Exception {
             this.executor = clazz.newInstance();
-            this.executor.jda = bot.getJDA();
+            this.executor.jda = bot.getJda();
             this.executor.commandMap = map;
             this.meta = clazz.getAnnotation(Command.class);
             this.executor.annotation = meta;
