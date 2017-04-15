@@ -9,10 +9,14 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import java.util.Arrays;
 
 public class CommandListener extends ListenerAdapter {
-    private final CommandMap commandMap = new CommandMap();
+    private final CommandMap commandMap;
 
     public CommandMap getCommandMap() {
         return commandMap;
+    }
+    
+    public CommandListener(Bot bot) {
+        this.commandMap = new CommandMap(bot);
     }
 
     @Override
@@ -46,8 +50,7 @@ public class CommandListener extends ListenerAdapter {
         String[] args = Arrays.copyOfRange(parts, 1, parts.length);
 
         try {
-            CommandExecutor executor = entry.clazz.newInstance();
-            executor.jda = event.getJDA();
+            CommandExecutor executor = entry.executor;
 
             executor.execute(event.getChannel(), event.getMessage(), args);
 

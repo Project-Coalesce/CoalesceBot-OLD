@@ -41,6 +41,6 @@ public class Bot {
                 .filter(TextChannel::canTalk)
                 .forEach(it -> it.sendMessage("The bot is now enabled and ready for user input.").queue());
 
-        jda.addEventListener(commandListener = new CommandListener());
+        jda.addEventListener(commandListener = new CommandListener(this));
     }
 }
