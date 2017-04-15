@@ -12,37 +12,18 @@ import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
-@Command(name = "Whois", aliases = {"tellmeabout", "whos", "who's"}, usage = "[user]", description = "Tells you about the user specified or yourself if none.")
+@Command(name = "Whois", aliases = {"tellmeabout", "whos", "who's"}, usage = "[user]", description = "Tells you about the user specified or yourself if none.", permission = "commands.whois")
 public class Whois extends CommandExecutor {
     @Override
     protected void execute(MessageChannel channel, Message message, String[] args) throws Exception {
         if (args.length > 1) {
             throw new CommandError("Please follow the correct syntax: %s", getAnnotation().usage());
         }
-        Member member = null;
+        Member member;
         if (args.length == 0) {
             member = message.getGuild().getMember(message.getAuthor());
         } else {
-            String user[] = args[0].split("#");
-            if (user.length > 2) {
-                throw new CommandError("Please specify a valid username.");
-            }
-            for (Member it : message.getGuild().getMembers()) {
-                if (it.getUser().getName().equalsIgnoreCase(user[0])) {
-                    if (user.length == 2) {
-                        if (it.getUser().getDiscriminator().equalsIgnoreCase(user[1])) {
-                            member = it;
-                            break;
-                        }
-                        continue;
-                    }
-                    member = it;
-                    break;
-                }
-            }
-            if (member == null) {
-                member = message.getGuild().getMember(jda.getUsersByName(args[0], true).stream().findFirst().orElseThrow(() -> new CommandError("Please specify a valid username.")));
-            }
+            member = message.getGuild().getMember(message.getMentionedUsers().stream().findFirst().orElseThrow(() -> new CommandError("Please specify a valid user.")));
         }
 
         message.getChannel().sendMessage(new EmbedBuilder()
