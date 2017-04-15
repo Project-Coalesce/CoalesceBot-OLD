@@ -1,7 +1,7 @@
 package com.coalesce.permissions;
 
 import com.coalesce.Bot;
-import com.coalesce.commands.CommandExecutor;
+import lombok.Getter;
 import net.dv8tion.jda.core.entities.Member;
 
 import java.io.*;
@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WrappedUser {
-    private final Member member;
-    private final Map<Class<? extends CommandExecutor>, Boolean> permissions = new HashMap<>();
+    private final @Getter Member member;
+    private final @Getter Map<String, Boolean> permissions = new HashMap<>();
 
     public WrappedUser(final Member member) {
         this.member = member;
@@ -24,17 +24,9 @@ public class WrappedUser {
         }
         try (Reader stream = new FileReader(userFile);
              BufferedReader reader = new BufferedReader(stream)) {
-            // TODO: Load permissions from json's Map<String full class name, Boolean whether or not its enabled>
+            // TODO: Load permissions from json's Map<String permission, Boolean whether or not its enabled>
         } catch (IOException ex) {
             System.out.println("Couldn't load the data for user " + member.getUser().getIdLong() + ": \n" + ex.getMessage());
         }
-    }
-
-    public Member getMember() {
-        return member;
-    }
-
-    public Map<Class<? extends CommandExecutor>, Boolean> getPermissions() {
-        return permissions;
     }
 }
