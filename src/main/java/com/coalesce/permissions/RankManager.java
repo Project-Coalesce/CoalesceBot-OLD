@@ -3,11 +3,13 @@ package com.coalesce.permissions;
 import com.coalesce.Bot;
 import com.coalesce.utils.Streams;
 import lombok.Getter;
+import lombok.NonNull;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RankManager {
     private static RankManager instance;
@@ -47,5 +49,11 @@ public class RankManager {
                 .sorted()).forEachOrdered(it -> applicablePerms.putAll(it.getValue()));
         applicablePerms.putAll(user.getPermissions());
         return applicablePerms;
+    }
+
+    public boolean hasPermission(@NonNull Member member, @NonNull String... permissions) {
+        Map<String, Boolean> permsMap = getPermissions(member);
+        List<String> perms = permsMap.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList());
+        return Arrays.stream(permissions).allMatch(perms::contains);
     }
 }
