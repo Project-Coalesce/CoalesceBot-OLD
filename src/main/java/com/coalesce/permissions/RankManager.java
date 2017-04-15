@@ -32,7 +32,7 @@ public class RankManager {
     private final @Getter Set<WrappedUser> users = new HashSet<>();
 
     private RankManager() {
-        Bot.getInstance().getJda().getGuilds().stream().map(Guild::getMembers).parallel().forEach(members -> members.stream().forEach(member -> users.add(new WrappedUser(member))));
+        Bot.getInstance().getJda().getGuilds().stream().map(Guild::getMembers).parallel().forEach(members -> members.forEach(member -> users.add(new WrappedUser(member))));
     }
 
     public Map<String, Boolean> getPermissions(Member member) {
