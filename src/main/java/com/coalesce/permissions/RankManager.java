@@ -1,10 +1,13 @@
 package com.coalesce.permissions;
 
+import com.coalesce.Bot;
+import com.coalesce.utils.Streams;
+import lombok.Getter;
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class RankManager {
     private static RankManager instance;
@@ -25,20 +28,24 @@ public class RankManager {
     }
 
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection") // TODO: Update the map with ranks from json files.
-    private final Map<Role, Double> ranks = new HashMap<>();
+    private final @Getter Map<Role, Map<String, Boolean>> ranks = new HashMap<>();
+    private final @Getter Set<WrappedUser> users = new HashSet<>();
 
     private RankManager() {
+        Bot.getInstance().getJda().getGuilds().stream().map(Guild::getMembers).parallel().forEach(members -> members.stream().forEach(member -> users.add(new WrappedUser(member))));
     }
 
-    @SuppressWarnings("WeakerAccess") // Shall not be weaker due to API.
-    public Optional<Double> getRank(Role role) {
-        if (role == null) {
-            return Optional.empty();
+    public Map<String, Boolean> getPermissions(Member member) {
+        Optional<WrappedUser> optional = users.stream().filter(it -> it.getMember().equals(member)).findFirst();
+        if (!optional.isPresent()) {
+            return new HashMap<>();
         }
-        return Optional.ofNullable(ranks.get(role));
-    }
-
-    public boolean isAllowed(Role role, double rank) {
-        return getRank(role).filter(it -> it >= rank).isPresent();
+        Map<String, Boolean> applicablePerms = new HashMap<>();
+        WrappedUser user = optional.get();
+        Streams.reverse(ranks.entrySet().stream()
+                .filter(it -> member.getRoles().contains(it.getKey()))
+                .sorted()).forEachOrdered(it -> applicablePerms.putAll(it.getValue()));
+        applicablePerms.putAll(user.getPermissions());
+        return applicablePerms;
     }
 }
