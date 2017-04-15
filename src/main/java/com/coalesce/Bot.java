@@ -13,6 +13,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Bot {
     public static final String COMMAND_PREFIX = "!";
@@ -39,7 +40,7 @@ public class Bot {
         jda.getGuilds().stream()
                 .map(Guild::getPublicChannel)
                 .filter(TextChannel::canTalk)
-                .forEach(it -> it.sendMessage("The bot is now enabled and ready for user input.").queue());
+                .forEach(it -> it.sendMessage("The bot is now enabled and ready for user input.").queue((message) -> message.delete().queueAfter(5, TimeUnit.SECONDS)));
 
         jda.addEventListener(commandListener = new CommandListener(this));
     }
