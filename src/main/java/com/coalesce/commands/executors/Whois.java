@@ -32,7 +32,7 @@ public class Whois extends CommandExecutor {
                 .addField("Nickname", member.getNickname() != null ? member.getNickname() : "None", true)
                 .addField("Discriminator", member.getUser().getDiscriminator(), true)
                 .addField("User ID", member.getUser().getId(), true)
-                .addField("Playing Currently", member.getGame().getName(), true)
+                .addField("Playing Currently", member.getGame() != null ? member.getGame().getName() : "None", true)
                 .addField("Roles", String.join("\n", member.getRoles().stream().map(role -> "\u2666 " + role.getName()).collect(Collectors.toList())), true)
                 .addField("Type", member.getUser().isBot() ? "Bot" : (member.isOwner() ? "Owner" : "User"), true)
                 .addField("Creation Time", member.getUser().getCreationTime().format(DateTimeFormatter.ofPattern("d MMM uuuu")), true)
