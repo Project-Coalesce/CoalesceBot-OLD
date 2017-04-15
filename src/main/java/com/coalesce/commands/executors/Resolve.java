@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-@Command(name = "Resolve", aliases = {"resolver", "url"}, usage = "<url>", description = "Resolves URL shortened links.")
+@Command(name = "Resolve", aliases = {"resolver", "url"}, usage = "<url>", description = "Resolves URL shortened links.", permission = "commands.resolve")
 public class Resolve extends CommandExecutor {
     @Override
     protected void execute(MessageChannel channel, Message message, String[] args) throws Exception {

@@ -14,7 +14,7 @@ import java.awt.*;
 import java.util.Optional;
 import java.util.regex.Matcher;
 
-@Command(name = "temperature", aliases = {"temp"}, description = "Converts to different temperatures.", usage = "<temp> <unit>")
+@Command(name = "temperature", aliases = {"temp"}, description = "Converts to different temperatures.", usage = "<temp> <unit>", permission = "commands.temperature")
 public class Temperature extends CommandExecutor {
     @Override
     protected void execute(MessageChannel channel, Message message, String[] args) throws Exception {

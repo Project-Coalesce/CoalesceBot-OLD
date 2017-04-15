@@ -13,9 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Command(name = "help", description = "Show bot help", aliases = { "?", "h" })
+@Command(name = "help", description = "Show bot help", aliases = { "?", "h" }, permission = "commands.help")
 public class Help extends CommandExecutor {
-    
     @Override
     protected void execute(MessageChannel channel, Message message, String[] args) throws Exception {
         MessageBuilder mb = new MessageBuilder();
