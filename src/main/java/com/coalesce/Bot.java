@@ -3,6 +3,7 @@ package com.coalesce;
 import com.coalesce.commands.CommandListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import lombok.Getter;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
@@ -18,8 +19,8 @@ public class Bot {
     public static final File DATA_DIRECTORY = new File("data");
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().serializeNulls().disableHtmlEscaping().create();
     private static Bot instance;
-    private JDA jda;
-    private CommandListener commandListener;
+    private @Getter JDA jda;
+    private @Getter CommandListener commandListener;
     public ExecutorService executor = Executors.newFixedThreadPool(6);
 
     public static Bot getInstance() {
@@ -41,13 +42,5 @@ public class Bot {
                 .forEach(it -> it.sendMessage("The bot is now enabled and ready for user input.").queue());
 
         jda.addEventListener(commandListener = new CommandListener());
-    }
-
-    public JDA getJDA() {
-        return jda;
-    }
-
-    public CommandListener getCommandListener() {
-        return commandListener;
     }
 }
