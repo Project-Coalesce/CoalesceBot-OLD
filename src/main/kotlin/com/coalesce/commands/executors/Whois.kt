@@ -9,6 +9,7 @@ import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.awt.Color
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
 @Command(name = "Whois", aliases = arrayOf("tellmeabout", "whos", "who's"), usage = "[user]", description = "Tells you about the user specified or yourself if none.", permission = "commands.whois")
@@ -23,9 +24,7 @@ class Whois : CommandExecutor() {
         } else {
             member = message.guild.getMember(message.mentionedUsers.stream().findFirst().orElseThrow { CommandError("Please specify a valid user.") })
         }
-        message.channel.sendMessage(EmbedBuilder()
-                .setColor(Color(0.0f, 0.5f, 0.0f))
-                .setAuthor(member.user.name, null, member.user.avatarUrl)
+        val builder = EmbedBuilder().setColor(Color(0.0f, 0.5f, 0.0f)).setAuthor(member.user.name, null, member.user.avatarUrl)
                 .addField("Nickname", member.nickname ?: "None", true)
                 .addField("Discriminator", member.user.discriminator, true)
                 .addField("User ID", member.user.id, true)
@@ -33,6 +32,9 @@ class Whois : CommandExecutor() {
                 .addField("Roles", member.roles.stream().map { role -> "\u2666 " + role.name }.collect(Collectors.toList()).joinToString(separator = "\n"), true)
                 .addField("Type", if (member.user.isBot) "Bot" else if (member.isOwner) "Owner" else "User", true)
                 .addField("Creation Time", member.user.creationTime.format(DateTimeFormatter.ofPattern("d MMM uuuu")), true)
-                .build()).queue()
+        if (member.roles.singleOrNull() ?: false == member.guild?.getRolesByName("Python", true) ?: false) {
+            builder.addField("Has ugly yellow colour?", "Sadly, yes", true)
+        }
+        message.channel.sendMessage(builder.build()).queue { it.delete().queueAfter(30, TimeUnit.SECONDS) }
     }
 }
