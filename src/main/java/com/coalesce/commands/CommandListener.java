@@ -42,6 +42,10 @@ public class CommandListener extends ListenerAdapter {
 
         CommandMap.CommandEntry entry = commandMap.getEntry(cmd);
 
+        if (event.getMessage().getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE)) {
+            event.getMessage().delete().queue();
+        }
+
         if (entry == null) {
             event.getChannel().sendMessage(new MessageBuilder().append(event.getMessage().getAuthor()).append(": The command doesn't exist.").build()).queue();
             return;
@@ -56,14 +60,10 @@ public class CommandListener extends ListenerAdapter {
         } catch (Exception ex) {
             if (ex instanceof CommandError) {
                 event.getChannel().sendMessage(new MessageBuilder().append(event.getMessage().getAuthor()).appendFormat(": %s", ex.getMessage()).build()).queue();
-            } else {
-                System.err.printf("An error occurred while executing command %s\n", cmd);
-                ex.printStackTrace();
                 return;
             }
-        }
-        if (event.getMessage().getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE)) {
-            event.getMessage().delete().queue();
+            System.err.printf("An error occurred while executing command %s\n", cmd);
+            ex.printStackTrace();
         }
     }
 }
