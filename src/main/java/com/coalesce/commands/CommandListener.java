@@ -14,7 +14,6 @@ public class CommandListener extends ListenerAdapter {
     public CommandMap getCommandMap() {
         return commandMap;
     }
-    
 
     public CommandListener(Bot bot) {
         this.commandMap = new CommandMap(bot);
@@ -54,17 +53,17 @@ public class CommandListener extends ListenerAdapter {
             CommandExecutor executor = entry.executor;
 
             executor.execute(event.getChannel(), event.getMessage(), args);
-
-            if (event.getMessage().getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE)) {
-                event.getMessage().delete().queue();
-            }
         } catch (Exception ex) {
             if (ex instanceof CommandError) {
                 event.getChannel().sendMessage(new MessageBuilder().append(event.getMessage().getAuthor()).appendFormat(": %s", ex.getMessage()).build()).queue();
+            } else {
+                System.err.printf("An error occurred while executing command %s\n", cmd);
+                ex.printStackTrace();
                 return;
             }
-            System.err.printf("An error occurred while executing command %s\n", cmd);
-            ex.printStackTrace();
+        }
+        if (event.getMessage().getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE)) {
+            event.getMessage().delete().queue();
         }
     }
 }
