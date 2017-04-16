@@ -28,7 +28,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.0.0_175</version>
+            <version>3.0.0_176</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
