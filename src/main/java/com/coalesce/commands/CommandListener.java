@@ -43,7 +43,7 @@ public class CommandListener extends ListenerAdapter {
         CommandMap.CommandEntry entry = commandMap.getEntry(cmd);
 
         if (entry == null) {
-            event.getChannel().sendMessage(new MessageBuilder().append(event.getMessage().getAuthor()).append(": The command doesn't exist.").build());
+            event.getChannel().sendMessage(new MessageBuilder().append(event.getMessage().getAuthor()).append(": The command doesn't exist.").build()).queue();
             return;
         }
 
