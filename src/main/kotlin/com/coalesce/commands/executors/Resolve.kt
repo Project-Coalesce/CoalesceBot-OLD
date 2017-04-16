@@ -4,12 +4,14 @@ import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
-import net.dv8tion.jda.core.MessageBuilder
+import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
+import java.awt.Color
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.TimeUnit
 
 @Command(name = "Resolve", aliases = arrayOf("resolver", "url"), usage = "<url>", description = "Resolves URL shortened links.", permission = "commands.resolve")
 class Resolve : CommandExecutor() {
@@ -20,10 +22,11 @@ class Resolve : CommandExecutor() {
         val url = args.joinToString("%20")
         Bot.instance.executor.execute({
             try {
+                message.channel.sendTyping()
                 val resolved = getFinalUrl(url)
-                message.channel.sendMessage(MessageBuilder().append(message.author).append(": The URL was resolved to ").append(resolved).build()).complete()
+                message.channel.sendMessage(EmbedBuilder().setColor(Color(0.0f, 0.5f, 0.0f)).addField("Receiver", message.author.asMention, true).addField("Resolved", resolved, true).build()).complete().delete().queueAfter(15, TimeUnit.SECONDS)
             } catch (ex: IOException) {
-                message.channel.sendMessage(MessageBuilder().append(message.author).appendFormat(": Couldn't resolve the URL.").build()).complete()
+                message.channel.sendMessage(EmbedBuilder().setColor(Color(0.5f, 0.0f, 0.0f)).addField("Receiver", message.author.asMention, true).addField("Error", "Couldn't resolve the URL", true).build()).complete().delete().queueAfter(10, TimeUnit.SECONDS)
             }
         })
     }
