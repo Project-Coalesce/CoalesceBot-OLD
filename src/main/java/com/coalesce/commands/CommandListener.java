@@ -15,6 +15,7 @@ public class CommandListener extends ListenerAdapter {
         return commandMap;
     }
     
+
     public CommandListener(Bot bot) {
         this.commandMap = new CommandMap(bot);
     }
