@@ -10,6 +10,7 @@ import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.awt.Color
+import java.util.concurrent.TimeUnit
 
 @Command(name = "temperature", aliases = arrayOf("temp"), description = "Converts to different temperatures.", usage = "<temp> <unit>", permission = "commands.temperature")
 class Temperature : CommandExecutor() {
@@ -25,7 +26,7 @@ class Temperature : CommandExecutor() {
                 .addField("Celsius", java.lang.Double.toString(TemperatureUnit.CELSIUS.convert(temp, unit)) + 'C', true)
                 .addField("Kelvin", java.lang.Double.toString(TemperatureUnit.KELVIN.convert(temp, unit)) + 'K', true)
                 .addField("Fahrenheit", java.lang.Double.toString(TemperatureUnit.FAHRENHEIT.convert(temp, unit)) + 'F', true)
-                .build()).queue()
+                .build()).queue { it.delete().queueAfter(15, TimeUnit.SECONDS )}
     }
 
     private fun getUnit(string: String): TemperatureUnit? {
