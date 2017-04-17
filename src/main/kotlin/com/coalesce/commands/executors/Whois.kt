@@ -33,7 +33,7 @@ class Whois : CommandExecutor() {
                 .addField("Type", if (member.user.isBot) "Bot" else if (member.isOwner) "Owner" else "User", true)
                 .addField("Creation Time", member.user.creationTime.format(DateTimeFormatter.ofPattern("d MMM uuuu")), true)
         if (member.roles.size == 1 && member.roles[0].name == "Python") {
-            builder.addField("Has ugly yellow color?", "Sadly, yes", true)
+            builder.addField("Has ugly yellow colour?", "Sadly, yes", true)
         }
         message.channel.sendMessage(builder.build()).queue { it.delete().queueAfter(30, TimeUnit.SECONDS) }
     }
