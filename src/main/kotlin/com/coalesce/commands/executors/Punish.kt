@@ -14,11 +14,11 @@ class Punish : CommandExecutor() {
 
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if(message.mentionedUsers.size != 0){
-            channel.sendMessage("Specify a valid user").queue()
+            channel.sendMessage("You need to mention an user to use this command.").queue()
             return
         }
         if(args.size < 2){
-            channel.sendMessage("Invalid arguments").queue()
+            channel.sendMessage("Invalid usage, usage is: !punish <mention> <reason> [description]").queue()
             return
         }
 
@@ -27,7 +27,10 @@ class Punish : CommandExecutor() {
         try {
             reason = Reason.valueOf(args[1])
         } catch (e: Exception) {
-            channel.sendMessage("Invalid reason").queue()
+            val errorMessages = StringBuilder()
+            Reason.values().forEach { errorMessages.append(it.toString() + " (" + it.description + ") ") }
+
+            channel.sendMessage("That reason does not exist. Here's a list of valid reasons:\n" + errorMessages.toString()).queue()
             return
         }
 

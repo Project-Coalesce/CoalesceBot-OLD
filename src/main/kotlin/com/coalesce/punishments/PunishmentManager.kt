@@ -24,7 +24,7 @@ class PunishmentManager {
                     val guild = Bot.instance.jda.getGuildById("268187052753944576")
                     val member = guild.getMember(user)
                     val role = guild.getRoleById("303317692608282625")
-
+                    
                     Timer().schedule(PTimerTask(guild, member, role), obj.getLong("until"));
                 }
             }
