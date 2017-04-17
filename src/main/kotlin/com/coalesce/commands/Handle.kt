@@ -58,8 +58,8 @@ class CommandListener : ListenerAdapter() {
         println("Command from ${event.author.name}: $commandLine")
         commandLine = commandLine.substring(Constants.COMMAND_PREFIX.length)
         val parts = commandLine.split(" ".toRegex()).dropLastWhile(String::isEmpty).toTypedArray()
-        // Alice's famous check which she's not sure how can ever happen
-        if (parts.size < 0) {
+        // Alice's (now proxi enhanced) famous check which she's not sure how can ever happen
+        if (parts.isEmpty()) {
             return
         }
         if (event.message.guild.selfMember.hasPermission(Permission.MESSAGE_MANAGE)) {
