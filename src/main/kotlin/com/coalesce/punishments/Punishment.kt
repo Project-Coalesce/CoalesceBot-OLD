@@ -107,6 +107,7 @@ class Punishment(val reason: Reason, val punisher: User, val by: String, val des
                 val calendar = Calendar.getInstance()
                 calendar.add(punishmentTime.timeUnit, punishmentTime.time)
                 untilString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calendar.time)
+                json.put("until", calendar.timeInMillis)
 
                 Timer().schedule(PTimerTask(guild, member, role), calendar.timeInMillis);
             }
