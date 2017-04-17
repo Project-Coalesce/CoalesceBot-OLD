@@ -60,7 +60,7 @@ class Punishment(val reason: Reason, val by: String, val description: String?) {
 
             val message = StringBuilder()
 
-            message.append("Reason: $reason.description\n")
+            message.append("Reason: " + reason.description + "\n")
             if(description != null) message.append("Description: $description\n")
             message.append("Please refer to <#269178364483338250> before chatting.\n")
             message.append("Repeat offense of the rules will lead to harsher punishments.")
@@ -84,11 +84,11 @@ class Punishment(val reason: Reason, val by: String, val description: String?) {
 
             val calendar = Calendar.getInstance()
             calendar.add(punishmentTime.timeUnit, punishmentTime.time)
-            val untilString = SimpleDateFormat("dd/MM/yyyy hh:mm").format(calendar.time)
+            val untilString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calendar.time)
 
             val message = StringBuilder()
 
-            message.append("Reason: $reason.description\n")
+            message.append("Reason: " + reason.description + "\n")
             message.append("Until: $untilString\n")
             if(description != null) message.append("Description: $description\n")
             message.append("Please refer to <#269178364483338250> before chatting.\n")
