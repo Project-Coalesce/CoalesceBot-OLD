@@ -13,5 +13,5 @@ object Constants {
     val TEMPERATURE_KELVIN: Pattern = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)
     val TEMPERATURE_CELSIUS: Pattern = Pattern.compile("C*", Pattern.CASE_INSENSITIVE)
     val TEMPERATURE_FAHRENHEIT: Pattern = Pattern.compile("F*", Pattern.CASE_INSENSITIVE)
-    val DECIMAL_FORMAT: DecimalFormat = DecimalFormat("##.00")
+    val DECIMAL_FORMAT: DecimalFormat = DecimalFormat("##.##")
 }
