@@ -8,7 +8,7 @@ import com.coalesce.punishments.Reason
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 
-@Command(name = "Punish", permission = "commands.pi", description = "Shows pi.")
+@Command(name = "Punish", permission = "commands.punish", description = "Punishes users")
 class Punish : CommandExecutor() {
     val manager = PunishmentManager()
 
