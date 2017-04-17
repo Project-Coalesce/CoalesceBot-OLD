@@ -35,7 +35,7 @@ class Punish : CommandExecutor() {
         if(args.size > 2) description = args[2]
 
         val history = manager.findPunishments(message.author)
-        val punishment = Punishment(reason, message.author.id, description)
+        val punishment = Punishment(reason, message.author, message.author.id, description)
 
         val newHistory = punishment.doActUpon(history, user, channel)
         manager.saveChanges(user, newHistory)

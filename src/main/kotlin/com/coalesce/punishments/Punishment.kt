@@ -3,7 +3,8 @@ package com.coalesce.punishments
 import com.coalesce.Bot
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.MessageBuilder
-import net.dv8tion.jda.core.entities.Channel
+import net.dv8tion.jda.core.entities.Member
+import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
 import org.json.JSONArray
@@ -12,7 +13,7 @@ import java.awt.Color
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Punishment(val reason: Reason, val by: String, val description: String?) {
+class Punishment(val reason: Reason, val punisher: User, val by: String, val description: String?) {
     val json = JSONObject()
 
     init {
@@ -50,26 +51,49 @@ class Punishment(val reason: Reason, val by: String, val description: String?) {
         return pastPunishments
     }
 
-    fun createPunishment(severity: Int, amount: Int, user: User, channel: MessageChannel){
+    fun message(user: User, channel: MessageChannel, embedBuilder: EmbedBuilder, warning: Boolean, untilString: String?, amount: Int) {
+
+        if(warning) embedBuilder.setTitle("⚠ You have received a warning for breaking the rules. ⚠", null)
+        else embedBuilder.setTitle("🚫 You have been muted for breaking the rules. 🚫", null)
+
+        val message = StringBuilder()
+
+        message.append("Reason: " + reason.description + "\n")
+        if(description != null) message.append("Description: $description\n")
+        if(untilString != null) message.append("Until: $untilString\n")
+        message.append("Please refer to <#269178364483338250> before chatting.\n")
+        message.append("Repeat offense of the rules will lead to harsher punishments.\n")
+        message.append("You have $amount punishments in record.")
+
+        var msg = MessageBuilder().setEmbed(embedBuilder.build()).append(user.asMention).build()
+        channel.sendMessage(msg).queue()
+
+        val serverLogChannel = Bot.instance.jda.getTextChannelById("299385639437074433")
+        val serverLogEmbedBuilder = EmbedBuilder()
+
+        serverLogEmbedBuilder.setAuthor(by, null, punisher.avatarUrl)
+        serverLogEmbedBuilder.setColor(Color(255, 64, 64))
+
+        var punishmentShort = "Warning"
+        if(!warning)
+            if(untilString == null) punishmentShort = "Muted permanently"
+            else punishmentShort = "Muted until $untilString"
+        serverLogEmbedBuilder.addField("Punishment", punishmentShort, true)
+        serverLogEmbedBuilder.addField("Reason", reason.description, true)
+
+        serverLogEmbedBuilder.setTimestamp(msg.creationTime)
+
+        var serverLogMsg = MessageBuilder().setEmbed(serverLogEmbedBuilder.build()).build()
+        serverLogChannel.sendMessage(serverLogMsg).queue()
+
+    }
+
+    fun createPunishment(severity: Int, amount: Int, user: User, channel: MessageChannel) {
         val embedBuilder = EmbedBuilder()
         val punishmentTime = PunishmentTimes.values()[severity]
 
         if(punishmentTime.timeUnit < 0){
-            //Create Warning
-            embedBuilder.setTitle("⚠ You have received a warning for breaking the rules. ⚠", null)
-
-            val message = StringBuilder()
-
-            message.append("Reason: " + reason.description + "\n")
-            if(description != null) message.append("Description: $description\n")
-            message.append("Please refer to <#269178364483338250> before chatting.\n")
-            message.append("Repeat offense of the rules will lead to harsher punishments.")
-
-            embedBuilder.setColor(Color(255, 221, 0))
-            embedBuilder.setDescription(message.toString())
-
-            var msg = MessageBuilder().setEmbed(embedBuilder.build()).append(user.asMention).build()
-            channel.sendMessage(msg).queue()
+            message(user, channel, embedBuilder, true, null, amount)
         }else{
             //Muting
             val guild = Bot.instance.jda.getGuildById("268187052753944576") //Idk how to get it from the channel don't judge me
@@ -77,28 +101,17 @@ class Punishment(val reason: Reason, val by: String, val description: String?) {
             val role = guild.getRoleById("303317692608282625")
             guild.controller.addRolesToMember(member, role)
 
-            //TODO Make the mute temporary
-
             //Create Mute Message
-            embedBuilder.setTitle("🚫 You have been muted for breaking the rules. 🚫", null)
+            var untilString : String? = null
+            if(punishmentTime.timeUnit != 0) {
+                val calendar = Calendar.getInstance()
+                calendar.add(punishmentTime.timeUnit, punishmentTime.time)
+                untilString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calendar.time)
 
-            val calendar = Calendar.getInstance()
-            calendar.add(punishmentTime.timeUnit, punishmentTime.time)
-            val untilString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calendar.time)
+                Timer().schedule(PTimerTask(guild, member, role), calendar.timeInMillis);
+            }
 
-            val message = StringBuilder()
-
-            message.append("Reason: " + reason.description + "\n")
-            message.append("Until: $untilString\n")
-            if(description != null) message.append("Description: $description\n")
-            message.append("Please refer to <#269178364483338250> before chatting.\n")
-            message.append("Repeat offense of the rules will lead to harsher punishments.")
-
-            embedBuilder.setColor(Color(255, 221, 0))
-            embedBuilder.setDescription(message.toString())
-
-            var msg = MessageBuilder().setEmbed(embedBuilder.build()).append(user.asMention).build()
-            channel.sendMessage(msg).queue()
+            message(user, channel, embedBuilder, false, untilString, amount)
         }
     }
 }
