@@ -99,7 +99,7 @@ class Punishment(val reason: Reason, val punisher: User, val by: String, val des
             val guild = Bot.instance.jda.getGuildById("268187052753944576") //Idk how to get it from the channel don't judge me
             val member = guild.getMember(user)
             val role = guild.getRoleById("303317692608282625")
-            guild.controller.addRolesToMember(member, role)
+            guild.controller.addRolesToMember(member, role).queue()
 
             //Create Mute Message
             var untilString : String? = null
