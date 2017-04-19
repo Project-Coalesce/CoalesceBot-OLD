@@ -30,7 +30,7 @@ class Bot {
         val data = File(DATA_DIRECTORY, "data.json")
         if (data.exists()) {
             data.reader().use {
-                respectsLastUse = Constants.GSON.fromJson(it, mapOf<String, Any?>()::class.java)["respectsLastUse"] as Float
+                respectsLastUse = (Constants.GSON.fromJson(it, mutableMapOf<String, Any?>()::class.java)["respectsLastUse"] as Double).toFloat()
             }
         }
         Runtime.getRuntime().addShutdownHook(Shutdown())
