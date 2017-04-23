@@ -20,11 +20,11 @@ class Help : CommandExecutor() {
         commandMap.entries.values.forEach { e ->
             if (!entries.contains(e)) {
                 entries.add(e)
-                mb.append(e.annotation.name).append(' ').append(e.annotation.usage).append(' ')
+                mb.append(if (e.annotation.name.equals("xD")) "xD" else e.annotation.name.capitalize()).append(' ').append(e.annotation.usage).append(' ')
                         .append(if (e.annotation.aliases.isEmpty())
                             ""
                         else
-                            Arrays.toString(e.annotation.aliases))
+                            Arrays.toString(e.annotation.aliases.map(String::capitalize)))
                         .append("\n")
             }
         }
