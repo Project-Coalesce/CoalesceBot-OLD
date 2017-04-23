@@ -24,7 +24,7 @@ class Help : CommandExecutor() {
                         .append(if (e.annotation.aliases.isEmpty())
                             ""
                         else
-                            Arrays.toString(e.annotation.aliases.map(String::capitalize)))
+                            Arrays.toString(e.annotation.aliases.flatMapTo(mutableListOf<String>(), { setOf(it.capitalize()) }).toTypedArray()))
                         .append("\n")
             }
         }
