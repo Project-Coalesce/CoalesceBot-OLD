@@ -8,6 +8,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.reflections.Reflections
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class CommandMap(private val bot: Bot) {
     internal val entries: MutableMap<String, CommandEntry> = mutableMapOf()
@@ -49,6 +50,8 @@ class CommandEntry internal constructor(clazz: Class<out CommandExecutor>, map: 
 
 class CommandListener : ListenerAdapter() {
     val commandMap = CommandMap(Bot.instance)
+    val cooldownBlock = TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS)
+    var lastBlock = System.currentTimeMillis() - cooldownBlock
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         var commandLine = event.message.rawContent
@@ -64,6 +67,18 @@ class CommandListener : ListenerAdapter() {
         }
         if (event.message.guild.selfMember.hasPermission(Permission.MESSAGE_MANAGE)) {
             event.message.delete().queue()
+        }
+        if (event.channel == event.guild.publicChannel && event.guild.idLong == 268187052753944576L) {
+            if (event.guild.getTextChannelById(301114815596855297L) != null) {
+                if (System.currentTimeMillis() >= (lastBlock + cooldownBlock)) {
+                    event.channel.sendMessage(MessageBuilder().append(event.message.author).appendFormat(": Use the channel %s\n%s", event.guild.getTextChannelById(301114815596855297L).asMention,
+                            "https://cdn.discordapp.com/attachments/268187052753944576/305747595215765504/18034176_312913882456314_8270435912214209153_n.png").build()).queue {
+                        it.delete().queueAfter(10, TimeUnit.SECONDS)
+                    }
+                    lastBlock = System.currentTimeMillis()
+                }
+            }
+            return
         }
         val cmd = parts[0].toLowerCase()
         val entry = commandMap[cmd] ?: run {
