@@ -5,15 +5,17 @@ import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
+import java.util.*
 
 @Command(name = "boi", aliases = arrayOf("njsblessing"), description = "Posts a boi meme into chat.", permission = "commands.boi")
 class Boi : CommandExecutor() {
+
+    val images = arrayOf("http://i.imgur.com/wBjEsAZ.jpg", "http://i.imgur.com/fhHuvIP.jpg", "http://i.imgur.com/k5BqbxH.jpg",
+            "http://i.imgur.com/2VeEUTS.jpg", "http://i.imgur.com/hOYMcij.jpg", "http://i.imgur.com/Hx06UHz.jpg", "http://i.imgur.com/DpLS3ZV.jpg",
+            "http://i.imgur.com/riXIKEq.jpg")
+    val random = Random()
+
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        throw CommandError(
-                if (message.author.name.matches("[0-9a-zA-Z]+".toRegex()))
-                    "http://i1.kym-cdn.com/photos/images/newsfeed/001/183/604/ee9.png"
-                else
-                    "http://i.imgur.com/hOYMcij.jpg"
-        )
+        throw CommandError(images[random.nextInt(images.size)])
     }
 }
