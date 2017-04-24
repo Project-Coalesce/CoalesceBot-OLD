@@ -7,7 +7,7 @@ import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.concurrent.ThreadLocalRandom
 
-@Command(name = "boi", aliases = arrayOf("njsblessing"), description = "Posts a boi meme into chat.", permission = "commands.boi")
+@Command(name = "boi", aliases = arrayOf("njsblessing"), description = "**breath in**... boi", permission = "commands.boi")
 class Boi : CommandExecutor() {
 
     val images = arrayOf("http://i.imgur.com/wBjEsAZ.jpg", "http://i.imgur.com/fhHuvIP.jpg", "http://i.imgur.com/k5BqbxH.jpg",
