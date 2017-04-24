@@ -5,7 +5,6 @@ import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
-import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 @Command(name = "boi", aliases = arrayOf("njsblessing"), description = "Posts a boi meme into chat.", permission = "commands.boi")
