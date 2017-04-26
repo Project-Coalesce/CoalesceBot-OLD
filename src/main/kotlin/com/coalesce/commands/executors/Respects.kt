@@ -19,10 +19,6 @@ class Respects : CommandExecutor() {
                 return
             }
         }
-        if (message.author.idLong == 197448151064379393L) {
-            channel.sendMessage("Cheaters are not allowed! Sorry... huehuehuehue")
-            return
-        }
         Bot.instance.respectsLastUse = System.currentTimeMillis().toFloat()
         channel.sendMessage("Respects have been paid!").queue { it.delete().queueAfter(1, TimeUnit.MINUTES) }
     }
