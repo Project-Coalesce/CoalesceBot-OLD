@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
-@Command(name = "Whois", aliases = arrayOf("tellmeabout", "whos", "who's"), usage = "[user]", description = "Tells you about the user specified or yourself if none.", permission = "commands.whois")
+@Command(name = "Whois", aliases = arrayOf("tellmeabout", "whos", "who's"), usage = "<user>", description = "Tells you about the user specified or yourself if none.", permission = "commands.whois")
 class Whois : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (args.size > 1) {
