@@ -3,7 +3,6 @@ package com.coalesce.commands.executors
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
-import com.coalesce.utils.Http.Companion.urlEncode
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.net.URL
@@ -27,7 +26,7 @@ class Definition : CommandExecutor() {
         }
         val phrase = args.copyOfRange(1, args.size).joinToString(separator = "+")
 
-        val url = URL("http://api.urbandictionary.com/v0/define?term=" + urlEncode(phrase))
+        val url = URL("http://api.urbandictionary.com/v0/define?term=" + phrase)
         val scanner = Scanner(url.openStream())
 
         val jsonString = ""
