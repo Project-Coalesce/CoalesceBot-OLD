@@ -12,6 +12,8 @@ import org.json.JSONObject
 import java.awt.Color
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class Punishment(val reason: Reason, val punisher: User, val by: String, val description: String?) {
     val json = JSONObject()
@@ -109,7 +111,9 @@ class Punishment(val reason: Reason, val punisher: User, val by: String, val des
                 untilString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calendar.time)
                 json.put("until", calendar.timeInMillis)
 
-                Timer().schedule(PTimerTask(guild, member, role), calendar.timeInMillis);
+                val executorService = Executors.newScheduledThreadPool(1)
+                executorService.schedule(PTimerTask(guild, member, role, executorService), System.currentTimeMillis() - calendar.timeInMillis,
+                        TimeUnit.MILLISECONDS)
             }
 
             message(user, channel, embedBuilder, false, untilString, amount)

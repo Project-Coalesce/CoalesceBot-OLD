@@ -19,8 +19,8 @@ class Punish : CommandExecutor() {
             return
         }
 
-        if(message.mentionedUsers.size != 0){
-            channel.sendMessage("You need to mention an user to use this command.").queue()
+        if(message.mentionedUsers.size != 1){
+            channel.sendMessage("You need to mention a user to use this command.").queue()
             return
         }
 

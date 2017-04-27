@@ -8,6 +8,9 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileWriter
 import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class PunishmentManager {
     val file = File(Constants.DATA_DIRECTORY, "punishment.json")
@@ -24,8 +27,10 @@ class PunishmentManager {
                     val guild = Bot.instance.jda.getGuildById("268187052753944576")
                     val member = guild.getMember(user)
                     val role = guild.getRoleById("303317692608282625")
-                    
-                    Timer().schedule(PTimerTask(guild, member, role), obj.getLong("until"));
+
+                    val executorService = Executors.newScheduledThreadPool(1)
+                    executorService.schedule(PTimerTask(guild, member, role, executorService), System.currentTimeMillis() - obj.getLong("until"),
+                            TimeUnit.MILLISECONDS)
                 }
             }
         }
@@ -42,7 +47,7 @@ class PunishmentManager {
 
     fun saveChanges(user: User, array: JSONArray) {
         var json = JSONObject()
-        if(file.exists()){
+        if (file.exists()) {
             json = JSONObject(file.readText())
             file.delete()
         }
