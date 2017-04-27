@@ -17,6 +17,7 @@ class Bot {
     lateinit var jda: JDA
     val executor: ExecutorService = Executors.newFixedThreadPool(6)
     var respectsLastUse: Float = -1f
+
     init {
         instance = this
     }
