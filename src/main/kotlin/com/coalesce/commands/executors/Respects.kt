@@ -11,7 +11,7 @@ import java.io.FileReader
 import java.io.FileWriter
 import java.util.concurrent.TimeUnit
 
-@Command(name = "Respects", aliases = arrayOf("f", "nahusdream"), description = "Press F to pay respects", permission = "commands.respects")
+@Command(name = "Respects", aliases = arrayOf("f", "nahusdream"), description = "Meme command (Press F to pay respects)", permission = "commands.respects")
 class Respects : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (Bot.instance.respectsLastUse != -1f) {

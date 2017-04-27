@@ -10,7 +10,7 @@ import net.dv8tion.jda.core.entities.MessageChannel
 import java.awt.Color
 import java.util.*
 
-@Command(name = "help", description = "Show bot help", aliases = arrayOf("?", "h"), permission = "commands.help")
+@Command(name = "help", description = "Lists the commands", aliases = arrayOf("?", "h"), permission = "commands.help")
 class Help : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         val mb = MessageBuilder()

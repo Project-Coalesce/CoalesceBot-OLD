@@ -7,7 +7,7 @@ import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.concurrent.TimeUnit
 
-@Command(name = "enough", aliases = arrayOf("proxisreaction"), description = "I think you've had enough!", permission = "commands.enough")
+@Command(name = "enough", aliases = arrayOf("proxisreaction"), description = "Meme Command (I think you've had enough!)", permission = "commands.enough")
 class Enough : CommandExecutor() {
     val timeout = TimeUnit.MILLISECONDS.convert(20, TimeUnit.SECONDS)
     var lastUsed : Long = 0

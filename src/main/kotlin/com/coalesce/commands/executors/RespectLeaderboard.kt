@@ -15,7 +15,7 @@ import java.io.FileReader
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-@Command(name = "Respects Leaderboard", aliases = arrayOf("fboard", "leaderboard", "lboard"), description = "Press l to view leaderboard", permission = "commands.respectLeaderboard")
+@Command(name = "Respects Leaderboard", aliases = arrayOf("fboard", "leaderboard", "lboard"), description = "Shows the respect command (!f) leaderboard", permission = "commands.respectLeaderboard")
 class RespectLeaderboard : CommandExecutor() {
     val timeout = TimeUnit.MILLISECONDS.convert(20, TimeUnit.SECONDS)
     var lastUsed : Long = 0

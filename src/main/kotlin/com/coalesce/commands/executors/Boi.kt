@@ -8,7 +8,7 @@ import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
 
-@Command(name = "boi", aliases = arrayOf("njsblessing"), description = "**breath in**... boi", permission = "commands.boi")
+@Command(name = "boi", aliases = arrayOf("njsblessing", "boi"), description = "Meme command (**breath in**... boi)", permission = "commands.boi")
 class Boi : CommandExecutor() {
     val timeout = TimeUnit.MILLISECONDS.convert(20, TimeUnit.SECONDS)
     var lastUsed : Long = 0
