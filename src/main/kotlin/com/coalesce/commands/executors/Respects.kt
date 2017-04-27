@@ -10,7 +10,6 @@ import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 @Command(name = "Respects", aliases = arrayOf("f", "nahusdream"), description = "Press F to pay respects", permission = "commands.respects")
 class Respects : CommandExecutor() {
