@@ -2,6 +2,7 @@ package com.coalesce
 
 import com.coalesce.Constants.DATA_DIRECTORY
 import com.coalesce.commands.CommandListener
+import com.coalesce.punishments.PunishmentManager
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.JDABuilder
@@ -17,6 +18,8 @@ class Bot {
     lateinit var jda: JDA
     val executor: ExecutorService = Executors.newFixedThreadPool(6)
     var respectsLastUse: Float = -1f
+    val manager = PunishmentManager()
+
     init {
         instance = this
     }

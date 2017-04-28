@@ -23,7 +23,7 @@ class PunishmentManager {
                 val user = Bot.instance.jda.getUserById(it.key)
                 val obj = JSONObject(it.value)
 
-                if(System.currentTimeMillis() < obj.getLong("until")) {
+                if (System.currentTimeMillis() < obj.getLong("until")) {
                     val guild = Bot.instance.jda.getGuildById("268187052753944576")
                     val member = guild.getMember(user)
                     val role = guild.getRoleById("303317692608282625")

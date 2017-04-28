@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit
 @Command(name = "Definition",
         aliases = arrayOf("define", "dictionary"),
         usage = "<phrase>",
-        description = "Need a definition? Ask me!",
+        description = "Defines a word or phrase with Urban Dictionary.",
         permission = "command.definition")
 class Definition : CommandExecutor() {
 

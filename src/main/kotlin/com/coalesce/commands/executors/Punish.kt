@@ -8,11 +8,10 @@ import com.coalesce.punishments.PunishmentManager
 import com.coalesce.punishments.Reason
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
+import java.util.*
 
 @Command(name = "Punish", permission = "commands.punish", description = "Automatically creates a punishment and server logs it")
 class Punish : CommandExecutor() {
-    val manager = PunishmentManager()
-
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if(!message.guild.getMember(message.author).roles.contains(Bot.instance.jda.getRoleById("268239031467376640"))){
             channel.sendMessage("You lack permission to use this command.").queue()
@@ -42,12 +41,16 @@ class Punish : CommandExecutor() {
         }
 
         var description : String? = null
-        if(args.size > 2) description = args[2]
+        if (args.size > 2) {
+            val desc = StringBuilder()
+            Arrays.asList(args).subList(2, args.size).forEach { desc.append(it + " ") }
+            description = desc.toString()
+        }
 
-        val history = manager.findPunishments(message.author)
+        val history = Bot.instance.manager.findPunishments(message.author)
         val punishment = Punishment(reason, message.author, message.author.id, description)
 
         val newHistory = punishment.doActUpon(history, user, channel)
-        manager.saveChanges(user, newHistory)
+        Bot.instance.manager.saveChanges(user, newHistory)
     }
 }
