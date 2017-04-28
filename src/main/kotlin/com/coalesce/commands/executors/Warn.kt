@@ -3,17 +3,16 @@ package com.coalesce.commands.executors
 import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.punishments.ForcedPunishment
 import com.coalesce.punishments.Punishment
-import com.coalesce.punishments.PunishmentManager
-import com.coalesce.punishments.Reason
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.*
 
-@Command(name = "Punish", permission = "commands.punish", description = "Automatically creates a punishment and server logs it")
-class Punish : CommandExecutor() {
+@Command(name = "Warn", permission = "commands.warn", description = "Allows for warning a user")
+class Warn : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        if(!message.guild.getMember(message.author).roles.contains(Bot.instance.jda.getRoleById("268239031467376640"))){
+        if (!message.guild.getMember(message.author).roles.contains(Bot.instance.jda.getRoleById("268239031467376640"))) {
             channel.sendMessage("You lack permission to use this command.").queue()
             return
         }
@@ -23,22 +22,11 @@ class Punish : CommandExecutor() {
             return
         }
 
-        if(args.size < 2){
-            channel.sendMessage("Invalid usage, proper usage is: !punish <mention> <reason> [description]").queue()
+        if(args.isEmpty()){
+            channel.sendMessage("Invalid usage, proper usage is: !warn <mention> [description]").queue()
             return
         }
-
         val user = message.mentionedUsers[0]
-        var reason : Reason
-        try {
-            reason = Reason.valueOf(args[1])
-        } catch (e: Exception) {
-            val errorMessages = StringBuilder()
-            Reason.values().forEach { errorMessages.append(it.toString() + " (" + it.description + " | Severity " + it.severity + ") ") }
-
-            channel.sendMessage("That reason does not exist. Here's a list of valid reasons:\n" + errorMessages.toString()).queue()
-            return
-        }
 
         var description : String? = null
         if (args.size > 2) {
@@ -48,7 +36,7 @@ class Punish : CommandExecutor() {
         }
 
         val history = Bot.instance.manager.findPunishments(message.author)
-        val punishment = Punishment(reason, message.author, message.author.id, description)
+        val punishment = ForcedPunishment(true, null, message.author, message.author.id, description)
 
         val newHistory = punishment.doActUpon(history, user, channel)
         Bot.instance.manager.saveChanges(user, newHistory)
