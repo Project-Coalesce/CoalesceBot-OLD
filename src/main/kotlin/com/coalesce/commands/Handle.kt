@@ -89,7 +89,7 @@ class CommandListener : ListenerAdapter() {
 
                 embedBuilder.setColor(Color(232, 46, 0))
                 embedBuilder.setTitle("Error", null)
-                embedBuilder.setDescription("An error occured while trying to handle that command:\n${e.javaClass.name}: ${e.message}")
+                embedBuilder.setDescription("An error occured while trying to handle that command:\n${ex.javaClass.name}: ${ex.message}")
 
                 event.message.editMessage(embedBuilder.build()).queue()
             } catch (e: Exception) {}
