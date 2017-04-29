@@ -2,11 +2,13 @@ package com.coalesce.commands
 
 import com.coalesce.Bot
 import com.coalesce.Constants
+import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.reflections.Reflections
+import java.awt.Color
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -81,6 +83,16 @@ class CommandListener : ListenerAdapter() {
             }
             println("An error occurred while executing command $cmd")
             ex.printStackTrace()
+
+            try {
+                val embedBuilder = EmbedBuilder()
+
+                embedBuilder.setColor(Color(232, 46, 0))
+                embedBuilder.setTitle("Error", null)
+                embedBuilder.setDescription("An error occured while trying to handle that command:\n${ex.javaClass.name}: ${ex.message}")
+
+                event.message.editMessage(embedBuilder.build()).queue()
+            } catch (e: Exception) {}
         }
     }
 }
