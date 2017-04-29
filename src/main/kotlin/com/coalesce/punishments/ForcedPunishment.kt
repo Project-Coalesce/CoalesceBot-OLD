@@ -42,6 +42,8 @@ class ForcedPunishment(val warning: Boolean, val until: Calendar?, val punisher:
         message.append("Please refer to <#269178364483338250> before chatting.\n")
         message.append("Repeat offense of the rules will lead to harsher punishments.")
 
+        embedBuilder.setDescription(message.toString())
+
         var msg = MessageBuilder().setEmbed(embedBuilder.build()).append(user.asMention).build()
         channel.sendMessage(msg).queue()
 

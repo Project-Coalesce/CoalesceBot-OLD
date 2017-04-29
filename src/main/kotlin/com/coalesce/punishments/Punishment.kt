@@ -67,6 +67,8 @@ class Punishment(val reason: Reason, val punisher: User, val by: String, val des
         message.append("Repeat offense of the rules will lead to harsher punishments.\n")
         message.append("You have $amount punishments in record.")
 
+        embedBuilder.setDescription(message.toString())
+        
         var msg = MessageBuilder().setEmbed(embedBuilder.build()).append(user.asMention).build()
         channel.sendMessage(msg).queue()
 
