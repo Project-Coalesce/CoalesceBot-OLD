@@ -21,6 +21,6 @@ class Boi : CommandExecutor() {
         if(System.currentTimeMillis() - lastUsed > timeout){
             lastUsed = System.currentTimeMillis()
             throw CommandError(images[ThreadLocalRandom.current().nextInt(images.size)])
-        }else throw CommandError("This command is in cooldown for " + TimeUnit.SECONDS.convert(System.currentTimeMillis() - lastUsed, TimeUnit.MILLISECONDS) + " seconds.")
+        }else throw CommandError("This command is in cooldown for " + TimeUnit.SECONDS.convert(lastUsed - System.currentTimeMillis(), TimeUnit.MILLISECONDS) + " seconds.")
     }
 }

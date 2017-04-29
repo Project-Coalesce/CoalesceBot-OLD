@@ -29,14 +29,14 @@ class Definition : CommandExecutor() {
         val url = URL("http://api.urbandictionary.com/v0/define?term=" + phrase)
         val scanner = Scanner(url.openStream())
 
-        val jsonString = ""
-        while (scanner.hasNext()) {
-            jsonString.plus(scanner.next() + " ")
+        val jsonString = StringBuilder()
+        while (scanner.hasNextLine()) {
+            jsonString.append(scanner.nextLine())
         }
         scanner.close()
 
         val gson = GsonBuilder().create()
-        val json = gson.fromJson(jsonString, JsonElement::class.java).asJsonObject
+        val json = gson.fromJson(jsonString.toString(), JsonElement::class.java).asJsonObject
 
         if (json.get("result_type").asString == "no_results") {
             throw CommandError("No results found for %s", phrase)
@@ -44,9 +44,9 @@ class Definition : CommandExecutor() {
 
         val result = json.get("list").asJsonArray.get(0).asJsonObject
         val builder = EmbedBuilder().setColor(Color.BLUE).setAuthor(message.author.name, null, message.author.avatarUrl)
+                .setTitle("Urban Dictionary Definition", result.get("permalink").asString)
                 .addField("Word", result.get("word").asString, true)
                 .addField("Definition", result.get("definition").asString, true)
-                .addField("Permalink", result.get("permalink").asString, true)
         channel.sendMessage(builder.build()).queue { it.delete().queueAfter(1, TimeUnit.MINUTES) }
     }
 }
