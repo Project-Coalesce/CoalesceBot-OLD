@@ -21,10 +21,10 @@ import java.util.concurrent.TimeUnit
 class Definition : CommandExecutor() {
 
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        if (args.size < 1) {
+        if (args.isEmpty()) {
             throw CommandError("Please follow the correct syntax: %s", annotation.usage)
         }
-        val phrase = args.copyOfRange(1, args.size).joinToString(separator = "+")
+        val phrase = args.joinToString(separator = "+")
 
         val url = URL("http://api.urbandictionary.com/v0/define?term=" + phrase)
         val scanner = Scanner(url.openStream())
