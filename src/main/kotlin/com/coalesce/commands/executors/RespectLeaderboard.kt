@@ -5,13 +5,13 @@ import com.coalesce.Constants
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
-import com.google.gson.Gson
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
+import org.json.JSONObject
 import java.io.File
-import java.io.FileReader
+import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -28,11 +28,11 @@ class RespectLeaderboard : CommandExecutor() {
             val leaderboard = File(Constants.DATA_DIRECTORY, "leaderboard.json")
             if (!leaderboard.exists()) throw CommandError("Sadly nobody paid respects yet.")
 
-            val respectLeaderboardJSON = Constants.GSON.fromJson(FileReader(leaderboard), mutableMapOf<String, Any?>()::class.java)
+            val respectLeaderboardJSON = JSONObject(leaderboard.readText(Charset.forName("UTF-8")))
             var respectLeaderboard : MutableList<User> = ArrayList()
 
-            respectLeaderboardJSON.forEach({ k, v -> respectLeaderboard.add(Bot.instance.jda.getUserById(k)) })
-            Collections.sort(respectLeaderboard, { o1, o2 -> respectLeaderboardJSON[o1.id] as Int - respectLeaderboardJSON[o2.id] as Int })
+            respectLeaderboardJSON.toMap().forEach({ k, v -> respectLeaderboard.add(Bot.instance.jda.getUserById(k)) })
+            Collections.sort(respectLeaderboard, { o1, o2 -> respectLeaderboardJSON.getInt(o1.id) - respectLeaderboardJSON.getInt(o2.id) })
             if(respectLeaderboard.size > 10) respectLeaderboard = respectLeaderboard.subList(0, 10)
 
             val builder = EmbedBuilder()
@@ -44,13 +44,11 @@ class RespectLeaderboard : CommandExecutor() {
             respectLeaderboard.forEach {
                 positionStr.append("#$pos\n")
                 nameStr.append("${it.name}\n")
-                respectsPaidStr.append("${respectLeaderboardJSON[it.id] as Int}\n")
+                respectsPaidStr.append("${respectLeaderboardJSON.getInt(it.id)}\n")
                 pos ++
             }
 
-            builder.addField("Position", positionStr.toString(), true)
-            builder.addField("Name", nameStr.toString(), true)
-            builder.addField("Respects", respectsPaidStr.toString(), true)
+            builder.addField("Position", positionStr.toString(), true).addField("Name", nameStr.toString(), true).addField("Respects", respectsPaidStr.toString(), true)
 
             channel.sendMessage(builder.build()).queue { it.delete().queueAfter(15, TimeUnit.SECONDS) }
         }else throw CommandError("This command is in cooldown for " + TimeUnit.SECONDS.convert(System.currentTimeMillis() - lastUsed, TimeUnit.MILLISECONDS) + " seconds.")
