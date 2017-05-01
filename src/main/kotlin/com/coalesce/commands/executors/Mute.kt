@@ -16,18 +16,18 @@ class Mute : CommandExecutor() {
             return
         }
 
-        if(message.mentionedUsers.size != 1){
+        if (message.mentionedUsers.size != 1) {
             channel.sendMessage("You need to mention a user to use this command.").queue()
             return
         }
 
-        if(args.size < 2){
+        if (args.size < 2) {
             channel.sendMessage("Invalid usage, proper usage is: !mute <mention> <time> [description]").queue()
             return
         }
         val user = message.mentionedUsers[0]
 
-        var description : String? = null
+        var description: String? = null
         if (args.size > 2) {
             val desc = StringBuilder()
             Arrays.asList(args).subList(2, args.size).forEach { desc.append(it + " ") }
@@ -39,14 +39,14 @@ class Mute : CommandExecutor() {
             time = null
         } else {
             val arg = args[1]
-            var timeUnit : Int = Calendar.DAY_OF_MONTH
+            var timeUnit: Int = Calendar.DAY_OF_MONTH
             val timeAdd = Integer.parseInt(arg.substring(0, arg.length - 1))
 
-            if(arg.endsWith("h")) timeUnit = Calendar.HOUR
-            else if(arg.endsWith("m")) timeUnit = Calendar.MINUTE
-            else if(arg.endsWith("s")) timeUnit = Calendar.SECOND
-            else if(arg.endsWith("w")) timeUnit = Calendar.WEEK_OF_MONTH
-            else if(arg.endsWith("M")) timeUnit = Calendar.MONTH
+            if (arg.endsWith("h")) timeUnit = Calendar.HOUR
+            else if (arg.endsWith("m")) timeUnit = Calendar.MINUTE
+            else if (arg.endsWith("s")) timeUnit = Calendar.SECOND
+            else if (arg.endsWith("w")) timeUnit = Calendar.WEEK_OF_MONTH
+            else if (arg.endsWith("M")) timeUnit = Calendar.MONTH
 
             time.add(timeUnit, timeAdd)
         }
