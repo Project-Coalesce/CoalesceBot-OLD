@@ -29,7 +29,7 @@ class Respects : CommandExecutor() {
         val leaderboard = File(Constants.DATA_DIRECTORY, "leaderboard.json")
         if (!leaderboard.parentFile.exists()) leaderboard.parentFile.mkdirs()
         val respectLeaderboardJSON = mutableMapOf<String, Any?>()
-        if (leaderboard.exists()) Constants.GSON.fromJson(FileReader(leaderboard), respectLeaderboardJSON::class.java)
+        if (leaderboard.exists()) respectLeaderboardJSON.putAll(Constants.GSON.fromJson(FileReader(leaderboard), respectLeaderboardJSON::class.java))
 
         val id = message.author.id
         if (respectLeaderboardJSON.containsKey(id)) respectLeaderboardJSON[id] = respectLeaderboardJSON[id] as Int + 1
