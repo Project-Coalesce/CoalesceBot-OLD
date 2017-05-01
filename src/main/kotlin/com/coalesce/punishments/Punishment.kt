@@ -3,8 +3,6 @@ package com.coalesce.punishments
 import com.coalesce.Bot
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.MessageBuilder
-import net.dv8tion.jda.core.entities.Member
-import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
 import org.json.JSONArray
@@ -69,7 +67,7 @@ class Punishment(val reason: Reason, val punisher: User, val by: String, val des
 
         embedBuilder.setDescription(message.toString())
         
-        var msg = MessageBuilder().setEmbed(embedBuilder.build()).append(user.asMention).build()
+        val msg = MessageBuilder().setEmbed(embedBuilder.build()).append(user.asMention).build()
         channel.sendMessage(msg).queue()
 
         val serverLogChannel = Bot.instance.jda.getTextChannelById("299385639437074433")
@@ -87,7 +85,7 @@ class Punishment(val reason: Reason, val punisher: User, val by: String, val des
 
         serverLogEmbedBuilder.setTimestamp(msg.creationTime)
 
-        var serverLogMsg = MessageBuilder().setEmbed(serverLogEmbedBuilder.build()).build()
+        val serverLogMsg = MessageBuilder().setEmbed(serverLogEmbedBuilder.build()).build()
         serverLogChannel.sendMessage(serverLogMsg).queue()
 
     }
