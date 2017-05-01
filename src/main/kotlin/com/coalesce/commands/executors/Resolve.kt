@@ -25,7 +25,7 @@ class Resolve : CommandExecutor() {
                 message.channel.sendTyping()
                 val resolved = getFinalUrl(url)
                 message.channel.sendMessage(EmbedBuilder().setColor(Color(0.0f, 0.5f, 0.0f)).addField("Receiver", message.author.asMention, true).addField("Resolved", resolved, true).build()).complete().delete().queueAfter(15, TimeUnit.SECONDS)
-            } catch (ex: IOException) {
+            } catch (ex: Exception) { // stop exceptions in console cause of their cancer shit
                 message.channel.sendMessage(EmbedBuilder().setColor(Color(0.5f, 0.0f, 0.0f)).addField("Receiver", message.author.asMention, true).addField("Error", "Couldn't resolve the URL", true).build()).complete().delete().queueAfter(10, TimeUnit.SECONDS)
             }
         })

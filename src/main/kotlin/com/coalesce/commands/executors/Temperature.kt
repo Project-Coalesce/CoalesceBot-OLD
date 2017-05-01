@@ -26,7 +26,7 @@ class Temperature : CommandExecutor() {
                 .addField("Celsius", java.lang.Double.toString(TemperatureUnit.CELSIUS.convert(temp, unit)) + 'C', true)
                 .addField("Kelvin", java.lang.Double.toString(TemperatureUnit.KELVIN.convert(temp, unit)) + 'K', true)
                 .addField("Fahrenheit", java.lang.Double.toString(TemperatureUnit.FAHRENHEIT.convert(temp, unit)) + 'F', true)
-                .build()).queue { it.delete().queueAfter(15, TimeUnit.SECONDS )}
+                .build()).queue { it.delete().queueAfter(15, TimeUnit.SECONDS) }
     }
 
     private fun getUnit(string: String): TemperatureUnit? {

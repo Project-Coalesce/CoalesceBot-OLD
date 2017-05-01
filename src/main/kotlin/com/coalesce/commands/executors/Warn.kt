@@ -4,7 +4,6 @@ import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.punishments.ForcedPunishment
-import com.coalesce.punishments.Punishment
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.*
@@ -17,18 +16,18 @@ class Warn : CommandExecutor() {
             return
         }
 
-        if(message.mentionedUsers.size != 1){
+        if (message.mentionedUsers.size != 1) {
             channel.sendMessage("You need to mention a user to use this command.").queue()
             return
         }
 
-        if(args.isEmpty()){
+        if (args.isEmpty()) {
             channel.sendMessage("Invalid usage, proper usage is: !warn <mention> [description]").queue()
             return
         }
         val user = message.mentionedUsers[0]
 
-        var description : String? = null
+        var description: String? = null
         if (args.size > 1) {
             val desc = StringBuilder()
             Arrays.asList(args).subList(1, args.size).forEach { desc.append(it + " ") }
