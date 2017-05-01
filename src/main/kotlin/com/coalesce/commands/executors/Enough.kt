@@ -15,7 +15,7 @@ class Enough : CommandExecutor() {
     var lastUsed: Long = -1
 
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        if (lastUsed == -1.toLong() || (System.currentTimeMillis() + timeout) >= lastUsed) {
+        if (lastUsed == -1.toLong() || (System.currentTimeMillis() - timeout) >= lastUsed) {
             lastUsed = System.currentTimeMillis()
             throw CommandError(
                     "http://i1.kym-cdn.com/photos/images/newsfeed/000/917/654/8a4.jpg"

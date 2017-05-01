@@ -14,7 +14,7 @@ class Rules : CommandExecutor() {
     private var lastUse = -1f
 
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        if (lastUse == -1f || (System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(20)) >= lastUse) {
+        if (lastUse == -1f || (System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(20)) >= lastUse) {
             channel.sendMessage(MessageBuilder().append(message.author).appendFormat(": Ptssss, you... Head over to %s\n%s", "<#269178364483338250>",
                     "http://i.imgur.com/B50EQKp.png").build()).queue { it.delete().queueAfter(15, TimeUnit.SECONDS) }
             lastUse = System.currentTimeMillis().toFloat()

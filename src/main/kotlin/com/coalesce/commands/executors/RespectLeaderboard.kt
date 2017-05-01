@@ -23,7 +23,7 @@ class RespectLeaderboard : CommandExecutor() {
     var lastUsed: Long = -1
 
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        if (lastUsed == -1.toLong() || (System.currentTimeMillis() + timeout) >= lastUsed) {
+        if (lastUsed == -1.toLong() || (System.currentTimeMillis() - timeout) >= lastUsed) {
             lastUsed = System.currentTimeMillis()
 
             // Reading
