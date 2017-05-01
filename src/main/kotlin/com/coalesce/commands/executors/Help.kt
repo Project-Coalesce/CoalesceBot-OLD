@@ -20,7 +20,7 @@ class Help : CommandExecutor() {
         commandMap.entries.values.forEach { e ->
             if (!entries.contains(e)) {
                 entries.add(e)
-                mb.append(if (e.annotation.name.equals("xD")) "xD" else e.annotation.name.capitalize()).append(' ').append(e.annotation.usage).append(' ')
+                mb.append(if (e.annotation.name.equals("xD", false)) "xD" else e.annotation.name.capitalize()).append(' ').append(e.annotation.usage).append(' ')
                         .append(if (e.annotation.aliases.isEmpty())
                             ""
                         else

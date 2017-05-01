@@ -18,6 +18,6 @@ class Enough : CommandExecutor() {
             throw CommandError(
                     "http://i1.kym-cdn.com/photos/images/newsfeed/000/917/654/8a4.jpg"
             )
-        }else throw CommandError("This command is in cooldown for " + TimeUnit.SECONDS.convert(lastUsed - System.currentTimeMillis(), TimeUnit.MILLISECONDS) + " seconds.")
+        }else throw CommandError("This command is in cooldown for " + TimeUnit.SECONDS.convert(System.currentTimeMillis() - lastUsed, TimeUnit.MILLISECONDS) + " seconds.")
     }
 }

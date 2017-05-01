@@ -16,6 +16,6 @@ class Hillary : CommandExecutor() {
         if(System.currentTimeMillis() - lastUsed > timeout){
             lastUsed = System.currentTimeMillis()
             throw CommandError("https://img.ifcdn.com/images/52044d8cf149969d9c481f9c3cbaff58c888477271180ebff107fd1d1b974a3f_1.jpg")
-        }else throw CommandError("This command is in cooldown for " + TimeUnit.SECONDS.convert(lastUsed - System.currentTimeMillis(), TimeUnit.MILLISECONDS) + " seconds.")
+        }else throw CommandError("This command is in cooldown for " + TimeUnit.SECONDS.convert(System.currentTimeMillis() - lastUsed, TimeUnit.MILLISECONDS) + " seconds.")
     }
 }
