@@ -15,7 +15,7 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-@Command(name = "Respects Leaderboard", aliases = arrayOf("fboard", "leaderboard", "lboard"), description = "Shows the respect command (!f) leaderboard", permission = "commands.respectLeaderboard")
+@Command(name = "RespectsLeaderboard", aliases = arrayOf("fboard", "leaderboard", "lboard"), description = "Shows the respect command (!f) leaderboard", permission = "commands.respectLeaderboard")
 class RespectLeaderboard : CommandExecutor() {
     val timeout = TimeUnit.MILLISECONDS.convert(20, TimeUnit.SECONDS)
     var lastUsed : Long = 0
@@ -31,7 +31,7 @@ class RespectLeaderboard : CommandExecutor() {
             val respectLeaderboardJSON = JSONObject(leaderboard.readText(Charset.forName("UTF-8")))
             var respectLeaderboard : MutableList<User> = ArrayList()
 
-            respectLeaderboardJSON.toMap().forEach({ k, v -> respectLeaderboard.add(Bot.instance.jda.getUserById(k)) })
+            respectLeaderboardJSON.toMap().forEach({ k, _ -> respectLeaderboard.add(Bot.instance.jda.getUserById(k)) })
             Collections.sort(respectLeaderboard, { o1, o2 -> respectLeaderboardJSON.getInt(o1.id) - respectLeaderboardJSON.getInt(o2.id) })
             if(respectLeaderboard.size > 10) respectLeaderboard = respectLeaderboard.subList(0, 10)
 
