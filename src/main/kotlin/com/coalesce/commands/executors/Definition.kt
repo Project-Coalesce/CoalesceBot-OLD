@@ -48,7 +48,7 @@ class Definition : CommandExecutor() {
                     .setTitle("Urban Dictionary Definition", result.get("permalink").asString)
                     .addField("Word", result.get("word").asString, true)
                     .addField("Definition", result.get("definition").asString, true)
-            channel.sendMessage(builder.build()).queue { it.delete().queueAfter(15, TimeUnit.SECONDS) }
+            channel.sendMessage(builder.build()).queue { it.delete().queueAfter(35, TimeUnit.SECONDS) }
         }
     }
 }
