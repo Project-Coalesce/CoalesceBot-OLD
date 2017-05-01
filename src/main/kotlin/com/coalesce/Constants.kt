@@ -1,6 +1,5 @@
 package com.coalesce
 
-import com.coalesce.utils.Http
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.io.File
