@@ -18,7 +18,7 @@ class Bot {
     lateinit var jda: JDA
     val executor: ExecutorService = Executors.newFixedThreadPool(6)
     var respectsLastUse: Float = -1f
-    val manager = PunishmentManager()
+    lateinit var manager: PunishmentManager
 
     init {
         instance = this
@@ -36,11 +36,14 @@ class Bot {
                 respectsLastUse = (Constants.GSON.fromJson(it, mutableMapOf<String, Any?>()::class.java)["respectsLastUse"] as Double).toFloat()
             }
         }
+
         Runtime.getRuntime().addShutdownHook(Shutdown())
         jda = JDABuilder(AccountType.BOT).setAudioEnabled(false).setCorePoolSize(4).setToken(token).buildBlocking()
         jda.guilds.map { it.publicChannel }.filter { it.canTalk() }.forEach { it.sendMessage("The bot is now enabled and ready for user input.").queue { it.delete().queueAfter(5, TimeUnit.SECONDS) } }
 
         jda.presence.game = Game.of("under the blanket...")
+
+        manager = PunishmentManager()
 
         jda.addEventListener(CommandListener())
     }
