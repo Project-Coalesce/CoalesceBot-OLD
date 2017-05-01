@@ -23,7 +23,7 @@ class RespectLeaderboard : CommandExecutor() {
     var lastUsed: Long = -1
 
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        if (lastUsed == -1.toLong() || (System.currentTimeMillis() + timeout) <= lastUsed) {
+        if (lastUsed == -1.toLong() || (System.currentTimeMillis() + timeout) >= lastUsed) {
             lastUsed = System.currentTimeMillis()
 
             // Reading
@@ -53,6 +53,6 @@ class RespectLeaderboard : CommandExecutor() {
             builder.addField("Position", positionStr.toString(), true).addField("Name", nameStr.toString(), true).addField("Respects", respectsPaidStr.toString(), true)
 
             channel.sendMessage(builder.build()).queue { it.delete().queueAfter(15, TimeUnit.SECONDS) }
-        } else throw CommandError("This command is in cooldown for ${BigDecimal(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastUsed)).setScale(2, RoundingMode.HALF_EVEN)} seconds.")
+        } else throw CommandError("This command is in cooldown for ${BigDecimal((Math.abs(lastUsed - System.currentTimeMillis())) * 1000).setScale(2, RoundingMode.HALF_EVEN)} seconds.")
     }
 }
