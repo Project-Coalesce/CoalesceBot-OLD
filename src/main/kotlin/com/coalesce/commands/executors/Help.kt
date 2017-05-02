@@ -11,10 +11,9 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Command(name = "help", description = "Lists the commands", aliases = arrayOf("?", "h"), permission = "commands.help",
-        globalCooldown = 5, type = CommandType.INFORMATION)
+        globalCooldown = 35, type = CommandType.INFORMATION)
 class Help : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-
         val embedBuilder = EmbedBuilder().setTitle("Help", null).setColor(Color.GREEN)
 
         val map = hashMapOf<CommandType, ArrayList<String>>().withDefault { arrayListOf() }
