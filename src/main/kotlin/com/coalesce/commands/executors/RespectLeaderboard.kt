@@ -17,7 +17,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Command(name = "RespectsLeaderboard", aliases = arrayOf("fboard", "leaderboard", "lboard"), description = "Shows the respect command (!f) leaderboard", permission = "commands.respectLeaderboard",
-        cooldown = 5,type = CommandType.FUN)
+        globalCooldown = 5, type = CommandType.FUN)
 class RespectLeaderboard : CommandExecutor() {
 
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {

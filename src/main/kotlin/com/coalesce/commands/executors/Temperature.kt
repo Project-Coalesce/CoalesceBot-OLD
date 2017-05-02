@@ -14,7 +14,7 @@ import java.awt.Color
 import java.util.concurrent.TimeUnit
 
 @Command(name = "temperature", aliases = arrayOf("temp"), description = "Converts to different temperatures.", usage = "<temp> <unit>", permission = "commands.temperature",
-        cooldown = 5, type = CommandType.INFORMATION)
+        userCooldown = 10, type = CommandType.INFORMATION)
 class Temperature : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (args.size != 2) {

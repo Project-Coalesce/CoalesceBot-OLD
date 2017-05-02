@@ -9,7 +9,7 @@ import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.concurrent.TimeUnit
 
 @Command(name = "Rules", aliases = arrayOf("Rulez"), permission = "commands.rules", description = "Shows the rules (Well not really)",
-        cooldown = 10,type = CommandType.INFORMATION)
+        globalCooldown = 10, type = CommandType.INFORMATION)
 class Rules : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         channel.sendMessage(MessageBuilder().append(message.author).appendFormat(": Ptssss, you... Head over to %s\n%s", "<#269178364483338250>",

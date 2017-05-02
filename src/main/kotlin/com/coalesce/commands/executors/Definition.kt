@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
         usage = "<phrase>",
         description = "Defines a word or phrase with Urban Dictionary.",
         permission = "command.definition",
-        cooldown = 5,
+        globalCooldown = 5,
         type = CommandType.INFORMATION)
 class Definition : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {

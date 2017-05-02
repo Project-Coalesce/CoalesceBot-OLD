@@ -15,7 +15,7 @@ import java.net.URL
 import java.util.concurrent.TimeUnit
 
 @Command(name = "Resolve", aliases = arrayOf("resolver", "url"), usage = "<url>", description = "Resolves URL shortened links.", permission = "commands.resolve",
-        cooldown = 5,type = CommandType.INFORMATION)
+        userCooldown = 15, type = CommandType.INFORMATION)
 class Resolve : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (args.isEmpty()) {
