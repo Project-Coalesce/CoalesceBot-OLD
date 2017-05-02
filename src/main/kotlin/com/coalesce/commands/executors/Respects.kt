@@ -27,9 +27,9 @@ class Respects : CommandExecutor() {
 
         val id = message.author.id
         if (respectLeaderboardJSON.containsKey(id)) {
-            respectLeaderboardJSON[id] = respectLeaderboardJSON[id] as Int + 1
+            respectLeaderboardJSON[id] = respectLeaderboardJSON[id] as Double + 1.0
         } else {
-            respectLeaderboardJSON[id] = 1
+            respectLeaderboardJSON[id] = 1.0
         }
 
         if (leaderboard.exists()) {

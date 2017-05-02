@@ -33,7 +33,7 @@ class RespectLeaderboard : CommandExecutor() {
         }
         val respects = mutableListOf<User>()
         leaderboardJson.forEach { key, _ -> respects.add(Bot.instance.jda.getUserById(key)) }
-        Collections.sort(respects, { first, second -> (leaderboardJson[first.id] as Int) - (leaderboardJson[second.id] as Int) })
+        Collections.sort(respects, { first, second -> (leaderboardJson[first.id] as Double).toInt() - (leaderboardJson[second.id] as Double).toInt() })
         if (respects.size > 10) {
             val back = mutableListOf<User>()
             back.addAll(respects)
@@ -49,7 +49,7 @@ class RespectLeaderboard : CommandExecutor() {
         respects.forEachIndexed { index, it ->
             positionStr.append("#${index + 1}\n")
             nameStr.append("${it.name}\n")
-            respectsPaidStr.append("${leaderboardJson[it.id] as Int}\n")
+            respectsPaidStr.append("${(leaderboardJson[it.id] as Double).toInt()}\n")
         }
 
         builder.addField("Position", positionStr.toString(), true).addField("Name", nameStr.toString(), true).addField("Respects", respectsPaidStr.toString(), true)
