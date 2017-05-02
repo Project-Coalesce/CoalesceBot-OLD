@@ -8,7 +8,7 @@ import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 
 @Command(name = "xD", aliases = arrayOf("bramsblessing", "eggsdee", "eggsd"), description = "Meme command (Eggs dee, boi.)", permission = "commands.eggsdee",
-        type = CommandType.FUN)
+        cooldown = 5,type = CommandType.FUN)
 class EggsDee : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         throw CommandError(":egg: :egg: :regional_indicator_d: :regional_indicator_e: :regional_indicator_e:")

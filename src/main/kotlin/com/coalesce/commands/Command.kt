@@ -14,7 +14,8 @@ annotation class Command(
         val usage: String = "",
         val description: String = "",
         val aliases: Array<String> = arrayOf(),
-        val type: CommandType
+        val type: CommandType,
+        val cooldown: Int = 0
 )
 
 class CommandError(message: String) : Exception(message) {

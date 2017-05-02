@@ -1,19 +1,17 @@
 package com.coalesce.commands.executors
 
 import com.coalesce.commands.Command
-import com.coalesce.commands.CommandEntry
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.EmbedBuilder
-import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.awt.Color
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 
-@Command(name = "help", description = "Lists the commands", aliases = arrayOf("?", "h"), permission = "commands.help", type = CommandType.INFORMATION)
+@Command(name = "help", description = "Lists the commands", aliases = arrayOf("?", "h"), permission = "commands.help",
+        cooldown = 5, type = CommandType.INFORMATION)
 class Help : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
 

@@ -52,6 +52,7 @@ class CommandEntry internal constructor(clazz: Class<out CommandExecutor>, map: 
 
 class CommandListener : ListenerAdapter() {
     val commandMap = CommandMap(Bot.instance)
+    val cooldownMap = hashMapOf<CommandExecutor, Long>().withDefault { 0L }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         try {
@@ -78,7 +79,20 @@ class CommandListener : ListenerAdapter() {
             val args = parts.copyOfRange(1, parts.size) //Arrays.copyOfRange(parts, 1, parts.size)
 
             try {
-                entry.executor.execute(event.channel, event.message, args)
+                val executor = entry.executor
+
+                var secondsLeft: Long = 0
+                if (cooldownMap.containsKey(executor)) {
+                    secondsLeft = ((cooldownMap[executor]!! / 1000) + executor.annotation.cooldown) - (System.currentTimeMillis() / 1000)
+                }
+
+                if (secondsLeft > 0) {
+                    throw CommandError("The command ${executor.annotation.name} is in cooldown for another $secondsLeft seconds!")
+                    return //?? I guess it will return by itself because I'm throwing CommandError... I'm not sure tho
+                }
+
+                executor.execute(event.channel, event.message, args)
+                cooldownMap.put(executor, System.currentTimeMillis())
             } catch (ex: Exception) {
                 if (ex is CommandError) {
                     event.channel.sendMessage(MessageBuilder().append(event.message.author).appendFormat(": %s", ex.message).build()).queue()
