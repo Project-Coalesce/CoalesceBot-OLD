@@ -10,7 +10,8 @@ import java.util.*
 @Command(name = "Kick", permission = "commands.kick", description = "Allows for kicking a user")
 class Kick : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        if (!message.guild.getMember(message.author).roles.contains(Bot.instance.jda.getRoleById("268239031467376640"))) {
+        if (message.guild.id == "268187052753944576" /* Debug Purposes */ &&
+                !message.guild.getMember(message.author).roles.contains(Bot.instance.jda.getRoleById("268239031467376640"))) {
             channel.sendMessage("You lack permission to use this command.").queue()
             return
         }

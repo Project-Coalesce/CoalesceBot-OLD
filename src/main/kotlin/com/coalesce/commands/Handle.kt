@@ -54,45 +54,64 @@ class CommandListener : ListenerAdapter() {
     val commandMap = CommandMap(Bot.instance)
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
-        var commandLine = event.message.rawContent
-        if (!commandLine.startsWith(Constants.COMMAND_PREFIX)) {
-            return
-        }
-        println("Command from ${event.author.name}: $commandLine")
-        commandLine = commandLine.substring(Constants.COMMAND_PREFIX.length)
-        val parts = commandLine.split(" ".toRegex()).dropLastWhile(String::isEmpty).toTypedArray()
-        // Alice's (now proxi enhanced) famous check which she's not sure how can ever happen
-        if (parts.isEmpty()) {
-            return
-        }
-        if (event.message.guild.selfMember.hasPermission(Permission.MESSAGE_MANAGE)) {
-            event.message.delete().queue()
-        }
-        val cmd = parts[0].toLowerCase()
-        val entry = commandMap[cmd] ?: run {
-            event.channel.sendMessage(MessageBuilder().append(event.message.author).append(": The command doesn't exist.").build()).queue()
-            return
-        }
-        val args = Arrays.copyOfRange(parts, 1, parts.size)
         try {
-            entry.executor.execute(event.channel, event.message, args)
-        } catch (ex: Exception) {
-            if (ex is CommandError) {
-                event.channel.sendMessage(MessageBuilder().append(event.message.author).appendFormat(": %s", ex.message).build()).queue()
+            var commandLine = event.message.rawContent
+            if (!commandLine.startsWith(Constants.COMMAND_PREFIX)) {
                 return
             }
-            println("An error occurred while executing command $cmd")
-            ex.printStackTrace()
+            println("Command from ${event.author.name}: $commandLine")
+
+            commandLine = commandLine.substring(Constants.COMMAND_PREFIX.length)
+            val parts = commandLine.split(" ".toRegex()).dropLastWhile(String::isEmpty).toTypedArray()
+            // Alice's (now proxi enhanced) famous check which she's not sure how can ever happen
+            if (parts.isEmpty()) {
+                return
+            }
+            if (event.message.guild.selfMember.hasPermission(Permission.MESSAGE_MANAGE)) {
+                event.message.delete().queue()
+            }
+            val cmd = parts[0].toLowerCase()
+            val entry = commandMap[cmd] ?: run {
+                event.channel.sendMessage(MessageBuilder().append(event.message.author).append(": The command doesn't exist.").build()).queue()
+                return
+            }
+            val args = Arrays.copyOfRange(parts, 1, parts.size)
+
+            try {
+                entry.executor.execute(event.channel, event.message, args)
+            } catch (ex: Exception) {
+                if (ex is CommandError) {
+                    event.channel.sendMessage(MessageBuilder().append(event.message.author).appendFormat(": %s", ex.message).build()).queue()
+                    return
+                }
+                println("An error occurred while executing command $cmd")
+                ex.printStackTrace()
+
+                try {
+                    val embedBuilder = EmbedBuilder()
+
+                    embedBuilder.setColor(Color(232, 46, 0))
+                    embedBuilder.setTitle("Error", null)
+                    embedBuilder.setDescription("An error occured while trying to handle that command:\n${ex.javaClass.name}: ${ex.message}")
+
+                    event.message.channel.sendMessage(embedBuilder.build()).queue()
+                } catch (e: Exception) {
+                    e.printStackTrace(); }
+            }
+        } catch (ex2 : Exception) {
+            println("An error occurred while executing some command")
+            ex2.printStackTrace()
 
             try {
                 val embedBuilder = EmbedBuilder()
 
                 embedBuilder.setColor(Color(232, 46, 0))
                 embedBuilder.setTitle("Error", null)
-                embedBuilder.setDescription("An error occured while trying to handle that command:\n${ex.javaClass.name}: ${ex.message}")
+                embedBuilder.setDescription("An error occured while trying to handle that command:\n${ex2.javaClass.name}: ${ex2.message}")
 
                 event.message.editMessage(embedBuilder.build()).queue()
-            } catch (e: Exception) {}
+            } catch (e: Exception) {
+                e.printStackTrace(); }
         }
     }
 }
