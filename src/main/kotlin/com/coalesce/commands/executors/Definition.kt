@@ -1,18 +1,16 @@
 package com.coalesce.commands.executors
 
 import com.coalesce.Bot
+import com.coalesce.Constants
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.commands.CommandType
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonElement
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.awt.Color
 import java.net.URL
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Command(name = "Definition",
@@ -20,7 +18,7 @@ import java.util.concurrent.TimeUnit
         usage = "<phrase>",
         description = "Defines a word or phrase with Urban Dictionary.",
         permission = "command.definition",
-        cooldown = 5,
+        globalCooldown = 5,
         type = CommandType.INFORMATION)
 class Definition : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
@@ -31,26 +29,27 @@ class Definition : CommandExecutor() {
 
         Bot.instance.executor.execute {
             val url = URL("http://api.urbandictionary.com/v0/define?term=$phrase")
-            val scanner = Scanner(url.openStream())
 
-            val jsonString = StringBuilder()
-            while (scanner.hasNextLine()) {
-                jsonString.append(scanner.nextLine())
+            val map = mutableMapOf<String, Any?>()
+            url.openStream().use {
+                it.reader().use {
+                    map.putAll(Constants.GSON.fromJson(it, map::class.java))
+                }
             }
-            scanner.close()
-
-            val gson = GsonBuilder().create()
-            val json = gson.fromJson(jsonString.toString(), JsonElement::class.java).asJsonObject
-
-            if (json.get("result_type").asString == "no_results") {
-                throw CommandError("No results found for $phrase")
+            if (map["result_type"] as? String ?: "no_results" == "no_results") {
+                throw CommandError("No results were found for $phrase.")
             }
-
-            val result = json.get("list").asJsonArray.get(0).asJsonObject
-            val builder = EmbedBuilder().setColor(Color.BLUE).setAuthor(message.author.name, null, message.author.avatarUrl)
-                    .setTitle("Urban Dictionary Definition", result.get("permalink").asString)
-                    .addField("Word", result.get("word").asString, true)
-                    .addField("Definition", result.get("definition").asString, true)
+            val obj = (map["list"] as? MutableMap<*, *> ?: throw CommandError("No definitions were found in list."))
+            val permalink = obj["permalink"] as? String ?: throw CommandError("The definition didn't have a permalink.")
+            val word = obj["word"] as? String ?: throw CommandError("The definition didn't have an owning word.")
+            val definition = obj["definition"] as? String ?: throw CommandError("The definition didn't have a definition.")
+            val builder = EmbedBuilder().apply {
+                setColor(Color.BLUE)
+                setAuthor(message.author.name, null, message.author.avatarUrl)
+                setTitle("Urban Dictionary Definition", permalink)
+                addField("Word", word, true)
+                addField("Definition", definition, true)
+            }
             channel.sendMessage(builder.build()).queue { it.delete().queueAfter(35, TimeUnit.SECONDS) }
         }
     }

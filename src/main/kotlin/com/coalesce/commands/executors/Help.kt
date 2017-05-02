@@ -11,7 +11,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Command(name = "help", description = "Lists the commands", aliases = arrayOf("?", "h"), permission = "commands.help",
-        cooldown = 5, type = CommandType.INFORMATION)
+        globalCooldown = 5, type = CommandType.INFORMATION)
 class Help : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
 

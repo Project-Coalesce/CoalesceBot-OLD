@@ -9,6 +9,8 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.reflections.Reflections
 import java.awt.Color
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -52,7 +54,6 @@ class CommandEntry internal constructor(clazz: Class<out CommandExecutor>, map: 
 
 class CommandListener : ListenerAdapter() {
     val commandMap = CommandMap(Bot.instance)
-    val cooldownMap = hashMapOf<CommandExecutor, Long>().withDefault { 0L }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         try {
@@ -81,18 +82,39 @@ class CommandListener : ListenerAdapter() {
             try {
                 val executor = entry.executor
 
-                var secondsLeft: Long = 0
-                if (cooldownMap.containsKey(executor)) {
-                    secondsLeft = ((cooldownMap[executor]!! / 1000) + executor.annotation.cooldown) - (System.currentTimeMillis() / 1000)
+                val useGlobal: Boolean
+                if (executor.annotation.globalCooldown > 0) {
+                    val time = (executor.lastUsed + TimeUnit.SECONDS.toMillis(executor.annotation.globalCooldown))
+                    if (time > System.currentTimeMillis()) {
+                        event.channel.sendMessage(MessageBuilder().append(event.message.author).append(": The command is on a global cooldown for another ")
+                                .append(BigDecimal((time - System.currentTimeMillis()) / 1000).setScale(2, RoundingMode.HALF_EVEN).toDouble()).append(" seconds.").build()).queue()
+                        return
+                    }
+                    useGlobal = true
+                } else {
+                    useGlobal = false
                 }
-
-                if (secondsLeft > 0) {
-                    throw CommandError("The command ${executor.annotation.name} is in cooldown for another $secondsLeft seconds!")
-                    return //?? I guess it will return by itself because I'm throwing CommandError... I'm not sure tho
+                if (executor.annotation.userCooldown > 0) {
+                    fun check(): Boolean {
+                        val author = executor.usages[event.author.idLong] ?: return false
+                        val time = (author + TimeUnit.SECONDS.toMillis(executor.annotation.userCooldown))
+                        if (time > System.currentTimeMillis()) {
+                            event.channel.sendMessage(MessageBuilder().append(event.message.author).append(": The command is on a user cooldown for another ")
+                                    .append(BigDecimal((time - System.currentTimeMillis()) / 1000).setScale(2, RoundingMode.HALF_EVEN).toDouble()).append(" seconds.").build()).queue()
+                            return true
+                        }
+                        return false
+                    }
+                    if (check()) {
+                        return
+                    }
+                    executor.usages[event.author.idLong] = System.currentTimeMillis()
+                }
+                if (useGlobal) {
+                    executor.lastUsed = System.currentTimeMillis()
                 }
 
                 executor.execute(event.channel, event.message, args)
-                cooldownMap.put(executor, System.currentTimeMillis())
             } catch (ex: Exception) {
                 if (ex is CommandError) {
                     event.channel.sendMessage(MessageBuilder().append(event.message.author).appendFormat(": %s", ex.message).build()).queue()
@@ -112,7 +134,7 @@ class CommandListener : ListenerAdapter() {
                 } catch (e: Exception) {
                     e.printStackTrace(); }
             }
-        } catch (ex2 : Exception) {
+        } catch (ex2: Exception) {
             println("An error occurred while executing some command")
             ex2.printStackTrace()
 

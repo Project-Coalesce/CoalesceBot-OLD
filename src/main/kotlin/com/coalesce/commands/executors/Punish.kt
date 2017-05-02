@@ -31,7 +31,7 @@ class Punish : CommandExecutor() {
         }
 
         val user = message.mentionedUsers[0]
-        var reason: Reason
+        val reason: Reason
         try {
             reason = Reason.valueOf(args[1])
         } catch (e: Exception) {

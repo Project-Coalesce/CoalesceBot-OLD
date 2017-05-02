@@ -9,7 +9,7 @@ import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.concurrent.ThreadLocalRandom
 
 @Command(name = "boi", aliases = arrayOf("njsblessing", "boi"), description = "Meme command (**breath in**... boi)", permission = "commands.boi",
-        cooldown = 10, type = CommandType.FUN)
+        globalCooldown = 10, type = CommandType.FUN)
 class Boi : CommandExecutor() {
     val images = arrayOf("http://i.imgur.com/wBjEsAZ.jpg", "http://i.imgur.com/fhHuvIP.jpg", "http://i.imgur.com/k5BqbxH.jpg",
             "http://i.imgur.com/2VeEUTS.jpg", "http://i.imgur.com/hOYMcij.jpg", "http://i.imgur.com/Hx06UHz.jpg", "http://i.imgur.com/DpLS3ZV.jpg",

@@ -10,39 +10,46 @@ import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
-import org.json.JSONObject
 import java.io.File
-import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Command(name = "RespectsLeaderboard", aliases = arrayOf("fboard", "leaderboard", "lboard"), description = "Shows the respect command (!f) leaderboard", permission = "commands.respectLeaderboard",
-        cooldown = 5,type = CommandType.FUN)
+        globalCooldown = 5, type = CommandType.FUN)
 class RespectLeaderboard : CommandExecutor() {
 
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         // Reading
         val leaderboard = File(Constants.DATA_DIRECTORY, "leaderboard.json")
-        if (!leaderboard.exists()) throw CommandError("Sadly nobody paid respects yet.")
+        if (!leaderboard.exists()) {
+            throw CommandError("Sadly nobody has paid respects yet.")
+        }
 
-        val respectLeaderboardJSON = JSONObject(leaderboard.readText(Charset.forName("UTF-8")))
-        var respectLeaderboard: MutableList<User> = ArrayList()
-
-        respectLeaderboardJSON.toMap().forEach({ k, _ -> respectLeaderboard.add(Bot.instance.jda.getUserById(k)) })
-        Collections.sort(respectLeaderboard, { o1, o2 -> respectLeaderboardJSON.getInt(o1.id) - respectLeaderboardJSON.getInt(o2.id) })
-        if (respectLeaderboard.size > 10) respectLeaderboard = respectLeaderboard.subList(0, 10)
+        val leaderboardJson = mutableMapOf<String, Any?>()
+        leaderboard.inputStream().use {
+            it.reader().use {
+                leaderboardJson.putAll(Constants.GSON.fromJson(it, leaderboardJson::class.java))
+            }
+        }
+        val respects = mutableListOf<User>()
+        leaderboardJson.forEach { key, _ -> respects.add(Bot.instance.jda.getUserById(key)) }
+        Collections.sort(respects, { first, second -> (leaderboardJson[first.id] as Int) - (leaderboardJson[second.id] as Int) })
+        if (respects.size > 10) {
+            val back = mutableListOf<User>()
+            back.addAll(respects)
+            respects.clear()
+            respects.addAll(back.subList(0, 10))
+        }
 
         val builder = EmbedBuilder()
         val positionStr = StringBuilder()
         val nameStr = StringBuilder()
         val respectsPaidStr = StringBuilder()
-        var pos = 1
 
-        respectLeaderboard.forEach {
-            positionStr.append("#$pos\n")
+        respects.forEachIndexed { index, it ->
+            positionStr.append("#${index + 1}\n")
             nameStr.append("${it.name}\n")
-            respectsPaidStr.append("${respectLeaderboardJSON.getInt(it.id)}\n")
-            pos++
+            respectsPaidStr.append("${leaderboardJson[it.id] as Int}\n")
         }
 
         builder.addField("Position", positionStr.toString(), true).addField("Name", nameStr.toString(), true).addField("Respects", respectsPaidStr.toString(), true)

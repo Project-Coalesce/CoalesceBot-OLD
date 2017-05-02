@@ -15,7 +15,8 @@ annotation class Command(
         val description: String = "",
         val aliases: Array<String> = arrayOf(),
         val type: CommandType,
-        val cooldown: Int = 0
+        val globalCooldown: Long = 0,
+        val userCooldown: Long = 0
 )
 
 class CommandError(message: String) : Exception(message) {
@@ -26,6 +27,8 @@ abstract class CommandExecutor {
     internal lateinit var jda: JDA
     internal lateinit var commandMap: CommandMap
     internal lateinit var annotation: Command
+    internal var lastUsed: Long = 0
+    internal val usages = mutableMapOf<Long, Long>()
 
     @Throws(CommandError::class)
     internal abstract fun execute(channel: MessageChannel, message: Message, args: Array<String>)
