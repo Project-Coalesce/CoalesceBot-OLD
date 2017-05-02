@@ -27,14 +27,31 @@ class CommandMap(private val bot: Bot) {
             println("Registering command: " + clazz.simpleName)
             val entry = CommandEntry(clazz, this)
 
-            entries[entry.annotation.name.toLowerCase()] = entry
+            this[entry.annotation.name.toLowerCase()] = entry
 
-            Arrays.stream<String>(entry.annotation.aliases)
+            Arrays.stream(entry.annotation.aliases)
                     .map(String::toLowerCase)
-                    .forEach { entries[it] = entry }
+                    .forEach { this[it] = entry }
         } catch (e: Exception) {
-            e.printStackTrace()
+            val messageBuilder = MessageBuilder()
+            val builder = StringBuilder()
+            builder.append(e.toString())
+            e.stackTrace.forEach {
+                builder.append("\n\tat: $it")
+            }
+            messageBuilder.appendCodeBlock(builder.toString(), "")
+            val message = messageBuilder.build()
+            bot.jda.guilds.map { it.publicChannel }.filter { it.canTalk() }.forEach {
+                it.sendMessage(message).queue()
+            }
         }
+    }
+
+    private operator fun set(entry: String, put: CommandEntry) {
+        if (entry.contains(" ")) {
+            throw IllegalArgumentException("Names cannot include spaces.")
+        }
+        entries[entry] = put
     }
 
     operator fun get(entry: String): CommandEntry? = entries[entry.toLowerCase()]
