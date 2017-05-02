@@ -4,7 +4,9 @@ import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.commands.CommandType
-import com.coalesce.punishments.ForcedPunishment
+import com.coalesce.punishmentals.Punishment
+import com.coalesce.punishmentals.PunishmentManager
+import com.coalesce.punishmentals.Reason
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.*
@@ -36,10 +38,8 @@ class Warn : CommandExecutor() {
             description = desc.toString()
         }
 
-        val history = Bot.instance.manager.findPunishments(message.author)
-        val punishment = ForcedPunishment(true, null, message.author, message.author.id, description)
-
-        val newHistory = punishment.doActUpon(history, user, channel)
-        Bot.instance.manager.saveChanges(user, newHistory)
+        val punishment = Punishment(Reason.GENERAL_WARNING, user, message.author, description, null)
+        punishment.doActUpon(PunishmentManager.instance[user], channel)
+        PunishmentManager.instance[user] = punishment
     }
 }

@@ -1,6 +1,7 @@
 package com.coalesce.commands.executors
 
 import com.coalesce.commands.Command
+import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.EmbedBuilder
@@ -14,9 +15,11 @@ import java.util.concurrent.TimeUnit
         globalCooldown = 35, type = CommandType.INFORMATION)
 class Help : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
+        throw CommandError("The help command has been disabled due to a bug.")
+
         val embedBuilder = EmbedBuilder().setTitle("Help", null).setColor(Color.GREEN)
 
-        val map = hashMapOf<CommandType, ArrayList<String>>().withDefault { arrayListOf() }
+        val map = mutableMapOf<CommandType, ArrayList<String>>().withDefault { arrayListOf() }
 
         commandMap.entries.values.forEach { e ->
             val builder = StringBuilder()

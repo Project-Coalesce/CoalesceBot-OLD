@@ -2,7 +2,7 @@ package com.coalesce
 
 import com.coalesce.Constants.DATA_DIRECTORY
 import com.coalesce.commands.CommandListener
-import com.coalesce.punishments.PunishmentManager
+import com.coalesce.punishmentals.PunishmentManager
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.JDABuilder
@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit
 class Bot {
     lateinit var jda: JDA
     val executor: ExecutorService = Executors.newFixedThreadPool(6)
-    lateinit var manager: PunishmentManager
     lateinit var listener: CommandListener
 
     init {
@@ -34,7 +33,7 @@ class Bot {
 
         jda.presence.game = Game.of("under the blanket...")
 
-        manager = PunishmentManager()
+        PunishmentManager() // Init the manager
 
         listener = CommandListener()
         jda.addEventListener(listener)

@@ -4,7 +4,9 @@ import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.commands.CommandType
-import com.coalesce.punishments.ForcedPunishment
+import com.coalesce.punishmentals.Punishment
+import com.coalesce.punishmentals.PunishmentManager
+import com.coalesce.punishmentals.Reason
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.*
@@ -37,7 +39,7 @@ class Mute : CommandExecutor() {
         }
 
         var time = Calendar.getInstance()
-        if (args[1].equals("permanent", true)) {
+        if (args[1].equals("permanent", true) || args[1].equals("null", true) || args[1].equals("-1", false)) {
             time = null
         } else {
             val arg = args[1]
@@ -53,10 +55,8 @@ class Mute : CommandExecutor() {
             time.add(timeUnit, timeAdd)
         }
 
-        val history = Bot.instance.manager.findPunishments(message.author)
-        val punishment = ForcedPunishment(false, time, message.author, message.author.id, description)
-
-        val newHistory = punishment.doActUpon(history, user, channel)
-        Bot.instance.manager.saveChanges(user, newHistory)
+        val punishment = Punishment(Reason.GENERAL_WARNING, user, message.author, description, time.timeInMillis)
+        punishment.doActUpon(PunishmentManager.instance[user], channel)
+        PunishmentManager.instance[user] = punishment
     }
 }
