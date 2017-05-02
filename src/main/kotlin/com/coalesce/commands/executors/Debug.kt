@@ -9,7 +9,7 @@ import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.concurrent.TimeUnit
 
 @Command(name = "Debug", permission = "debug", aliases = arrayOf("testing", "test"), description = "A debug command for Proximyst.",
-        usage = "<respects: reset>", type = CommandType.DEBUG)
+        usage = "<respects: reset>|<quit>", type = CommandType.DEBUG)
 class Debug : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (message.author.idLong != 181470050039889920L) {
@@ -23,11 +23,20 @@ class Debug : CommandExecutor() {
             return
         }
         if (args[0].equals("respects", true)) {
+            if (args.size == 1) {
+                syntax()
+                return
+            }
             if (args[1].equals("reset", true)) {
-                Bot.instance.respectsLastUse = -1f
+                Bot.instance.listener.commandMap["respects"]!!.executor.lastUsed = 0
                 return
             }
             syntax()
+            return
+        }
+        if (args[0].equals("quit", true)) {
+            Bot.instance.jda.shutdown()
+            System.exit(0)
             return
         }
         syntax()
