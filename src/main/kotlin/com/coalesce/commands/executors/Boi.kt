@@ -3,6 +3,7 @@ package com.coalesce.commands.executors
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.math.BigDecimal
@@ -10,7 +11,7 @@ import java.math.RoundingMode
 import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
 
-@Command(name = "boi", aliases = arrayOf("njsblessing", "boi"), description = "Meme command (**breath in**... boi)", permission = "commands.boi")
+@Command(name = "boi", aliases = arrayOf("njsblessing", "boi"), description = "Meme command (**breath in**... boi)", permission = "commands.boi", type = CommandType.FUN)
 class Boi : CommandExecutor() {
     val timeout = TimeUnit.MILLISECONDS.convert(20, TimeUnit.SECONDS)
     var lastUsed: Long = -1

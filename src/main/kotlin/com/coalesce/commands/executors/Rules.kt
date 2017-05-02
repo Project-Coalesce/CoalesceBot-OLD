@@ -2,6 +2,7 @@ package com.coalesce.commands.executors
 
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
@@ -9,7 +10,8 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.concurrent.TimeUnit
 
-@Command(name = "Rules", aliases = arrayOf("Rulez"), permission = "commands.rules", description = "Shows the rules (Well not really)")
+@Command(name = "Rules", aliases = arrayOf("Rulez"), permission = "commands.rules", description = "Shows the rules (Well not really)",
+        type = CommandType.INFORMATION)
 class Rules : CommandExecutor() {
     private var lastUse = -1f
 

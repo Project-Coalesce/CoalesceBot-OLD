@@ -3,12 +3,13 @@ package com.coalesce.commands.executors
 import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.commands.CommandType
 import com.coalesce.punishments.ForcedPunishment
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.*
 
-@Command(name = "Mute", permission = "commands.mute", description = "Allows for muting a user permanently or for a specific time")
+@Command(name = "Mute", permission = "commands.mute", description = "Allows for muting a user permanently or for a specific time", type = CommandType.ADMINISTRATION)
 class Mute : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (message.guild.id == "268187052753944576" /* Debug Purposes */ &&

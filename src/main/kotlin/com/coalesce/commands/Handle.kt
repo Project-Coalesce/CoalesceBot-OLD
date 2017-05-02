@@ -75,7 +75,7 @@ class CommandListener : ListenerAdapter() {
                 event.channel.sendMessage(MessageBuilder().append(event.message.author).append(": The command doesn't exist.").build()).queue()
                 return
             }
-            val args = Arrays.copyOfRange(parts, 1, parts.size)
+            val args = parts.copyOfRange(1, parts.size) //Arrays.copyOfRange(parts, 1, parts.size)
 
             try {
                 entry.executor.execute(event.channel, event.message, args)

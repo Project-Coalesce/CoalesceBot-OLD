@@ -4,6 +4,7 @@ import com.coalesce.Constants
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.commands.CommandType
 import com.coalesce.utils.TemperatureUnit
 import com.coalesce.utils.parseDouble
 import net.dv8tion.jda.core.EmbedBuilder
@@ -12,7 +13,8 @@ import net.dv8tion.jda.core.entities.MessageChannel
 import java.awt.Color
 import java.util.concurrent.TimeUnit
 
-@Command(name = "temperature", aliases = arrayOf("temp"), description = "Converts to different temperatures.", usage = "<temp> <unit>", permission = "commands.temperature")
+@Command(name = "temperature", aliases = arrayOf("temp"), description = "Converts to different temperatures.", usage = "<temp> <unit>", permission = "commands.temperature",
+        type = CommandType.INFORMATION)
 class Temperature : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (args.size != 2) {

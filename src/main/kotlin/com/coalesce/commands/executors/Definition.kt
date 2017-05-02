@@ -4,6 +4,7 @@ import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.commands.CommandType
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import net.dv8tion.jda.core.EmbedBuilder
@@ -18,7 +19,8 @@ import java.util.concurrent.TimeUnit
         aliases = arrayOf("define", "dictionary", "urban"),
         usage = "<phrase>",
         description = "Defines a word or phrase with Urban Dictionary.",
-        permission = "command.definition")
+        permission = "command.definition",
+        type = CommandType.INFORMATION)
 class Definition : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (args.isEmpty()) {

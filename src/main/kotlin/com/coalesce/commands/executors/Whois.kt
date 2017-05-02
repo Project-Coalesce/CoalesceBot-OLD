@@ -3,6 +3,7 @@ package com.coalesce.commands.executors
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.Message
@@ -12,7 +13,8 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
-@Command(name = "Whois", aliases = arrayOf("tellmeabout", "whos", "who's"), usage = "<user>", description = "Tells you about the user specified or yourself if none.", permission = "commands.whois")
+@Command(name = "Whois", aliases = arrayOf("tellmeabout", "whos", "who's"), usage = "<user>", description = "Tells you about the user specified or yourself if none.", permission = "commands.whois",
+        type = CommandType.INFORMATION)
 class Whois : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (args.size > 1) {

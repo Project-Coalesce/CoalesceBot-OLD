@@ -4,6 +4,7 @@ import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
@@ -13,7 +14,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
-@Command(name = "Resolve", aliases = arrayOf("resolver", "url"), usage = "<url>", description = "Resolves URL shortened links.", permission = "commands.resolve")
+@Command(name = "Resolve", aliases = arrayOf("resolver", "url"), usage = "<url>", description = "Resolves URL shortened links.", permission = "commands.resolve",
+        type = CommandType.INFORMATION)
 class Resolve : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (args.isEmpty()) {
