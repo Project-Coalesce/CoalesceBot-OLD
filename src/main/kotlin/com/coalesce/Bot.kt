@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit
 class Bot {
     lateinit var jda: JDA
     val executor: ExecutorService = Executors.newFixedThreadPool(6)
-    var respectsLastUse: Float = -1f
     lateinit var manager: PunishmentManager
+    lateinit var listener: CommandListener
 
     init {
         instance = this
@@ -30,12 +30,6 @@ class Bot {
                 println("The data directory didn't exist already and was created.")
             }
         }
-        val data = File(DATA_DIRECTORY, "data.json")
-        if (data.exists()) {
-            data.reader().use {
-                respectsLastUse = (Constants.GSON.fromJson(it, mutableMapOf<String, Any?>()::class.java)["respectsLastUse"] as Double).toFloat()
-            }
-        }
 
         Runtime.getRuntime().addShutdownHook(Shutdown())
         jda = JDABuilder(AccountType.BOT).setAudioEnabled(false).setCorePoolSize(4).setToken(token).buildBlocking()
@@ -45,7 +39,15 @@ class Bot {
 
         manager = PunishmentManager()
 
-        jda.addEventListener(CommandListener())
+        listener = CommandListener()
+        jda.addEventListener(listener)
+
+        val data = File(DATA_DIRECTORY, "data.json")
+        if (data.exists()) {
+            data.reader().use {
+                listener.commandMap["respects"]!!.executor.lastUsed = (Constants.GSON.fromJson(it, mutableMapOf<String, Any?>()::class.java)["respectsLastUse"] as Double).toLong()
+            }
+        }
     }
 
     class Shutdown : Thread() {
@@ -54,7 +56,7 @@ class Bot {
             if (data.exists()) {
                 data.delete()
             }
-            Files.write(data.toPath(), Constants.GSON.toJson(mapOf("respectsLastUse" to Bot.instance.respectsLastUse)).toByteArray(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+            Files.write(data.toPath(), Constants.GSON.toJson(mapOf("respectsLastUse" to Bot.instance.listener.commandMap["respects"]!!.executor.lastUsed)).toByteArray(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)
             Bot.instance.jda.shutdown(true)
         }
     }
