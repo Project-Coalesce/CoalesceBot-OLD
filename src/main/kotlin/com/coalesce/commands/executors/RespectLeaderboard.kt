@@ -17,9 +17,7 @@ import java.util.concurrent.TimeUnit
 @Command(name = "RespectsLeaderboard", aliases = arrayOf("fboard", "leaderboard", "lboard"), description = "Shows the respect command (!f) leaderboard", permission = "commands.respectLeaderboard",
         globalCooldown = 5, type = CommandType.FUN)
 class RespectLeaderboard : CommandExecutor() {
-
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        // Reading
         val leaderboard = File(Constants.DATA_DIRECTORY, "leaderboard.json")
         if (!leaderboard.exists()) {
             throw CommandError("Sadly nobody has paid respects yet.")
@@ -33,7 +31,7 @@ class RespectLeaderboard : CommandExecutor() {
         }
         val respects = mutableListOf<User>()
         leaderboardJson.forEach { key, _ -> respects.add(Bot.instance.jda.getUserById(key)) }
-        Collections.sort(respects, { first, second -> (leaderboardJson[first.id] as Double).toInt() - (leaderboardJson[second.id] as Double).toInt() })
+        Collections.sort(respects, { first, second -> (leaderboardJson[second.id] as Double).toInt() - (leaderboardJson[first.id] as Double).toInt() })
         if (respects.size > 10) {
             val back = mutableListOf<User>()
             back.addAll(respects)
