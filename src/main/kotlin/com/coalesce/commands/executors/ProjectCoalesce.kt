@@ -6,7 +6,7 @@ import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 
-@Command(name = "ProjectCoalesce Explanation", aliases = arrayOf("whatisprojectcoalesce", "projectcoalesce", "coalesce"), description = "Shows a brief description of what is project coalesce for those wondering",
+@Command(name = "ProjectCoalesce", aliases = arrayOf("whatisprojectcoalesce", "coalesce"), description = "Shows a brief description of what is project coalesce for those wondering",
         permission = "commands.coalesceexplanation", globalCooldown = 60, type = CommandType.INFORMATION)
 class ProjectCoalesce : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
