@@ -1,7 +1,6 @@
 package com.coalesce.commands.executors
 
 import com.coalesce.commands.Command
-import com.coalesce.commands.CommandError
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.EmbedBuilder
@@ -15,34 +14,34 @@ import java.util.concurrent.TimeUnit
         globalCooldown = 35, type = CommandType.INFORMATION)
 class Help : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        throw CommandError("The help command has been disabled due to a bug.")
-
         val embedBuilder = EmbedBuilder().setTitle("Help", null).setColor(Color.GREEN)
 
-        val map = mutableMapOf<CommandType, ArrayList<String>>().withDefault { arrayListOf() }
-
-        commandMap.entries.values.forEach { e ->
-            val builder = StringBuilder()
-
-            if (e.annotation.name.equals("xD", false)) builder.append("xD")
-            else builder.append(e.annotation.name.capitalize())
-
-            builder.append(' ').append(e.annotation.usage).append(' ')
-
-            if (!e.annotation.aliases.isEmpty()) {
-                builder.append(Arrays.toString(e.annotation.aliases.flatMapTo(mutableListOf<String>(), { setOf(it.capitalize()) }).toTypedArray()))
+        val map = mutableMapOf<CommandType, MutableList<CommandExecutor>>().withDefault { mutableListOf() }
+        commandMap.entries.values.forEach {
+            map[it.annotation.type] = map[it.annotation.type]?.apply { add(it.executor) } ?: mutableListOf()
+        }
+        val out = mutableMapOf<CommandType, String>().withDefault { "None" }
+        map.forEach { type, executors ->
+            val builder = StringBuilder().append("```\n")
+            executors.forEach {
+                if (it.annotation.name.equals("xD", false)) {
+                    builder.append("xD")
+                } else {
+                    builder.append(it.annotation.name.capitalize())
+                }
+                builder.append(' ').append(it.annotation.usage)
+                if (!it.annotation.aliases.isEmpty()) {
+                    builder.append(' ').append(Arrays.toString(it.annotation.aliases.flatMapTo(mutableListOf<String>(), { setOf(it.capitalize()) }).toTypedArray()))
+                }
+                builder.append("\n")
             }
-
-            val list = map.getValue(e.annotation.type)
-            list.add(builder.toString())
-
-            map.put(e.annotation.type, list)
+            out[type] = builder.append("```").toString().trim()
         }
 
-        embedBuilder.addField("Fun", map.getValue(CommandType.FUN).joinToString(separator = "\n"), true)
-                .addField("Information", map.getValue(CommandType.INFORMATION).joinToString(separator = "\n"), true)
-                .addField("Administration", map.getValue(CommandType.ADMINISTRATION).joinToString(separator = "\n"), true)
-                .addField("Debug", map.getValue(CommandType.DEBUG).joinToString(separator = "\n"), true)
+        embedBuilder.addField("Fun", out[CommandType.FUN], true)
+                .addField("Information", out[CommandType.INFORMATION], true)
+                .addField("Administration", out[CommandType.ADMINISTRATION], true)
+                .addField("Debug", out[CommandType.DEBUG], true)
 
         channel.sendMessage(embedBuilder.build()).queue { it.delete().queueAfter(25, TimeUnit.SECONDS) }
     }
