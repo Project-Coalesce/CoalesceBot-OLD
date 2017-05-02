@@ -9,7 +9,6 @@ import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.awt.Color
-import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
@@ -19,7 +18,7 @@ import java.util.concurrent.TimeUnit
 class Resolve : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (args.isEmpty()) {
-            throw CommandError("Please use the correct syntax: %s", annotation.usage)
+            throw CommandError("Please use the correct syntax: ${annotation.usage}")
         }
         val url = args.joinToString("%20")
         Bot.instance.executor.execute({
@@ -33,7 +32,7 @@ class Resolve : CommandExecutor() {
         })
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun getFinalUrl(url: String): String {
         @Suppress("NAME_SHADOWING")
         var url = url
