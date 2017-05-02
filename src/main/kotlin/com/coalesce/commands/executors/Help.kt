@@ -16,9 +16,9 @@ class Help : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         val embedBuilder = EmbedBuilder().setTitle("Help", null).setColor(Color.GREEN)
 
-        val map = mutableMapOf<CommandType, MutableList<CommandExecutor>>().withDefault { mutableListOf() }
+        val map = mutableMapOf<CommandType, MutableSet<CommandExecutor>>().withDefault { mutableSetOf() }
         commandMap.entries.values.forEach {
-            map[it.annotation.type] = map[it.annotation.type]?.apply { add(it.executor) } ?: mutableListOf()
+            map[it.annotation.type] = map[it.annotation.type]?.apply { add(it.executor) } ?: mutableSetOf()
         }
         val out = mutableMapOf<CommandType, String>().withDefault { "None" }
         map.forEach { type, executors ->
@@ -31,7 +31,7 @@ class Help : CommandExecutor() {
                 }
                 builder.append(' ').append(it.annotation.usage)
                 if (!it.annotation.aliases.isEmpty()) {
-                    builder.append(' ').append(Arrays.toString(it.annotation.aliases.flatMapTo(mutableListOf<String>(), { setOf(it.capitalize()) }).toTypedArray()))
+                    builder.append(' ').append(Arrays.toString(it.annotation.aliases.flatMapTo(mutableSetOf<String>(), { setOf(it.capitalize()) }).toTypedArray()))
                 }
                 builder.append("\n")
             }
