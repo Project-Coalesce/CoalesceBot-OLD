@@ -1,11 +1,15 @@
 package com.coalesce.commands.executors
 
 import com.coalesce.Bot
+import com.coalesce.Constants
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import java.util.concurrent.TimeUnit
 
 @Command(name = "Debug", permission = "debug", aliases = arrayOf("testing", "test"), description = "A debug command for Proximyst.",
@@ -35,7 +39,12 @@ class Debug : CommandExecutor() {
             return
         }
         if (args[0].equals("quit", true)) {
-            Bot.instance.jda.shutdown()
+            val data = File(Constants.DATA_DIRECTORY, "data.json")
+            if (data.exists()) {
+                data.delete()
+            }
+            Files.write(data.toPath(), Constants.GSON.toJson(mapOf("respectsLastUse" to Bot.instance.listener.commandMap["respects"]!!.executor.lastUsed.toDouble())).toByteArray(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+            Bot.instance.jda.shutdown(true)
             System.exit(0)
             return
         }
