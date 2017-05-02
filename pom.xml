@@ -62,11 +62,6 @@
             <version>${kotlin.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20160810</version>
-        </dependency>
     </dependencies>
 
     <build>
