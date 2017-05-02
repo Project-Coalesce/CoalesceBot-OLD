@@ -37,12 +37,11 @@ class PunishmentManager {
     }
 
     fun findPunishments(user: User): JSONArray {
-        if(file.exists()){
+        if (file.exists()) {
             val json = JSONObject(file.readText())
-            val userData = json.getJSONObject(user.id)
-
-            return userData.getJSONArray("punishments")
-        }else return JSONArray()
+            if (json.has(user.id)) return json.getJSONArray(user.id)
+            else return JSONArray()
+        } else return JSONArray()
     }
 
     fun saveChanges(user: User, array: JSONArray) {

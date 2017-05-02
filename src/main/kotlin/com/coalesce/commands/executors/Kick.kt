@@ -3,14 +3,16 @@ package com.coalesce.commands.executors
 import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.*
 
-@Command(name = "Kick", permission = "commands.kick", description = "Allows for kicking a user")
+@Command(name = "Kick", permission = "commands.kick", description = "Allows for kicking a user", type = CommandType.ADMINISTRATION)
 class Kick : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
-        if (!message.guild.getMember(message.author).roles.contains(Bot.instance.jda.getRoleById("268239031467376640"))) {
+        if (message.guild.id == "268187052753944576" /* Debug Purposes */ &&
+                !message.guild.getMember(message.author).roles.contains(Bot.instance.jda.getRoleById("268239031467376640"))) {
             channel.sendMessage("You lack permission to use this command.").queue()
             return
         }

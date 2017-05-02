@@ -4,6 +4,7 @@ import com.coalesce.Bot
 import com.coalesce.Constants
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
+import com.coalesce.commands.CommandType
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.io.File
@@ -12,7 +13,8 @@ import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.TimeUnit
 
-@Command(name = "Respects", aliases = arrayOf("f", "nahusdream"), description = "Meme command (Press F to pay respects)", permission = "commands.respects")
+@Command(name = "Respects", aliases = arrayOf("f", "nahusdream"), description = "Over-engineered meme command (Press F to pay respects)", permission = "commands.respects",
+        type = CommandType.FUN)
 class Respects : CommandExecutor() {
     override fun execute(channel: MessageChannel, message: Message, args: Array<String>) {
         if (Bot.instance.respectsLastUse != -1f) {

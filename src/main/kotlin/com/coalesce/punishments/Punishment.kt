@@ -1,9 +1,11 @@
 package com.coalesce.punishments
 
 import com.coalesce.Bot
+import com.sun.security.auth.callback.TextCallbackHandler
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.MessageChannel
+import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import org.json.JSONArray
 import org.json.JSONObject
@@ -85,8 +87,10 @@ class Punishment(val reason: Reason, val punisher: User, val by: String, val des
 
         serverLogEmbedBuilder.setTimestamp(msg.creationTime)
 
-        val serverLogMsg = MessageBuilder().setEmbed(serverLogEmbedBuilder.build()).build()
-        serverLogChannel.sendMessage(serverLogMsg).queue()
+        try {
+            val serverLogMsg = MessageBuilder().setEmbed(serverLogEmbedBuilder.build()).build()
+            serverLogChannel.sendMessage(serverLogMsg).queue()
+        } catch (e: Exception) {}
 
     }
 
@@ -98,7 +102,7 @@ class Punishment(val reason: Reason, val punisher: User, val by: String, val des
             message(user, channel, embedBuilder, true, null, amount)
         } else {
             //Muting
-            val guild = Bot.instance.jda.getGuildById("268187052753944576")
+            val guild = (channel as TextChannel).guild
             val member = guild.getMember(user)
             val role = guild.getRoleById("303317692608282625")
             guild.controller.addRolesToMember(member, role).queue()

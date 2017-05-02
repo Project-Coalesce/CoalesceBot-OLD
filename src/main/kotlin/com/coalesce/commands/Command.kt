@@ -4,12 +4,18 @@ import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 
+enum class CommandType {
+    FUN, INFORMATION, ADMINISTRATION, MUSIC, DEBUG
+}
+
 annotation class Command(
         val name: String,
         val permission: String,
         val usage: String = "",
         val description: String = "",
-        val aliases: Array<String> = arrayOf()
+        val aliases: Array<String> = arrayOf(),
+        val type: CommandType,
+        val cooldown: Int = 0
 )
 
 class CommandError(message: String) : Exception(message) {
