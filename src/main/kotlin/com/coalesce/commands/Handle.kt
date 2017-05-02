@@ -87,7 +87,7 @@ class CommandListener : ListenerAdapter() {
                     val time = (executor.lastUsed + TimeUnit.SECONDS.toMillis(executor.annotation.globalCooldown))
                     if (time > System.currentTimeMillis()) {
                         event.channel.sendMessage(MessageBuilder().append(event.message.author).append(": The command is on a global cooldown for another ")
-                                .append(BigDecimal((time - System.currentTimeMillis()) / 1000).setScale(2, RoundingMode.HALF_EVEN).toDouble()).append(" seconds.").build()).queue()
+                                .append(BigDecimal((time - System.currentTimeMillis()) / 1000).setScale(1, RoundingMode.HALF_UP).toDouble()).append(" seconds.").build()).queue()
                         return
                     }
                     useGlobal = true
@@ -100,7 +100,7 @@ class CommandListener : ListenerAdapter() {
                         val time = (author + TimeUnit.SECONDS.toMillis(executor.annotation.userCooldown))
                         if (time > System.currentTimeMillis()) {
                             event.channel.sendMessage(MessageBuilder().append(event.message.author).append(": The command is on a user cooldown for another ")
-                                    .append(BigDecimal((time - System.currentTimeMillis()) / 1000).setScale(2, RoundingMode.HALF_EVEN).toDouble()).append(" seconds.").build()).queue()
+                                    .append(BigDecimal((time - System.currentTimeMillis()) / 1000).setScale(1, RoundingMode.HALF_UP).toDouble()).append(" seconds.").build()).queue()
                             return true
                         }
                         return false
