@@ -20,7 +20,7 @@ annotation class Command(
 )
 
 class CommandError(message: String) : Exception(message) {
-    constructor(message: String, vararg obj: Any) : this(String.format(message, obj))
+    constructor(message: String, vararg obj: Any) : this(String.format(message, arrayOf(obj)))
 }
 
 abstract class CommandExecutor {

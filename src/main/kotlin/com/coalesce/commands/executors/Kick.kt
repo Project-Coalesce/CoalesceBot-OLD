@@ -34,7 +34,7 @@ class Kick : CommandExecutor() {
             Arrays.asList(args).subList(1, args.size).forEach { desc.append(it + " ") }
             description = desc.toString()
         }
-        //TODO Use description somehow, maybe private message the user?
+        //TODO: Use description somehow, maybe private message the user?
 
         val guild = Bot.instance.jda.getGuildById("268187052753944576")
         val member = guild.getMember(user)

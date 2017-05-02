@@ -5,6 +5,7 @@ import com.coalesce.Constants
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.commands.CommandType
+import com.coalesce.punishmentals.PunishmentManager
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.io.File
@@ -43,6 +44,7 @@ class Debug : CommandExecutor() {
             if (data.exists()) {
                 data.delete()
             }
+            PunishmentManager.instance.save()
             Files.write(data.toPath(), Constants.GSON.toJson(mapOf("respectsLastUse" to Bot.instance.listener.commandMap["respects"]!!.executor.lastUsed.toDouble())).toByteArray(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)
             Bot.instance.jda.shutdown(true)
             System.exit(0)

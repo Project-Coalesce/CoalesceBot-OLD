@@ -4,8 +4,9 @@ import com.coalesce.Bot
 import com.coalesce.commands.Command
 import com.coalesce.commands.CommandExecutor
 import com.coalesce.commands.CommandType
-import com.coalesce.punishments.Punishment
-import com.coalesce.punishments.Reason
+import com.coalesce.punishmentals.Punishment
+import com.coalesce.punishmentals.PunishmentManager
+import com.coalesce.punishmentals.Reason
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.util.*
@@ -33,7 +34,7 @@ class Punish : CommandExecutor() {
         val user = message.mentionedUsers[0]
         val reason: Reason
         try {
-            reason = Reason.valueOf(args[1])
+            reason = Reason.valueOf(args[1].toUpperCase())
         } catch (e: Exception) {
             val errorMessages = StringBuilder()
             Reason.values().forEach { errorMessages.append(it.toString() + " (" + it.description + " | Severity " + it.severity + ") ") }
@@ -49,10 +50,8 @@ class Punish : CommandExecutor() {
             description = desc.toString()
         }
 
-        val history = Bot.instance.manager.findPunishments(user)
-        val punishment = Punishment(reason, message.author, message.author.id, description)
-
-        val newHistory = punishment.doActUpon(history, user, channel)
-        Bot.instance.manager.saveChanges(user, newHistory)
+        val punishment = Punishment(reason, user, message.author, description, null)
+        punishment.doActUpon(PunishmentManager.instance[user], channel)
+        PunishmentManager.instance[user] = punishment
     }
 }
