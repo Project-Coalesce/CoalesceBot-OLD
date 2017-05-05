@@ -1,14 +1,12 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.Colour
+import com.coalesce.bot.*
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.Embeddables
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
-import com.coalesce.bot.temperatureCelsius
-import com.coalesce.bot.temperatureFahrenheit
-import com.coalesce.bot.temperatureKelvin
 import com.coalesce.bot.utilities.TemperatureUnit
+import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.parseDouble
 import java.util.concurrent.TimeUnit
 
@@ -43,7 +41,7 @@ class Temperature : Embeddables {
                         .field("Kelvin", TemperatureUnit.KELVIN.convertStr(temp, unit), true)
                         .field("Fahrenheit", TemperatureUnit.FAHRENHEIT.convertStr(temp, unit), true)
                         .build()
-        ) { delete().queueAfter(35, TimeUnit.SECONDS) }
+        ) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
     }
 
     private fun getUnit(string: String): TemperatureUnit? {

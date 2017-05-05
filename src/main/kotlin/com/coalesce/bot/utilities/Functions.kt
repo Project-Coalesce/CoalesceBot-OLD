@@ -13,3 +13,21 @@ fun String.parseDouble(): Double? {
         return null
     }
 }
+
+inline fun ifDo(can: Boolean, crossinline todo: () -> Unit) {
+    if (can) {
+        todo.invoke()
+    }
+}
+
+inline fun ifDo(can: () -> Boolean, crossinline todo: () -> Unit) {
+    if (can.invoke()) {
+        todo.invoke()
+    }
+}
+
+inline fun <T> ifwithDo(can: (T) -> Boolean, with: T, crossinline todo: () -> Unit) {
+    if (can.invoke(with)) {
+        todo.invoke()
+    }
+}

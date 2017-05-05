@@ -1,5 +1,6 @@
 package com.coalesce.bot.commands
 
+import com.coalesce.bot.Main
 import com.coalesce.bot.commandPrefix
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
@@ -140,7 +141,7 @@ class CommandRegistry internal constructor() {
     operator fun get(
             command: String,
             event: MessageReceivedEvent
-    ): Triple<String, Method?, Pair<CommandContext?, Class<*>?>> {
+    ): Triple<String, Method?, Pair<CommandContext?, Any?>> {
         val split = command.split(" ")
         val jda = event.jda
         val args: Array<String>
@@ -152,7 +153,7 @@ class CommandRegistry internal constructor() {
                 } else {
                     args = arrayOf()
                 }
-                return Triple(split[0] + " " + split[1], subcommand.subcommands[split[1]]!!.first, SubCommandContext(jda, jda.selfUser, event.message, event, event.author, event.channel, subcommand.rootAnnotation, subcommand.subcommands, args, subcommand.subcommands[split[1]]!!.second) to subcommand.clazz)
+                return Triple(split[0] + " " + split[1], subcommand.subcommands[split[1]]!!.first, SubCommandContext(jda, jda.selfUser, event.message, event, event.author, event.channel, subcommand.rootAnnotation, subcommand.subcommands, args, subcommand.subcommands[split[1]]!!.second) to subcommand.instance)
             }
         }
         val method = commands[split[0].toLowerCase().replace(" ", "")] ?: return Triple(split[0], null, null to null)
@@ -161,13 +162,15 @@ class CommandRegistry internal constructor() {
         } else {
             args = arrayOf()
         }
-        return Triple(split[0], method.rootMethod, RootCommandContext(jda, jda.selfUser, event.message, event, event.author, event.channel, method.rootAnnotation, method.subcommands, args) to method.clazz)
+        return Triple(split[0], method.rootMethod, RootCommandContext(jda, jda.selfUser, event.message, event, event.author, event.channel, method.rootAnnotation, method.subcommands, args) to method.instance)
     }
 }
 
 class CommandEntry(@Suppress("CanBeParameter") val clazz: Class<*>) {
     lateinit var rootMethod: Method
     lateinit var rootAnnotation: RootCommand
+    @Suppress("DEPRECATION")
+    val instance: Any = Main.instance.injector.getInstance(clazz)
     val subcommands = mutableMapOf<String, Pair<Method, SubCommand>>()
 
     init {

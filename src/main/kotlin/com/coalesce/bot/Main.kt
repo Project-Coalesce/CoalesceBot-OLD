@@ -7,11 +7,18 @@ import com.coalesce.bot.punishmentals.PunishmentSerializer
 import com.google.common.base.Preconditions
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.inject.AbstractModule
+import com.google.inject.Guice
+import com.google.inject.Injector
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.JDABuilder
+import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.entities.Game
+import net.dv8tion.jda.core.entities.Guild
 import java.io.File
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.regex.Pattern
 
 fun main(args: Array<String>) {
@@ -22,6 +29,9 @@ fun main(args: Array<String>) {
 class Main private constructor() {
     lateinit var jda: JDA
     lateinit var punishments: PunishmentManager
+    lateinit var injector: Injector
+    lateinit var listener: Listener
+    val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String) {
         if (!dataDirectory.exists()) {
@@ -37,7 +47,9 @@ class Main private constructor() {
         }.buildBlocking()
 
         punishments = PunishmentManager(this) // Load it.
-        jda.addEventListener(Listener())
+        injector = Guice.createInjector(Injects(this, punishments))
+        listener = Listener()
+        jda.addEventListener(listener)
 
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
@@ -50,6 +62,14 @@ class Main private constructor() {
     }
 }
 
+class Injects(val main: Main, val pmanager: PunishmentManager) : AbstractModule() {
+    override fun configure() {
+        bind(Main::class.java).toInstance(main)
+        bind(PunishmentManager::class.java).toInstance(pmanager)
+        bind(ExecutorService::class.java).toInstance(main.executor)
+    }
+}
+
 const val commandPrefix = "!"
 val dataDirectory = File(".${File.separatorChar}data")
 val gson: Gson = GsonBuilder().setPrettyPrinting().serializeNulls().disableHtmlEscaping().registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance)).create()
@@ -57,3 +77,4 @@ typealias Colour = java.awt.Color
 val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!
 val temperatureCelsius = Pattern.compile("C*", Pattern.CASE_INSENSITIVE)!!
 val temperatureFahrenheit = Pattern.compile("F*", Pattern.CASE_INSENSITIVE)!!
+val canDelete: (Guild) -> Boolean = { it.selfMember.hasPermission(Permission.MESSAGE_MANAGE) }

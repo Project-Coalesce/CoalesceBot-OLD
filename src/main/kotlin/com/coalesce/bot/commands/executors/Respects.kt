@@ -1,8 +1,10 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.canDelete
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.utilities.ifwithDo
 import java.util.concurrent.TimeUnit
 
 class Respects {
@@ -15,7 +17,7 @@ class Respects {
             globalCooldown = 6.0 * 3600.0
     )
     fun execute(context: RootCommandContext) {
-        context.send(context.author, "Respects have been paid!") { delete().queueAfter(60, TimeUnit.SECONDS) }
+        context.send(context.author, "Respects have been paid!") { ifwithDo(canDelete, context.message.guild) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } } }
         // TODO: Re-implement the leaderboard
     }
 }

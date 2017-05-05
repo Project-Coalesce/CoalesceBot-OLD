@@ -1,10 +1,12 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Colour
+import com.coalesce.bot.canDelete
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.Embeddables
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.utilities.ifwithDo
 import net.dv8tion.jda.core.entities.Member
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
@@ -41,6 +43,6 @@ class Whois : Embeddables {
         if (member.roles.size == 1 && member.roles[0].name == "Python") {
             builder.addField("Has ugly yellow colour?", "Sadly, yes", true)
         }
-        context.send(builder) { delete().queueAfter(60, TimeUnit.SECONDS) }
+        context.send(builder) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
     }
 }

@@ -29,7 +29,13 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.0.0_183</version>
+            <version>3.0.0_191</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -75,7 +81,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>false</addClasspath>
-                            <mainClass>com.coalesce.MainKt</mainClass>
+                            <mainClass>com.coalesce.bot.MainKt</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
