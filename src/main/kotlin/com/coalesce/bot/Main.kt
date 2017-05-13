@@ -65,6 +65,7 @@ class Main private constructor() {
 class Injects(val main: Main, val pmanager: PunishmentManager) : AbstractModule() {
     override fun configure() {
         bind(Main::class.java).toInstance(main)
+        bind(JDA::class.java).toInstance(main.jda)
         bind(PunishmentManager::class.java).toInstance(pmanager)
         bind(ExecutorService::class.java).toInstance(main.executor)
     }
@@ -72,6 +73,7 @@ class Injects(val main: Main, val pmanager: PunishmentManager) : AbstractModule(
 
 const val commandPrefix = "!"
 val dataDirectory = File(".${File.separatorChar}data")
+val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.json")
 val gson: Gson = GsonBuilder().setPrettyPrinting().serializeNulls().disableHtmlEscaping().registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance)).create()
 typealias Colour = java.awt.Color
 val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!
