@@ -12,6 +12,8 @@ import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -26,7 +28,29 @@ class Respects {
     )
     fun execute(context: RootCommandContext) {
         context(context.author, "Respects have been paid!") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
-        // TODO: Re-implement the leaderboard
+
+        val file = respectsLeaderboardsFile
+        synchronized(file) {
+            if (!file.parentFile.exists()) {
+                file.parentFile.mkdirs()
+            }
+            val json = mutableMapOf<String, Any?>().withDefault { 0.0 }
+            if (file.exists()) {
+                file.inputStream().use {
+                    it.reader().use {
+                        json.putAll(gson.fromJson(it, json::class.java))
+                    }
+                }
+            }
+
+            val id = context.author.id
+            json[id] = json[id] as Double + 1.0
+            if (file.exists()) {
+                file.delete()
+            }
+            file.createNewFile()
+            Files.write(file.toPath(), gson.toJson(json).toByteArray(), StandardOpenOption.WRITE)
+        }
     }
 }
 
