@@ -56,12 +56,60 @@ abstract class CommandContext(
         open val subcommands: Map<String, Pair<Method, SubCommand>>, // There will be a resolve method.
         open val args: Array<String>
 ) {
+    inline operator fun invoke(text: String, crossinline after: Message.() -> Unit) {
+        send(text) { after(this) }
+    }
+
+    inline operator fun invoke(text: Message, crossinline after: Message.() -> Unit) {
+        send(text) { after(this) }
+    }
+
+    inline operator fun invoke(text: MessageEmbed, crossinline after: Message.() -> Unit) {
+        send(text) { after(this) }
+    }
+
+    inline operator fun invoke(mention: IMentionable, text: String, crossinline after: Message.() -> Unit) {
+        send(mention, text) { after(this) }
+    }
+
+    inline operator fun invoke(text: MessageBuilder, crossinline after: Message.() -> Unit) {
+        send(text) { after(this) }
+    }
+
+    inline operator fun invoke(text: EmbedBuilder, crossinline after: Message.() -> Unit) {
+        send(text) { after(this) }
+    }
+
+    operator fun invoke(text: String) {
+        send(text)
+    }
+
+    operator fun invoke(text: Message) {
+        send(text)
+    }
+
+    operator fun invoke(text: MessageEmbed) {
+        send(text)
+    }
+
+    operator fun invoke(mention: IMentionable, text: String) {
+        send(mention, text)
+    }
+
+    operator fun invoke(text: MessageBuilder) {
+        send(text)
+    }
+
+    operator fun invoke(text: EmbedBuilder) {
+        send(text)
+    }
+
     fun send(message: Message) {
         channel.sendMessage(message).queue()
     }
 
     inline fun send(message: Message, crossinline after: Message.() -> Unit) {
-        channel.sendMessage(message).queue { after.invoke(it) }
+        channel.sendMessage(message).queue { after(it) }
     }
 
     fun send(embed: MessageEmbed) {
@@ -69,7 +117,7 @@ abstract class CommandContext(
     }
 
     inline fun send(embed: MessageEmbed, crossinline after: Message.() -> Unit) {
-        channel.sendMessage(embed).queue { after.invoke(it) }
+        channel.sendMessage(embed).queue { after(it) }
     }
 
     fun send(text: String) {
@@ -77,7 +125,7 @@ abstract class CommandContext(
     }
 
     inline fun send(text: String, crossinline after: Message.() -> Unit) {
-        channel.sendMessage(text).queue { after.invoke(it) }
+        channel.sendMessage(text).queue { after(it) }
     }
 
     fun send(mention: IMentionable, text: String) {
@@ -85,7 +133,7 @@ abstract class CommandContext(
     }
 
     inline fun send(mention: IMentionable, text: String, crossinline after: Message.() -> Unit) {
-        send("${mention.asMention}: $text") { after.invoke(this) }
+        send("${mention.asMention}: $text") { after(this) }
     }
 
     fun send(builder: MessageBuilder) {
@@ -93,7 +141,7 @@ abstract class CommandContext(
     }
 
     inline fun send(builder: MessageBuilder, crossinline after: Message.() -> Unit) {
-        send(builder.build()) { after.invoke(this) }
+        send(builder.build()) { after(this) }
     }
 
     fun send(builder: EmbedBuilder) {
@@ -101,7 +149,7 @@ abstract class CommandContext(
     }
 
     inline fun send(builder: EmbedBuilder, crossinline after: Message.() -> Unit) {
-        send(builder.build()) { after.invoke(this) }
+        send(builder.build()) { after(this) }
     }
 }
 
