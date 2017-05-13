@@ -4,6 +4,7 @@ import com.coalesce.bot.Main
 import com.coalesce.bot.utilities.hashTableOf
 import net.dv8tion.jda.core.entities.Member
 import java.util.*
+import java.util.stream.Collectors
 
 class RankManager internal constructor(bot: Main) {
     private val ranks = hashTableOf<Long, WrappedRole>()
@@ -15,10 +16,10 @@ class RankManager internal constructor(bot: Main) {
 
     fun getPermissions(member: Member): Map<String, Boolean> {
         val user = users.filter { it == member.user }.values.firstOrNull() ?: return mapOf()
-        val applicablePerms = HashMap<String, Boolean>()
+        val applicablePerms = mutableMapOf<String, Boolean>()
         ranks.entries.stream()
                 .filter { it -> member.roles.contains(it.value.role) }
-                .sorted().reverse().forEachOrdered { it -> applicablePerms.putAll(it.value.permissions) }
+                .sorted().collect(Collectors.toList()).reversed().stream().forEachOrdered { it -> applicablePerms.putAll(it.value.permissions) }
         applicablePerms.putAll(user.permissions[member.guild] ?: return applicablePerms)
         return applicablePerms
     }
