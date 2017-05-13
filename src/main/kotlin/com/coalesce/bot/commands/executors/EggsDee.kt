@@ -17,6 +17,6 @@ class EggsDee {
             type = CommandType.FUN
     )
     fun execute(context: RootCommandContext) {
-        context.send(":egg: :egg: :regional_indicator_d: :regional_indicator_e: :regional_indicator_e:") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(20, TimeUnit.SECONDS) } }
+        context(":egg: :egg: :regional_indicator_d: :regional_indicator_e: :regional_indicator_e:") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(20, TimeUnit.SECONDS) } }
     }
 }

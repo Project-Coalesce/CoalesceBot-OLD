@@ -28,7 +28,7 @@ class Whois : Embeddables {
             member = context.message.guild.getMember(context.message.mentionedUsers.firstOrNull())
         }
         if (member == null) {
-            context.send(context.author, "You need to specify a user to check.") { delete().queueAfter(20, TimeUnit.SECONDS) }
+            context(context.author, "You need to specify a user to check.") { delete().queueAfter(20, TimeUnit.SECONDS) }
             return
         }
         val builder = embed()
@@ -43,6 +43,6 @@ class Whois : Embeddables {
         if (member.roles.size == 1 && member.roles[0].name == "Python") {
             builder.addField("Has ugly yellow colour?", "Sadly, yes", true)
         }
-        context.send(builder) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
+        context(builder) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
     }
 }

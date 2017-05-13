@@ -13,6 +13,6 @@ class Pi {
             globalCooldown = 5.0
     )
     fun execute(context: RootCommandContext) {
-        context.send(context.author, Math.PI.toString())
+        context(context.author, Math.PI.toString())
     }
 }

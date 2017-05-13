@@ -23,7 +23,7 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
     )
     fun execute(context: RootCommandContext) {
         fun mention(text: String) {
-            context.send(context.author, text)
+            context(context.author, text)
         }
         if (context.args.isEmpty()) {
             mention("Please specify a word to chec the definition of.")
@@ -56,7 +56,7 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
                     addField("Word", word, true)
                     addField("Definition", definition, true)
                 }
-                context.send(builder.build()) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
+                context(builder) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
             } catch (ex: Exception) {
                 val embedBuilder = EmbedBuilder()
 
@@ -64,7 +64,7 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
                 embedBuilder.setTitle("Error", null)
                 embedBuilder.setDescription("An error occured while trying to handle that command:\n${ex.javaClass.name}: ${ex.message}")
 
-                context.send(embedBuilder.build())
+                context(embedBuilder)
             }
         }
     }

@@ -17,6 +17,6 @@ class Enough {
             description = "Meme Command (I think you've had enough!)"
     )
     fun execute(context: RootCommandContext) {
-        context.send(context.author, "enough is enough. http://i1.kym-cdn.com/photos/images/newsfeed/000/917/654/8a4.jpg") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(20, TimeUnit.SECONDS) } }
+        context(context.author, "enough is enough. http://i1.kym-cdn.com/photos/images/newsfeed/000/917/654/8a4.jpg") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(20, TimeUnit.SECONDS) } }
     }
 }

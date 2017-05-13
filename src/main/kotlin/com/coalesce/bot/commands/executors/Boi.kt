@@ -22,6 +22,6 @@ class Boi {
             globalCooldown = 20.0
     )
     fun execute(context: RootCommandContext) {
-        context.send(context.author, "boi. ${images[ThreadLocalRandom.current().nextInt(images.size)]}") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(30, TimeUnit.SECONDS) } }
+        context(context.author, "boi. ${images[ThreadLocalRandom.current().nextInt(images.size)]}") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(30, TimeUnit.SECONDS) } }
     }
 }

@@ -23,7 +23,7 @@ class Resolve @Inject constructor(private val executor: ExecutorService) : Embed
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context.send(context.author, "You need to specify a URL to resolve.")
+            context(context.author, "You need to specify a URL to resolve.")
             return
         }
         val url = context.args.joinToString(separator = "%20")
@@ -31,9 +31,9 @@ class Resolve @Inject constructor(private val executor: ExecutorService) : Embed
             try {
                 context.channel.sendTyping()
                 val resolved = getFinalUrl(url)
-                context.send(embed().field("Receiver", context.author, true).field("Resolved", resolved, true).build()) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
+                context(embed().field("Receiver", context.author, true).field("Resolved", resolved, true)) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
             } catch (ex: Exception) {
-                context.send(embed().field("Receiver", context.author, true).field("Error", "Couldn't resolve the URL.", true).build()) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
+                context(embed().field("Receiver", context.author, true).field("Error", "Couldn't resolve the URL.", true)) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
             }
         }
     }

@@ -17,7 +17,7 @@ class Rules {
             globalCooldown = 30.0
     )
     fun execute(context: RootCommandContext) {
-        context.send(context.author, "Psst, you... Head over to <#269178364483338250>. They got memes such as this one.")
-        context.send("http://i.imgur.com/B50EQKp.png") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(20, TimeUnit.SECONDS) } }
+        context(context.author, "Psst, you... Head over to <#269178364483338250>. They got memes such as this one.")
+        context("http://i.imgur.com/B50EQKp.png") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(20, TimeUnit.SECONDS) } }
     }
 }

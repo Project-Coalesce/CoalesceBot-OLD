@@ -41,6 +41,6 @@ class Help @Inject constructor(val bot: Main) : Embeddables {
         for (type in CommandType.values()) {
             embed.field(type.name.toLowerCase().capitalize(), out[type] ?: continue, true)
         }
-        context.send(embed) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(45, TimeUnit.SECONDS) } }
+        context(embed) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(45, TimeUnit.SECONDS) } }
     }
 }

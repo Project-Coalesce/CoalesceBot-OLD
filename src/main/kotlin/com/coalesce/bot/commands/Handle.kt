@@ -49,7 +49,7 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
                     if (current != null) {
                         if (current > System.currentTimeMillis()) {
                             // TODO: Add time left to the message.
-                            it.channel.sendMessage(embed().field("Receiver", it.author, true).field("Error", "The command is currently on a global cooldown.", true).build()).queue()
+                            it(embed().field("Receiver", it.author, true).field("Error", "The command is currently on a global cooldown.", true))
                             return@Predicate false
                         }
                     }
@@ -77,7 +77,7 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
                     if (userCooldown != null) {
                         if (userCooldown > System.currentTimeMillis()) {
                             // TODO: Add time left to the message.
-                            it.channel.sendMessage(embed().field("Receiver", it.author, true).field("Error", "The command is currently on a user cooldown.", true).build()).queue()
+                            it(embed().field("Receiver", it.author, true).field("Error", "The command is currently on a user cooldown.", true))
                             return@Predicate false
                         }
                     }

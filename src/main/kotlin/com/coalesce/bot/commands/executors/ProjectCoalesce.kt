@@ -14,6 +14,6 @@ class ProjectCoalesce {
             permission = "commands.coalesce"
     )
     fun execute(context: RootCommandContext) {
-        context.send(context.author, "Project-Coalesce is a diverse group of developers. We specialize in plugins using the Spigot-API, however we are open to all kinds of development.")
+        context(context.author, "Project-Coalesce is a diverse group of developers. We specialize in plugins using the Spigot-API, however we are open to all kinds of development.")
     }
 }

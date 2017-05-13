@@ -22,16 +22,16 @@ class Mute @Inject constructor(val bot: Main, val manager: PunishmentManager) {
         // TODO: Support several guilds.
         if (context.message.guild.idLong == 268187052753944576L &&
                 !context.message.guild.getMember(context.author).roles.contains(context.jda.getRoleById("268239031467376640"))) {
-            context.send(context.author, "You're not permitted to perform this command.")
+            context(context.author, "You're not permitted to perform this command.")
             return
         }
         if (context.message.mentionedUsers.isEmpty()) {
-            context.send("You need to mention a user to perform this command.")
+            context("You need to mention a user to perform this command.")
             return
         }
         val user = context.message.mentionedUsers.first()
         if (context.args.size < 2) {
-            context.send("You need to specify a time period for the mute to last.")
+            context("You need to specify a time period for the mute to last.")
             return
         }
 

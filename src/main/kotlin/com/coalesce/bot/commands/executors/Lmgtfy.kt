@@ -16,7 +16,7 @@ class Lmgtfy {
     )
     fun execute(context: RootCommandContext) {
         fun mention(text: String) {
-            context.send(context.author, text)
+            context(context.author, text)
         }
         val member: Member? = context.message.guild.getMember(context.message.mentionedUsers.firstOrNull())
         if (member == null) {
@@ -27,6 +27,6 @@ class Lmgtfy {
             mention("Please specify a phrase to Google.")
         }
         val phrase = context.args.joinToString(separator = "+")
-        context.channel.sendMessage(member.asMention + " have you tried Googling it? <http://lmgtfy.com/?q=$phrase>")
+        context(member, "Have you tried Googling it? <http://lmgtfy.com/?q=$phrase>")
     }
 }
