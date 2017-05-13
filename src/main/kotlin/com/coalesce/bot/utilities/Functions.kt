@@ -14,6 +14,13 @@ fun String.parseDouble(): Double? {
     }
 }
 
+fun String.limit(limit: Int, ending: String = "..."): String {
+    if (length > limit) {
+        return this.substring(0, limit) + ending
+    }
+    return this
+}
+
 inline fun ifDo(can: Boolean, crossinline todo: () -> Unit) {
     if (can) {
         todo.invoke()
