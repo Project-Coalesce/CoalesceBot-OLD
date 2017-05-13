@@ -10,7 +10,7 @@ import com.coalesce.bot.punishmentals.Reason
 import com.google.inject.Inject
 import java.util.*
 
-class Mute(@Inject val bot: Main, @Inject val manager: PunishmentManager) {
+class Mute @Inject constructor(val bot: Main, val manager: PunishmentManager) {
     @RootCommand(
             name = "Mute",
             permission = "commands.mute",

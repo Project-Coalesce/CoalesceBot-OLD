@@ -12,7 +12,7 @@ import java.net.URL
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
-class Resolve(@Inject private val executor: ExecutorService) : Embeddables {
+class Resolve @Inject constructor(private val executor: ExecutorService) : Embeddables {
     @RootCommand(
             name = "Resolve",
             aliases = arrayOf("resolver", "url"),

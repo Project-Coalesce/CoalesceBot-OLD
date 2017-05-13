@@ -8,6 +8,7 @@ import com.coalesce.bot.gson
 import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
+import com.google.gson.internal.LinkedTreeMap
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
@@ -34,7 +35,7 @@ class Respects {
             if (!file.parentFile.exists()) {
                 file.parentFile.mkdirs()
             }
-            val json = mutableMapOf<String, Any?>().withDefault { 0.0 }
+            val json = LinkedTreeMap<String, Any?>()
             if (file.exists()) {
                 file.inputStream().use {
                     it.reader().use {
@@ -44,7 +45,7 @@ class Respects {
             }
 
             val id = context.author.id
-            json[id] = json[id] as Double + 1.0
+            json[id] = json[id] as? Double ?: 0.0 + 1.0
             if (file.exists()) {
                 file.delete()
             }
@@ -54,7 +55,7 @@ class Respects {
     }
 }
 
-class RespectsLeaderboard(@Inject val jda: JDA) {
+class RespectsLeaderboard @Inject constructor(val jda: JDA) {
     @RootCommand(
             name = "leaderboard",
             aliases = arrayOf("fboard", "lboard", "board", "respectsboard", "rboard", "ftop"),

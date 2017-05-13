@@ -3,6 +3,7 @@ package com.coalesce.bot.punishmentals
 import com.coalesce.bot.Main
 import com.coalesce.bot.dataDirectory
 import com.coalesce.bot.gson
+import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.User
 import java.io.File
 import java.nio.file.Files
@@ -11,7 +12,7 @@ import java.nio.file.StandardOpenOption
 class PunishmentManager internal constructor(bot: Main) {
     val punishmentsFile = File(dataDirectory, "punishments.json")
     val punishments = mutableMapOf<Long, MutableSet<Punishment>>()
-    val mutedRole = bot.jda.getRoleById(303317692608282625)!!
+    val mutedRole: Role? = bot.jda.getRoleById(303317692608282625)
 
     init {
         if (punishmentsFile.exists()) {
@@ -35,7 +36,7 @@ class PunishmentManager internal constructor(bot: Main) {
             set.filter {
                 if (it.expiration == null) {
                     true
-                } else if (it.expiration == 0.toLong() || it.expiration == 1.toLong()) {
+                } else if (it.expiration == 0L || it.expiration == 1L) {
                     true
                 } else {
                     it.expiration!! > System.currentTimeMillis()

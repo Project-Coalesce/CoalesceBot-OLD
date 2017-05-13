@@ -10,7 +10,7 @@ import com.coalesce.bot.punishmentals.Reason
 import com.google.inject.Inject
 import java.util.*
 
-class Punish(@Inject val bot: Main, @Inject val manager: PunishmentManager) {
+class Punish @Inject constructor(val bot: Main, val manager: PunishmentManager) {
     @RootCommand(
             name = "Punish",
             permission = "commands.punish",

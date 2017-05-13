@@ -9,7 +9,7 @@ import com.google.inject.Inject
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class Help(@Inject val bot: Main) : Embeddables {
+class Help @Inject constructor(val bot: Main) : Embeddables {
     @RootCommand(
             name = "Help",
             permission = "commands.help",

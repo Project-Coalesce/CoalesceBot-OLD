@@ -13,7 +13,7 @@ import java.net.URL
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
-class UrbanDefinition(@Inject val executorService: ExecutorService) {
+class UrbanDefinition @Inject constructor(val executorService: ExecutorService) {
     @RootCommand(
             name = "Definition",
             aliases = arrayOf("define", "dictionary", "urban"), description = "Defines a word or phrase with Urban Dictionary.",

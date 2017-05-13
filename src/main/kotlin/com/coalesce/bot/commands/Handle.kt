@@ -6,6 +6,11 @@ import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.reflections.Reflections
+import org.reflections.scanners.ResourcesScanner
+import org.reflections.scanners.SubTypesScanner
+import org.reflections.util.ClasspathHelper
+import org.reflections.util.ConfigurationBuilder
+import org.reflections.util.FilterBuilder
 import java.lang.reflect.Method
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -19,6 +24,7 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
 
     init {
         synchronized(registry) {
+            println("Registering commands.")
             registry.register()
             checks.add(Predicate {
                 val cooldown: Double = if (it is SubCommandContext) {
@@ -77,9 +83,9 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
                     }
                     user[identifier] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(annoUser.toLong())
                     userCooldowns[it.author.idLong] = user
-                    if (setGlobal) {
-                        cooldowns[identifier] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(cooldown.toLong())
-                    }
+                }
+                if (setGlobal) {
+                    cooldowns[identifier] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(cooldown.toLong())
                 }
 
                 return@Predicate true
@@ -95,29 +101,20 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
         try {
             val (input, method, third) = registry[command, event]
             val (context, clazz) = third
-            if (method == null || context == null) {
-                event.channel.sendMessage(MessageBuilder().append(event.author.asMention).append("Couldn't find the command \"$input\".").build()).queue()
-                return
-            }
-
-            if (checks.any { !it.test(context) }) {
+            if (method == null || context == null || clazz == null) {
+                event.channel.sendMessage(MessageBuilder().append(event.author.asMention).append(": Couldn't find the command \"$input\".").build()).queue()
                 return
             }
 
             event.message.delete().queue()
+            if (checks.any { !it.test(context) }) {
+                return
+            }
+
             method.invoke(clazz, context)
         } catch (ex: Exception) {
-            val messageBuilder = MessageBuilder()
-            val builder = StringBuilder()
-            builder.append(ex.toString())
-            ex.stackTrace.forEach {
-                builder.append("\n\tat: $it")
-            }
-            messageBuilder.appendCodeBlock(builder.toString(), "")
-            val message = messageBuilder.build()
-            event.jda.guilds.map { it.publicChannel }.filter { it.canTalk() }.forEach {
-                it.sendMessage(message).queue()
-            }
+            ex.printStackTrace()
+            event.channel.sendMessage("* An error occurred. Ask a developer to look at the error.").queue()
         }
     }
 }
@@ -126,15 +123,25 @@ class CommandRegistry internal constructor() {
     val commands = mutableMapOf<String, CommandEntry>()
 
     internal fun register() {
-        val classes = Reflections(this::class.java.`package`.name + ".executors").getSubTypesOf(Object::class.java)
-        classes.forEach { this::process }
+        val classes = Reflections(ConfigurationBuilder()
+                .setScanners(SubTypesScanner(false), ResourcesScanner())
+                .setUrls(ClasspathHelper.forJavaClassPath())
+                .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.commands.executors")))).getSubTypesOf(Object::class.java).filter { !it.name.contains('$') }
+        for (clazz in classes) {
+            process(clazz)
+        }
     }
 
     private fun process(clazz: Class<*>) {
         val commandEntry = CommandEntry(clazz)
-        commands[commandEntry.rootAnnotation.name.replace(" ", "")] = commandEntry
+        commands[commandEntry.rootAnnotation.name.replace(" ", "").toLowerCase()] = commandEntry
+        if (commandEntry.rootAnnotation.aliases.isNotEmpty()) {
+            commandEntry.rootAnnotation.aliases.map { it.toLowerCase().replace(" ", "") }.forEach {
+                commands[it] = commandEntry
+            }
+        }
         commandEntry.subcommands.map { it.key }.forEach {
-            commands[commandEntry.rootAnnotation.name.replace(" ", "") + " $it"] = commandEntry
+            commands[commandEntry.rootAnnotation.name.replace(" ", "").toLowerCase() + " $it".toLowerCase()] = commandEntry
         }
     }
 
@@ -146,7 +153,7 @@ class CommandRegistry internal constructor() {
         val jda = event.jda
         val args: Array<String>
         if (split.size > 1) {
-            val subcommand = commands[split[0] + " " + split[1]]
+            val subcommand = commands[split[0] + ' ' + split[1]]
             if (subcommand != null) {
                 if (split.size > 2) {
                     args = Arrays.copyOfRange(split.toTypedArray(), 2, split.size)
@@ -156,7 +163,7 @@ class CommandRegistry internal constructor() {
                 return Triple(split[0] + " " + split[1], subcommand.subcommands[split[1]]!!.first, SubCommandContext(jda, jda.selfUser, event.message, event, event.author, event.channel, subcommand.rootAnnotation, subcommand.subcommands, args, subcommand.subcommands[split[1]]!!.second) to subcommand.instance)
             }
         }
-        val method = commands[split[0].toLowerCase().replace(" ", "")] ?: return Triple(split[0], null, null to null)
+        val method = commands[split[0].toLowerCase()] ?: return Triple(split[0], null, null to null)
         if (split.size > 1) {
             args = Arrays.copyOfRange(split.toTypedArray(), 1, split.size)
         } else {

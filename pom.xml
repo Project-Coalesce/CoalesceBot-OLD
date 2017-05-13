@@ -71,6 +71,7 @@
     </dependencies>
 
     <build>
+        <defaultGoal>package</defaultGoal>
         <finalName>CoalesceBot</finalName>
         <plugins>
             <plugin>
@@ -128,6 +129,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
                 <executions>
                     <execution>
                         <id>compile</id>

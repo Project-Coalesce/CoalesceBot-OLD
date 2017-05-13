@@ -6,7 +6,6 @@ import com.coalesce.bot.commands.RootCommandContext
 import net.dv8tion.jda.core.entities.Member
 
 class Lmgtfy {
-
     @RootCommand(
             name = "lmgtfy",
             aliases = arrayOf("justgoogleretard", "googlethat"),

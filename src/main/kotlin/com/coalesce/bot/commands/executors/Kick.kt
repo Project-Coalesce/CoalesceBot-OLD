@@ -7,7 +7,7 @@ import com.coalesce.bot.commands.RootCommandContext
 import com.google.inject.Inject
 import java.util.*
 
-class Kick(@Inject val bot: Main) {
+class Kick @Inject constructor(val bot: Main) {
     @RootCommand(
             name = "Kick",
             permission = "commands.kick",
