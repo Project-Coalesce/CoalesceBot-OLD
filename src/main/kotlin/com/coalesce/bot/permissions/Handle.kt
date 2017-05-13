@@ -1,13 +1,13 @@
 package com.coalesce.bot.permissions
 
 import com.coalesce.bot.Main
-import com.coalesce.utils.reverse
+import com.coalesce.bot.utilities.hashTableOf
 import net.dv8tion.jda.core.entities.Member
 import java.util.*
 
 class RankManager internal constructor(bot: Main) {
-    private val ranks = Hashtable<Long, WrappedRole>()
-    private val users = Hashtable<Long, WrappedUser>()
+    private val ranks = hashTableOf<Long, WrappedRole>()
+    private val users = hashTableOf<Long, WrappedUser>()
 
     init {
         bot.jda.guilds.map { it.members }.forEach { it.forEach { users.put(it.user.idLong, WrappedUser(it.user)) } }
