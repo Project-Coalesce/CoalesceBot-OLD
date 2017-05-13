@@ -13,7 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <kotlin.version>1.1.2</kotlin.version>
+        <kotlin.version>1.1.2-2</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
 
@@ -29,7 +29,13 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.0.0_183</version>
+            <version>3.0.0_191</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -65,6 +71,7 @@
     </dependencies>
 
     <build>
+        <defaultGoal>package</defaultGoal>
         <finalName>CoalesceBot</finalName>
         <plugins>
             <plugin>
@@ -75,7 +82,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>false</addClasspath>
-                            <mainClass>com.coalesce.MainKt</mainClass>
+                            <mainClass>com.coalesce.bot.MainKt</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -122,6 +129,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
                 <executions>
                     <execution>
                         <id>compile</id>
