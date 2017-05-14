@@ -9,7 +9,7 @@ class Lmgtfy {
     @RootCommand(
             name = "lmgtfy",
             aliases = arrayOf("justgoogleretard", "googlethat"),
-            description = "Have you tried with Google yet? Let me do it for you",
+            description = "Meme command (Have you tried with Google yet? Let me do it for you)",
             permission = "command.lmgtfy",
             globalCooldown = 5.0,
             type = CommandType.INFORMATION

@@ -2,7 +2,9 @@ package com.coalesce.bot.commands
 
 import com.coalesce.bot.Main
 import com.coalesce.bot.commandPrefix
+import com.coalesce.bot.commandPrefixLen
 import net.dv8tion.jda.core.MessageBuilder
+import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.reflections.Reflections
@@ -11,6 +13,7 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
+import java.awt.Color
 import java.lang.reflect.Method
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -48,8 +51,9 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
                     val current = cooldowns[identifier]
                     if (current != null) {
                         if (current > System.currentTimeMillis()) {
-                            // TODO: Add time left to the message.
-                            it(embed().field("Receiver", it.author, true).field("Error", "The command is currently on a global cooldown.", true))
+                            // TODO: Prettify current seconds
+                            it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
+                                    .setDescription("That command is on global cooldown for $current seconds."))
                             return@Predicate false
                         }
                     }
@@ -77,7 +81,8 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
                     if (userCooldown != null) {
                         if (userCooldown > System.currentTimeMillis()) {
                             // TODO: Add time left to the message.
-                            it(embed().field("Receiver", it.author, true).field("Error", "The command is currently on a user cooldown.", true))
+                            it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
+                                    .setDescription("That command is on cooldown for $userCooldown seconds."))
                             return@Predicate false
                         }
                     }
@@ -93,11 +98,21 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
         }
     }
 
+    override fun onGenericEvent(event: Event) {
+        if (registry.jdalisteners.containsKey(event::class.java)) {
+            registry.jdalisteners[event::class.java]!!.forEach {
+                it.key.invoke(it.value.instance, event)
+            }
+        }
+
+        super.onGenericEvent(event)
+    }
+
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (!event.message.rawContent.startsWith(commandPrefix)) {
             return
         }
-        val command = event.message.rawContent.substring(commandPrefix.length)
+        val command = event.message.rawContent.substring(commandPrefixLen)
         try {
             val (input, method, third) = registry[command, event]
             val (context, clazz) = third
@@ -114,13 +129,14 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
             method.invoke(clazz, context)
         } catch (ex: Exception) {
             ex.printStackTrace()
-            event.channel.sendMessage("* An error occurred. Ask a developer to look at the error.").queue()
+            event.channel.sendMessage("* An error occurred. Ask a someone from Project Coalesce to look at the error.").queue()
         }
     }
 }
 
 class CommandRegistry internal constructor() {
     val commands = mutableMapOf<String, CommandEntry>()
+    val jdalisteners = mutableMapOf<Class<Event>, MutableMap<Method, CommandEntry>>()
 
     internal fun register() {
         val classes = Reflections(ConfigurationBuilder()
@@ -142,6 +158,12 @@ class CommandRegistry internal constructor() {
         }
         commandEntry.subcommands.map { it.key }.forEach {
             commands[commandEntry.rootAnnotation.name.replace(" ", "").toLowerCase() + " $it".toLowerCase()] = commandEntry
+        }
+        commandEntry.jdalisteners.forEach { entry ->
+            val map = mutableMapOf<Method, CommandEntry>()
+            entry.value.forEach { map.put(it, commandEntry) }
+            if(!jdalisteners.containsKey(entry.key)) jdalisteners.put(entry.key, mutableMapOf<Method, CommandEntry>())
+            jdalisteners[entry.key]!!.putAll(map)
         }
     }
 
@@ -179,6 +201,7 @@ class CommandEntry(@Suppress("CanBeParameter") val clazz: Class<*>) {
     @Suppress("DEPRECATION")
     val instance: Any = Main.instance.injector.getInstance(clazz)
     val subcommands = mutableMapOf<String, Pair<Method, SubCommand>>()
+    val jdalisteners = mutableMapOf<Class<Event>, MutableList<Method>>()
 
     init {
         var setRoot = false
@@ -196,6 +219,12 @@ class CommandEntry(@Suppress("CanBeParameter") val clazz: Class<*>) {
             val annotation = method.getAnnotation(SubCommand::class.java) ?: continue
             subcommands[annotation.name.replace(" ", "")] = method to annotation
             annotation.aliases.map { it.replace(" ", "") }.forEach { subcommands[it] = method to annotation }
+        }
+        for (method in clazz.declaredMethods) {
+            method.getAnnotation(JDAListener::class.java) ?: continue
+            val eventListener = method.parameterTypes.first() as Class<Event>
+            if (!jdalisteners.containsKey(eventListener)) jdalisteners.put(eventListener, mutableListOf<Method>())
+            jdalisteners.get(eventListener)!!.add(method)
         }
     }
 }

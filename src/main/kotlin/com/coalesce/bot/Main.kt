@@ -23,7 +23,7 @@ import java.util.regex.Pattern
 
 fun main(args: Array<String>) {
     Preconditions.checkArgument(args.isNotEmpty(), "You need to specify a token.")
-    Main.instance.boot(args[0].replace("\"", ""))
+    Main.instance.boot(args[0].replace("\"", ""), args[1])
 }
 
 class Main private constructor() {
@@ -31,18 +31,19 @@ class Main private constructor() {
     lateinit var punishments: PunishmentManager
     lateinit var injector: Injector
     lateinit var listener: Listener
+    lateinit var githubSecret: String
     val executor = Executors.newFixedThreadPool(6)!!
 
-    internal fun boot(token: String) {
+    internal fun boot(token: String, secret: String) {
         if (!dataDirectory.exists()) {
-            dataDirectory.mkdirs()
-        }
+                dataDirectory.mkdirs()
+            }
 
-        jda = JDABuilder(AccountType.BOT).apply {
-            setToken(token)
-            setCorePoolSize(6)
-            setAudioEnabled(true) // Depri is implementing a YouTube player.
-            @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's fucking driving me nuts even tho we target 1.8
+            jda = JDABuilder(AccountType.BOT).apply {
+                setToken(token)
+                setCorePoolSize(6)
+                setAudioEnabled(true) // Depri has implemented a Youtube player that proxi fucked up.
+                @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET")
             setGame(Game.of("with my settings"))
         }.buildBlocking()
 
@@ -54,6 +55,8 @@ class Main private constructor() {
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
         jda.presence.game = Game.of("with myself")
+
+        githubSecret = secret
     }
 
     companion object {
@@ -72,6 +75,7 @@ class Injects(val main: Main, val pmanager: PunishmentManager) : AbstractModule(
 }
 
 const val commandPrefix = "!"
+const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
 val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.json")
 val gson: Gson = GsonBuilder().setPrettyPrinting().serializeNulls().disableHtmlEscaping().registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance)).create()
