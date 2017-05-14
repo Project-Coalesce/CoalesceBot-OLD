@@ -18,7 +18,7 @@ import java.io.OutputStreamWriter
 import java.net.URL
 import java.util.*
 
-class Request(@Inject val bot: Main) {
+class Request @Inject constructor(val bot: Main) {
     private val acceptableRoles = arrayOf(
             bot.jda.getRoleById("275473393325703179"), //Kotlin
             bot.jda.getRoleById("311314320006971393"), //Web
@@ -87,7 +87,7 @@ class Request(@Inject val bot: Main) {
     }
 }
 
-class ValidateRequest(@Inject val bot: Main) {
+class ValidateRequest @Inject constructor(val bot: Main) {
     private val acceptableRoles = arrayOf(
             bot.jda.getRoleById("275473393325703179"), //Kotlin
             bot.jda.getRoleById("311314320006971393"), //Web
