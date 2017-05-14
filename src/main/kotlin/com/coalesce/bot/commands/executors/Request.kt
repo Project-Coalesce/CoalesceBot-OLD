@@ -128,7 +128,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
         }
 
         if (!acceptableRoles.contains(role)) {
-            channel.sendMessage("* Please enter one of the supported roles.").queue()
+            channel.sendMessage("Nice try ${user.asMention}").queue()
             return
         }
 
