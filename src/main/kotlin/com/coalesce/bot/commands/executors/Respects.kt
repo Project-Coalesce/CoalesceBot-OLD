@@ -84,7 +84,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                     respects.add(member)
                 }
             }
-            Collections.sort(respects, { first, second -> (json[first.user.id] as Double).toInt() - (json[second.user.id] as Double).toInt() })
+            Collections.sort(respects, { second, first -> (json[first.user.id] as Double).toInt() - (json[second.user.id] as Double).toInt() })
             if (respects.size > 10) {
                 val back = mutableListOf<Member>()
                 back.addAll(respects.subList(0, 10))
