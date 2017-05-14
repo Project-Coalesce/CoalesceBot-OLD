@@ -11,6 +11,7 @@ class Lmgtfy {
             aliases = arrayOf("justgoogleretard", "googlethat"),
             description = "Have you tried with Google yet? Let me do it for you",
             permission = "command.lmgtfy",
+            usage = "<user> <phrase>",
             globalCooldown = 5.0,
             type = CommandType.INFORMATION
     )
@@ -26,7 +27,7 @@ class Lmgtfy {
         else if (context.args.isEmpty()) {
             mention("Please specify a phrase to Google.")
         }
-        val phrase = context.args.joinToString(separator = "+")
+        val phrase = context.args.copyOfRange(1, context.args.size).joinToString(separator = "+")
         context(member, "Have you tried Googling it? <http://lmgtfy.com/?q=$phrase>")
     }
 }
