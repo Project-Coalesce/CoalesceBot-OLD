@@ -99,7 +99,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
 
             respects.forEachIndexed { index, it ->
                 positionStr.append("#${index + 1}\n")
-                nameStr.append("${(it.nickname ?: it.effectiveName ?: it.user.name).limit(16)}\n")
+                nameStr.append("${(it.effectiveName).limit(16)}\n")
                 respectsPaidStr.append("${(json[it.user.id] as Double).toInt()}\n")
             }
             builder.addField("Position", positionStr.toString(), true)

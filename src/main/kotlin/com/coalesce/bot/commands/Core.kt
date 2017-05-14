@@ -45,6 +45,10 @@ annotation class SubCommand(
         val cooldown: Boolean = true // Whether or not to even have the cooldown feature
 )
 
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+annotation class JDAListener
+
 abstract class CommandContext(
         open val jda: JDA,
         open val selfUser: SelfUser,

@@ -33,6 +33,7 @@ class Help @Inject constructor(val bot: Main) : Embeddables {
                 if (it.rootAnnotation.aliases.isNotEmpty()) {
                     builder.append(' ').append(Arrays.toString(it.rootAnnotation.aliases.map { it.capitalize() }.toTypedArray()))
                 }
+                builder.append(": " + it.rootAnnotation.description)
                 builder.append("\n")
             }
             out[type] = builder.append("\n```").toString().trim()
