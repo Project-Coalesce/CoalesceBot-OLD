@@ -26,7 +26,7 @@ class Lmgtfy {
         else if (context.args.isEmpty()) {
             mention("Please specify a phrase to Google.")
         }
-        val phrase = context.args.joinToString(separator = "+")
+        val phrase = context.args.copyOfRange(1, context.args.size).joinToString(separator = "+")
         context(member, "Have you tried Googling it? <http://lmgtfy.com/?q=$phrase>")
     }
 }
