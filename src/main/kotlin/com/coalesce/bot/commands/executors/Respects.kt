@@ -77,7 +77,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                     json.putAll(gson.fromJson(it, json::class.java))
                 }
             }
-            val respects = mutableListOf<Member>()
+            var respects = mutableListOf<Member>()
             json.forEach { key, value ->
                 val member = context.message.guild.getMember(jda.getUserById(key))
                 if (member != null &&
@@ -86,6 +86,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                     respects.add(member)
                 }
             }
+            respects = respects.subList(0, Math.min(respects.size, 10))
             Collections.sort(respects, { second, first -> (json[first.user.id] as Double).toInt() - (json[second.user.id] as Double).toInt() })
             if (respects.size > 10) {
                 val back = mutableListOf<Member>()
@@ -103,6 +104,12 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                 positionStr.append("#${index + 1}\n")
                 nameStr.append("${(it.effectiveName).limit(16)}\n")
                 respectsPaidStr.append("${(json[it.user.id] as Double).toInt()}\n")
+            }
+            val member = context.message.member
+            if(respects.contains(member) && respects.indexOf(member) > 10) {
+                positionStr.append("...${respects.indexOf(member)}")
+                nameStr.append("${(member.effectiveName).limit(16)}")
+                respectsPaidStr.append("${(json[member.user.id] as Double).toInt()}")
             }
             builder.addField("Position", positionStr.toString(), true)
                     .addField("Name", nameStr.toString(), true)
