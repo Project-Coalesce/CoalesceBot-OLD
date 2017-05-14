@@ -107,9 +107,9 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             }
             val member = context.message.member
             if(respects.contains(member) && respects.indexOf(member) > 10) {
-                positionStr.append("...${respects.indexOf(member)}")
-                nameStr.append("${(member.effectiveName).limit(16)}")
-                respectsPaidStr.append("${(json[member.user.id] as Double).toInt()}")
+                positionStr.append("...\n${respects.indexOf(member)}")
+                nameStr.append("...\n${(member.effectiveName).limit(16)}")
+                respectsPaidStr.append("...\n${(json[member.user.id] as Double).toInt()}")
             }
             builder.addField("Position", positionStr.toString(), true)
                     .addField("Name", nameStr.toString(), true)
