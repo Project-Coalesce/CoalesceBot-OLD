@@ -98,31 +98,26 @@ class ValidateRequest @Inject constructor(val bot: Main) {
     )
     private val tagRequests = bot.jda.getTextChannelById("311317585775951872")
 
+    /*
+    THIS COMMAND SHOULDN'T BE USED BY PEOPLE, NO NEED TO MAKE ARGS CHECKS AND STUFF
+     */
     @RootCommand(
             name = "validaterequests",
             aliases = arrayOf("validaterequest"),
             globalCooldown = 0.0,
             type = CommandType.ADMINISTRATION,
             permission = "commands.validateRequests",
-            description = "Command you shouldn't do."
+            description = "This is an internal command for validate requests, it shouldn't be used."
     )
     fun execute(context: RootCommandContext) {
         if (context.channel.idLong != 299385639437074433L) {
-            context("* Try the command out in ${context.jda.getTextChannelById(299385639437074433L).asMention}.")
-            return
-        }
-        if (context.args.size < 2) {
-            context("* Please enter at least 2 arguments following the syntax.")
+            context("* This is an internal command for validate requests and shouldn't be used.")
             return
         }
 
         val state = context.args[0].split(",")
         val code = context.args[1]
 
-        if (state.size != 2) {
-            context("* Please follow the correct syntax.") // Which is fuckin what?
-            return
-        }
         val role = context.jda.getRoleById(state[0])
         val user = context.jda.getUserById(state[1])
         val channel: PrivateChannel
@@ -133,7 +128,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
         }
 
         if (!acceptableRoles.contains(role)) {
-            channel.sendMessage("* Please enter one of the supported roles.").queue()
+            channel.sendMessage("Nice try ${user.asMention}").queue()
             return
         }
 
@@ -187,11 +182,11 @@ class ValidateRequest @Inject constructor(val bot: Main) {
 
     private fun verifyAuthenticationTokenGithub(code: String) : String {
         val url = URL("https://github.com/login/oauth/access_token")
-        val userURL = URL("https://api.github.com/user")
+        val userURL = "https://api.github.com/user"
 
         val accessToken = post(url, "client_id=2e8a8ed194265736c99a&client_secret=${bot.githubSecret}&code=$code")
                 .split("access_token=")[1].split("&")[0]
-        val userInfo = post(userURL, "{\"access_token\"=\"$accessToken\"}")
+        val userInfo = get(URL("$userURL?access_token=$accessToken"))
 
         val json = mutableMapOf<String, Any?>()
         json.putAll(gson.fromJson(userInfo, json::class.java))
@@ -207,6 +202,16 @@ class ValidateRequest @Inject constructor(val bot: Main) {
         val writer = OutputStreamWriter(conn.getOutputStream())
         writer.write(output)
         writer.close()
+
+        val scanner = Scanner(conn.getInputStream())
+        val string = scanner.nextLine()
+        scanner.close()
+
+        return string
+    }
+
+    private fun get(url: URL): String {
+        val conn = url.openConnection()
 
         val scanner = Scanner(conn.getInputStream())
         val string = scanner.nextLine()
