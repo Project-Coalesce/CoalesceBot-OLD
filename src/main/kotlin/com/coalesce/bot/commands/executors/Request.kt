@@ -107,20 +107,33 @@ class ValidateRequest @Inject constructor(val bot: Main) {
             description = "Command you shouldn't do."
     )
     fun execute(context: RootCommandContext) {
-        if (context.channel.id != "299385639437074433") {
-            context("I really meant it when I wrote 'shouldn't do' in the description..")
+        if (context.channel.idLong != 299385639437074433L) {
+            context("* Try the command out in ${context.jda.getTextChannelById(299385639437074433L).asMention}.")
+            return
+        }
+        if (context.args.size < 2) {
+            context("* Please enter at least 2 arguments following the syntax.")
             return
         }
 
         val state = context.args[0].split(",")
         val code = context.args[1]
 
-        val role = context.jda.getRoleById(state[1])
-        val user = context.jda.getUserById(state[2])
-        val channel = user.privateChannel
+        if (state.size != 2) {
+            context("* Please follow the correct syntax.") // Which is fuckin what?
+            return
+        }
+        val role = context.jda.getRoleById(state[0])
+        val user = context.jda.getUserById(state[1])
+        val channel: PrivateChannel
+        if (user.hasPrivateChannel()) {
+            channel = user.privateChannel
+        } else {
+            channel = user.openPrivateChannel().complete()
+        }
 
         if (!acceptableRoles.contains(role)) {
-            channel.sendMessage("Nice try " + user.asMention).queue()
+            channel.sendMessage("* Please enter one of the supported roles.").queue()
             return
         }
 
@@ -141,8 +154,6 @@ class ValidateRequest @Inject constructor(val bot: Main) {
         } catch (e: IOException) {
             channel.sendMessage(e.message).queue()
         }
-
-
     }
 
     @JDAListener
@@ -174,7 +185,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
         }
     }
 
-    fun verifyAuthenticationTokenGithub(code: String) : String {
+    private fun verifyAuthenticationTokenGithub(code: String) : String {
         val url = URL("https://github.com/login/oauth/access_token")
         val userURL = URL("https://api.github.com/user")
 
@@ -189,7 +200,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
         return json["html_url"] as String
     }
 
-    fun post(url: URL, output: String): String {
+    private fun post(url: URL, output: String): String {
         val conn = url.openConnection()
 
         conn.doOutput = true
