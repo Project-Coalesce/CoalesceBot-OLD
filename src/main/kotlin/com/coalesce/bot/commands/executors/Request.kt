@@ -62,6 +62,11 @@ class Request(@Inject val bot: Main) {
             return
         }
 
+        if (context.message.guild.getMember(context.message.author).roles.contains(role)) {
+            context("You can't ask for a role you already have.")
+            return
+        }
+
         if (context.message.author.hasPrivateChannel()) sendMessage(context.message.author.privateChannel, context.channel, role, context.message.author)
         else context.message.author.openPrivateChannel().queue { sendMessage(it, context.channel, role, context.message.author) }
     }
@@ -130,12 +135,43 @@ class ValidateRequest(@Inject val bot: Main) {
                     .build()).queue {
                 it.addReaction("✅").queue()
                 it.addReaction("❎").queue()
+                user.privateChannel.sendMessage("Your application for the ${role.name} role on Coalesce Coding " +
+                        "was sent to the administration team.")
             }
         } catch (e: IOException) {
             channel.sendMessage(e.message).queue()
         }
 
 
+    }
+
+    @JDAListener
+    fun onReact(event: MessageReactionAddEvent) {
+        if (event.channel == tagRequests) {
+            val accepted : Boolean
+            if (event.reaction.emote.name == "✅") accepted = true
+            else if (event.reaction.emote.name == "❎") accepted = false
+            else return
+
+            event.channel.getMessageById(event.messageId).queue {
+                val footText = it.embeds.first().footer.text.split(" ")
+                val user = event.guild.getMember(event.jda.getUserById(footText[0]))
+                val role = event.jda.getRoleById(footText[1])
+
+                if (accepted) {
+                    event.guild.controller.addRolesToMember(user, role).queue {
+                        event.channel.sendMessage("The '${role.name}' role was assigned to ${user.effectiveName}.").queue()
+                        user.user.privateChannel.sendMessage("Your application for the ${role.name} role on Coalesce Coding " +
+                                "has been responded positively, and you have been assigned it.")
+                    }
+                } else {
+                    event.channel.sendMessage("The '${role.name}' role was rejected for ${user.effectiveName}.").queue()
+                    user.user.privateChannel.sendMessage("Your application for the ${role.name} role on Coalesce Coding " +
+                            "has been responded negatively, and thus you won't get it.\nMake sure you have code in the " +
+                            "respective language on your GitHub account.")
+                }
+            }
+        }
     }
 
     fun verifyAuthenticationTokenGithub(code: String) : String {
