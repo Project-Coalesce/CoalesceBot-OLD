@@ -52,7 +52,7 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
                     if (current != null) {
                         if (current > System.currentTimeMillis()) {
                             // TODO: Prettify current seconds
-                            val remaining = (cooldown - System.currentTimeMillis()) as Long
+                            val remaining = (cooldown - System.currentTimeMillis()).toLong()
                             it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
                                     .setDescription("That command is on global cooldown for ${prettify(remaining)}."))
                             return@Predicate false
@@ -82,7 +82,7 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
                     if (userCooldown != null) {
                         if (userCooldown > System.currentTimeMillis()) {
                             // TODO: Add time left to the message.
-                            val remaining = (cooldown - System.currentTimeMillis()) as Long
+                            val remaining = (cooldown - System.currentTimeMillis()).toLong()
                             it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
                                     .setDescription("That command is on cooldown for ${prettify(remaining)}."))
                             return@Predicate false
