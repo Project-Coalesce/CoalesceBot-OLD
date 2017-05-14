@@ -78,9 +78,11 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                 }
             }
             val respects = mutableListOf<Member>()
-            json.forEach { key, _ ->
+            json.forEach { key, value ->
                 val member = context.message.guild.getMember(jda.getUserById(key))
-                if (member != null) {
+                if (member != null &&
+                        value is Double && // For safety with json, in case the host manages to edit it into something else
+                        value > 0) { // invalid/punished values shouldnt be accepted.
                     respects.add(member)
                 }
             }
