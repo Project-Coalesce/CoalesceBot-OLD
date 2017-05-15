@@ -79,7 +79,7 @@ class Request @Inject constructor(val bot: Main) {
                         "with the link provided below. You can remove the authorization at any time in your profile." +
                         "\nWarning: You have to verify within 10 minutes.")
                 .addField("Authorize your GitHub Account",
-                        "https://github.com/login/oauth/authorize?client_id=2e8a8ed194265736c99a&scope=user&state" +
+                        "https://github.com/login/oauth/authorize?client_id=2e8a8ed194265736c99a&state" +
                                 "=${role.id},${user.id}", false)
                 .build()).queue()
 
@@ -154,6 +154,8 @@ class ValidateRequest @Inject constructor(val bot: Main) {
     @JDAListener
     fun onReact(event: MessageReactionAddEvent) {
         if (event.channel == tagRequests) {
+            if (event.user.isBot) return
+
             val accepted : Boolean
             if (event.reaction.emote.name == "✅") accepted = true
             else if (event.reaction.emote.name == "❎") accepted = false
