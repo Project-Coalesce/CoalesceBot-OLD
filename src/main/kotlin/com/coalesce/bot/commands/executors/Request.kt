@@ -105,7 +105,6 @@ class ValidateRequest @Inject constructor(val bot: Main) {
             name = "validaterequests",
             aliases = arrayOf("validaterequest"),
             globalCooldown = 0.0,
-            type = CommandType.ADMINISTRATION,
             permission = "commands.validateRequests",
             description = "This is an internal command for validate requests, it shouldn't be used."
     )
