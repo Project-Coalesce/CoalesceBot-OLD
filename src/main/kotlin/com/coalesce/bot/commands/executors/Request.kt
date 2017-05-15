@@ -144,7 +144,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
                 it.addReaction("✅").queue()
                 it.addReaction("❎").queue()
                 user.privateChannel.sendMessage("Your application for the ${role.name} role on Coalesce Coding " +
-                        "was sent to the administration team.")
+                        "was sent to the administration team.").queue()
             }
         } catch (e: IOException) {
             channel.sendMessage(e.message).queue()
@@ -168,13 +168,13 @@ class ValidateRequest @Inject constructor(val bot: Main) {
                     event.guild.controller.addRolesToMember(user, role).queue {
                         event.channel.sendMessage("The '${role.name}' role was assigned to ${user.effectiveName}.").queue()
                         user.user.privateChannel.sendMessage("Your application for the ${role.name} role on Coalesce Coding " +
-                                "has been responded positively, and you have been assigned it.")
+                                "has been responded positively, and you have been assigned it.").queue()
                     }
                 } else {
                     event.channel.sendMessage("The '${role.name}' role was rejected for ${user.effectiveName}.").queue()
                     user.user.privateChannel.sendMessage("Your application for the ${role.name} role on Coalesce Coding " +
                             "has been responded negatively, and thus you won't get it.\nMake sure you have code in the " +
-                            "respective language on your GitHub account.")
+                            "respective language on your GitHub account.").queue()
                 }
             }
         }
