@@ -13,7 +13,6 @@ class Help @Inject constructor(val bot: Main) : Embeddables {
     @RootCommand(
             name = "Help",
             permission = "commands.help",
-            type = CommandType.INFORMATION,
             description = "Displays all the available commands.",
             aliases = arrayOf("?", "h"),
             globalCooldown = 35.0
@@ -22,7 +21,9 @@ class Help @Inject constructor(val bot: Main) : Embeddables {
         val embed = embed().data("Help", colour = Colour.GREEN)
         val map = mutableMapOf<CommandType, MutableSet<CommandEntry>>()
         bot.listener.registry.commands.forEach { _, value ->
-            map[value.rootAnnotation.type] = map[value.rootAnnotation.type]?.apply { add(value) } ?: mutableSetOf()
+            if (value.rootAnnotation.type != CommandType.HIDDEN) {
+                map[value.rootAnnotation.type] = map[value.rootAnnotation.type]?.apply { add(value) } ?: mutableSetOf()
+            }
         }
         val out = mutableMapOf<CommandType, String>()
         map.forEach { type, entries ->

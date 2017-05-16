@@ -15,6 +15,7 @@ enum class CommandType {
     DEBUG,
     MUSIC,
     MISCELLANEOUS,
+    HIDDEN
 }
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -22,7 +23,7 @@ enum class CommandType {
 annotation class RootCommand(// All root commands are annotated with this. 1 root command per class
         val name: String,
         val permission: String,
-        val type: CommandType,
+        val type: CommandType = CommandType.HIDDEN,
         val usage: String = "",
         val description: String = "",
         val aliases: Array<String> = arrayOf(),
