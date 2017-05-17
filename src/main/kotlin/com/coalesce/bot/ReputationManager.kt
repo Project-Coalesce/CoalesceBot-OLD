@@ -9,7 +9,7 @@ class ReputationValue(var total: Double, var transactions: MutableList<Reputatio
         if (transactions.size > 10) transactions = transactions.subList(0, 10)
 
         channel.sendMessage("${member.effectiveName}: ${transaction.message}\n" +
-                "**${if (transaction.amount >= 0) "+" else ""}${transaction.amount} reputation!**")
+                "**${if (transaction.amount >= 0) "+" else ""}${transaction.amount.toInt()} reputation!**")
         total += transaction.amount
     }
 }

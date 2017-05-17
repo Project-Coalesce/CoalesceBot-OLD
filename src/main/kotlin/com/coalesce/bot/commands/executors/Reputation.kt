@@ -7,6 +7,8 @@ import com.coalesce.bot.gson
 import com.coalesce.bot.reputationFile
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.*
+import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
+import java.io.File
 
 class Reputation {
     @RootCommand(
@@ -20,6 +22,7 @@ class Reputation {
     )
     fun execute(context: RootCommandContext) {
         val reputationStorage = HashMap<User, ReputationValue>()
+        verifyExistance()
         reputationFile.inputStream().use {
             it.reader().use {
                 reputationStorage.putAll(gson.fromJson(it, reputationStorage::class.java))
@@ -35,7 +38,7 @@ class Reputation {
         }
 
         context.send(EmbedBuilder()
-                .setTitle("You have ${rep.total} reputation.", null)
+                .setTitle("You have ${rep.total.toInt()} reputation.", null)
                 .addField("Transactions", transactionsString.toString(), false))
     }
 
@@ -55,6 +58,17 @@ class Reputation {
         doThank(context.message.guild, context.message.channel, context.message.author, context.message.mentionedUsers.first())
     }
 
+    @JDAListener
+    fun react(event: MessageReactionAddEvent) {
+        if (event.reaction.emote.name == "👍") {
+            event.channel.getMessageById(event.messageId).queue {
+                doThank(event.guild, event.channel, event.user, it.author)
+            }
+        } else if (event.reaction.emote.name == "👎") {
+
+        }
+    }
+
     fun doThank(guild: Guild, channel: MessageChannel, from: User, to: User) {
         if (from == to) {
             channel.sendMessage("You can't thank yourself.").queue()
@@ -62,6 +76,7 @@ class Reputation {
         }
 
         val reputationStorage = HashMap<User, ReputationValue>()
+        verifyExistance()
         reputationFile.inputStream().use {
             it.reader().use {
                 reputationStorage.putAll(gson.fromJson(it, reputationStorage::class.java))
@@ -78,6 +93,19 @@ class Reputation {
 
         reputationFile.outputStream().use {
             it.writer(Charsets.UTF_8).write(gson.toJson(reputationStorage))
+        }
+    }
+
+    //TODO MAKE THIS BETTER
+    fun verifyExistance() {
+        val file = reputationFile
+
+        if (!file.parentFile.exists()) file.parentFile.mkdirs()
+        if (!file.exists()) {
+            file.createNewFile()
+            file.outputStream().use {
+                it.writer(Charsets.UTF_8).write("{}")
+            }
         }
     }
 }
