@@ -149,7 +149,7 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
             method.invoke(clazz, context)
         } catch (ex: Exception) {
             ex.printStackTrace()
-            event.channel.sendMessage("* An error occurred. Ask a someone from Project Coalesce to look at the error.").queue()
+            event.channel.sendMessage("❌ **An error occured when trying to handle that command.** Ask someone from Project Coalesce to look at the error.").queue()
         }
     }
 }

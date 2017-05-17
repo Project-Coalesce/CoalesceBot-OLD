@@ -78,6 +78,7 @@ const val commandPrefix = "!"
 const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
 val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.json")
+val reputationFile = File(dataDirectory, "reputation.json")
 val gson: Gson = GsonBuilder().setPrettyPrinting().serializeNulls().disableHtmlEscaping().registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance)).create()
 typealias Colour = java.awt.Color
 val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!
