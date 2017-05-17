@@ -1,5 +1,7 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.ReputationTransaction
+import com.coalesce.bot.ReputationValue
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.gson
 import com.coalesce.bot.reputationFile
@@ -74,16 +76,3 @@ class Reputation {
         }
     }
 }
-
-class ReputationValue(var total: Double, var transactions: MutableList<ReputationTransaction>){
-    fun transaction(transaction: ReputationTransaction, channel: MessageChannel, member: Member) {
-        transactions.add(transaction)
-        if (transactions.size > 10) transactions = transactions.subList(0, 10)
-
-        channel.sendMessage("${member.effectiveName}: ${transaction.message}\n" +
-                "**${if (transaction.amount >= 0) "+" else ""}${transaction.amount} reputation!**")
-        total += transaction.amount
-    }
-}
-
-class ReputationTransaction(val message: String, val amount: Double)
