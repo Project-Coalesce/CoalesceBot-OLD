@@ -56,6 +56,11 @@ class Reputation {
     }
 
     fun doThank(guild: Guild, channel: MessageChannel, from: User, to: User) {
+        if (from == to) {
+            channel.sendMessage("You can't thank yourself.").queue()
+            return
+        }
+
         val reputationStorage = HashMap<User, ReputationValue>()
         reputationFile.inputStream().use {
             it.reader().use {
