@@ -25,7 +25,16 @@ class Reputation {
         }
 
         val rep = reputationStorage[context.message.author] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
-        context.send(EmbedBuilder().setTitle("You have ${rep.total)}", null))
+
+        val transactionsString = StringBuilder()
+        if (rep.transactions.isEmpty()) transactionsString.append("No transactions.")
+        else rep.transactions.forEach {
+            transactionsString.append("${if (it.amount >= 0) "+" else ""}${it.amount}: ${it.message}")
+        }
+
+        context.send(EmbedBuilder()
+                .setTitle("You have ${rep.total} reputation.", null)
+                .addField("Transactions", transactionsString.toString(), false))
     }
 
     @SubCommand(
@@ -66,11 +75,13 @@ class Reputation {
     }
 }
 
-class ReputationValue(var total: Double, val transactions: MutableList<ReputationTransaction>){
+class ReputationValue(var total: Double, var transactions: MutableList<ReputationTransaction>){
     fun transaction(transaction: ReputationTransaction, channel: MessageChannel, member: Member) {
         transactions.add(transaction)
+        if (transactions.size > 10) transactions = transactions.subList(0, 10)
+
         channel.sendMessage("${member.effectiveName}: ${transaction.message}\n" +
-                "**${if (transaction.amount >= 0) "+" else "-"}${transaction.amount} reputation!**")
+                "**${if (transaction.amount >= 0) "+" else ""}${transaction.amount} reputation!**")
         total += transaction.amount
     }
 }
