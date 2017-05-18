@@ -33,7 +33,7 @@ class Reputation {
         val transactionsString = StringBuilder()
         if (rep.transactions.isEmpty()) transactionsString.append("None.")
         else rep.transactions.forEach {
-            transactionsString.append("**${if (it.amount >= 0) "+" else ""}${it.amount}**: ${it.message}")
+            transactionsString.append("**${if (it.amount >= 0) "+" else ""}${it.amount}**: ${it.message}\n")
         }
 
         context.send(EmbedBuilder()
