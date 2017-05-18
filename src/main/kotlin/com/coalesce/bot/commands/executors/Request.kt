@@ -177,7 +177,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
                             "has been responded negatively, and thus you won't get it.\nMake sure you have code in the " +
                             "respective language on your GitHub account.").queue()
                 }
-                it.delete()
+                it.delete().queue()
             }
         }
     }

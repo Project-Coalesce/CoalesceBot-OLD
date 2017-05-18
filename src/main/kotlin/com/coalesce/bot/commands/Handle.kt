@@ -82,7 +82,6 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
                     val userCooldown = user[identifier]
                     if (userCooldown != null) {
                         if (userCooldown > System.currentTimeMillis()) {
-                            // TODO: Add time left to the message.
                             val remaining = (userCooldown.toLong() - System.currentTimeMillis())
                             it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
                                     .setDescription("That command is on cooldown for ${prettify(remaining)}."))
@@ -137,7 +136,7 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
             val (input, method, third) = registry[command, event]
             val (context, clazz) = third
             if (method == null || context == null || clazz == null) {
-                event.message.addReaction("❔").queue()
+                event.message.addReaction("❔").queue() //dats better
                 return
             }
 
