@@ -6,14 +6,12 @@ import com.coalesce.bot.commands.*
 import com.coalesce.bot.gson
 import com.coalesce.bot.reputationFile
 import com.google.gson.reflect.TypeToken
-import jdk.nashorn.internal.objects.NativeArray.forEach
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.entities.*
+import net.dv8tion.jda.core.entities.Guild
+import net.dv8tion.jda.core.entities.MessageChannel
+import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
-import org.json.JSONArray
-import org.json.JSONObject
-import java.io.File
 
 class Reputation {
     @RootCommand(
