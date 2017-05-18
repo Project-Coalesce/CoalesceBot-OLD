@@ -131,4 +131,7 @@ dist/
 nbdist/
 .nb-gradle/
 
+# Data Folder
+data/
+
 # End of https://www.gitignore.io/api/maven,java,eclipse,netbeans,intellij
