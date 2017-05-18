@@ -4,6 +4,7 @@ import com.coalesce.bot.commands.Listener
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
+import com.coalesce.bot.reputation.ReputationManager
 import com.google.common.base.Preconditions
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -32,6 +33,7 @@ class Main private constructor() {
     lateinit var injector: Injector
     lateinit var listener: Listener
     lateinit var githubSecret: String
+    lateinit var repManager: ReputationManager
     val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String) {
@@ -47,6 +49,7 @@ class Main private constructor() {
             setGame(Game.of("with my settings"))
         }.buildBlocking()
 
+        repManager = ReputationManager()
         punishments = PunishmentManager(this) // Load it.
         injector = Guice.createInjector(Injects(this, punishments))
         listener = Listener()
@@ -71,6 +74,7 @@ class Injects(val main: Main, val pmanager: PunishmentManager) : AbstractModule(
         bind(JDA::class.java).toInstance(main.jda)
         bind(PunishmentManager::class.java).toInstance(pmanager)
         bind(ExecutorService::class.java).toInstance(main.executor)
+        bind(ReputationManager::class.java).toInstance(main.repManager)
     }
 }
 

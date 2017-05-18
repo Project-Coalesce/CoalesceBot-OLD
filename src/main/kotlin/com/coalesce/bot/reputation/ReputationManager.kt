@@ -1,7 +1,41 @@
 package com.coalesce.bot.reputation
 
+import com.coalesce.bot.gson
+import com.coalesce.bot.reputationFile
+import com.google.gson.reflect.TypeToken
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
+import net.dv8tion.jda.core.entities.User
+
+class ReputationManager {
+    private val reputationStorage: MutableMap<String, ReputationValue>
+
+    init {
+        val file = reputationFile
+
+        if (!file.parentFile.exists()) file.parentFile.mkdirs()
+        if (!file.exists()) {
+            file.createNewFile()
+            file.writeText("{}")
+        }
+
+        val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
+        reputationStorage = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFile.readText(), type.type)
+    }
+
+    fun save() {
+        reputationFile.writeText(gson.toJson(reputationStorage))
+    }
+
+    operator fun set(user: User, value: ReputationValue) {
+        reputationStorage[user.id] = value
+        save()
+    }
+
+    operator fun get(from: User): ReputationValue {
+        return reputationStorage[from.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<ReputationMilestone>())
+    }
+}
 
 val milestoneList = arrayOf<ReputationMilestone>(
         DownvoteMilestone()
