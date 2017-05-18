@@ -59,7 +59,7 @@ class Reputation {
 
     @JDAListener
     fun react(event: MessageReactionAddEvent) {
-        if (event.reaction.emote.name == "👍") {
+        if (event.reaction.emote.name == "✌") {
             event.channel.getMessageById(event.messageId).queue {
                 doThank(event.guild, event.channel, event.user, it.author, event.jda)
             }
