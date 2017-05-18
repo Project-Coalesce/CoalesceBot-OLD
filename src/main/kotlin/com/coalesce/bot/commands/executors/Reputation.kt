@@ -1,7 +1,7 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.ReputationTransaction
-import com.coalesce.bot.ReputationValue
+import com.coalesce.bot.reputation.ReputationTransaction
+import com.coalesce.bot.reputation.ReputationValue
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.gson
 import com.coalesce.bot.reputationFile

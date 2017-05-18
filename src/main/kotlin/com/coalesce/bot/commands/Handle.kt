@@ -137,7 +137,7 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
             val (input, method, third) = registry[command, event]
             val (context, clazz) = third
             if (method == null || context == null || clazz == null) {
-                event.channel.sendMessage(MessageBuilder().append(event.author.asMention).append(": Couldn't find the command \"$input\".").build()).queue()
+                event.message.addReaction("❔").queue()
                 return
             }
 
