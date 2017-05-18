@@ -6,10 +6,12 @@ import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import com.coalesce.bot.gson
 import com.coalesce.bot.utilities.ifwithDo
+import com.google.gson.JsonElement
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import java.awt.Color
 import java.net.URL
+import java.util.Scanner
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -35,26 +37,26 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
             try {
                 val url = URL("http://api.urbandictionary.com/v0/define?term=$phrase")
 
-                val map = mutableMapOf<String, Any?>()
-                url.openStream().use {
-                    it.reader().use {
-                        map.putAll(gson.fromJson(it, map::class.java))
-                    }
+                val scanner = Scanner(url.openStream())
+
+                val stringBuilder = StringBuilder()
+                while (scanner.hasNextLine()) {
+                    stringBuilder.append(scanner.nextLine())
                 }
-                if (map["result_type"] as? String ?: "no_results" == "no_results") {
-                    mention("No results were found for $phrase.")
-                    return@submit
+                scanner.close()
+
+                val json = gson.fromJson(stringBuilder.toString(), JsonElement::class.java).asJsonObject
+                if (json.get("result_type").asString == "no_results") {
+                    mention("No definitions found!")
                 }
-                val obj = map["list"] as? MutableMap<*, *> ?: run { mention("No definitions were found in list."); return@submit }
-                val permalink = obj["permalink"] as? String ?: run { mention("The definition didn't have a permalink."); return@submit }
-                val word = obj["word"] as? String ?: run { mention("The definition didn't have an owning word."); return@submit }
-                val definition = obj["definition"] as? String ?: run { mention("The definition didn't have a definition."); return@submit }
+
+                val firstResult = json.get("list").asJsonArray.get(0).asJsonObject
                 val builder = EmbedBuilder().apply {
                     setColor(Color.BLUE)
                     setAuthor(context.author.name, null, context.author.avatarUrl)
-                    setTitle("Urban Dictionary Definition", permalink)
-                    addField("Word", word, true)
-                    addField("Definition", definition, true)
+                    setTitle("Urban Dictionary Definition", firstResult.get("permalink").asString)
+                    addField("Word", firstResult.get("word").asString, true)
+                    addField("Definition", firstResult.get("definition").asString, true)
                 }
                 context(builder) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
             } catch (ex: Exception) {
