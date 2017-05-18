@@ -1,6 +1,6 @@
 {
   "216334153761685507": {
-    "total": 60.0,
+    "total": 80.0,
     "transactions": [
       {
         "message": "<@197448151064379393> thanked you",
@@ -13,6 +13,18 @@
       {
         "message": "<@197448151064379393> thanked you",
         "amount": 20.0
+      },
+      {
+        "message": "deprilula28 thanked you",
+        "amount": 20.0
+      }
+    ]
+  }, "197448151064379393": {
+    "total": 2000.0,
+    "transactions": [
+      {
+        "message": "I'm a kewl kid",
+        "amount": 3000000.0
       }
     ]
   }

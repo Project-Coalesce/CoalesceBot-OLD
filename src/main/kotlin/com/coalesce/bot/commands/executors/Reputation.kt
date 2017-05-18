@@ -31,14 +31,14 @@ class Reputation {
         val rep = reputationStorage[context.message.author.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
 
         val transactionsString = StringBuilder()
-        if (rep.transactions.isEmpty()) transactionsString.append("No transactions.")
+        if (rep.transactions.isEmpty()) transactionsString.append("None.")
         else rep.transactions.forEach {
-            transactionsString.append("${if (it.amount >= 0) "+" else ""}${it.amount}: ${it.message}")
+            transactionsString.append("**${if (it.amount >= 0) "+" else ""}${it.amount}**: ${it.message}")
         }
 
         context.send(EmbedBuilder()
                 .setTitle("You have ${rep.total.toInt()} reputation.", null)
-                .addField("Transactions", transactionsString.toString(), false))
+                .addField("Recent", transactionsString.toString(), false))
     }
 
     @SubCommand(
