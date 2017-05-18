@@ -1,1 +1,19 @@
-{}
+{
+  "216334153761685507": {
+    "total": 60.0,
+    "transactions": [
+      {
+        "message": "<@197448151064379393> thanked you",
+        "amount": 20.0
+      },
+      {
+        "message": "<@197448151064379393> thanked you",
+        "amount": 20.0
+      },
+      {
+        "message": "<@197448151064379393> thanked you",
+        "amount": 20.0
+      }
+    ]
+  }
+}

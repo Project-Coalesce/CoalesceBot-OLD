@@ -149,13 +149,14 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
             method.invoke(clazz, context)
         } catch (ex: Exception) {
             ex.printStackTrace()
-            event.channel.sendMessage("❌ **An error occured when trying to handle that command.** Ask someone from Project Coalesce to look at the error.").queue()
+            event.channel.sendMessage("* An error occured while trying to handle that command. Please ask Project Coalesce developers to look at the error.").queue()
         }
     }
 }
 
 class CommandRegistry internal constructor() {
     val commands = mutableMapOf<String, CommandEntry>()
+    val subcommands = mutableMapOf<CommandEntry, MutableList<String>>()
     val jdalisteners = mutableMapOf<Class<Event>, MutableMap<Method, CommandEntry>>()
 
     internal fun register() {
@@ -170,6 +171,8 @@ class CommandRegistry internal constructor() {
 
     private fun process(clazz: Class<*>) {
         val commandEntry = CommandEntry(clazz)
+        subcommands[commandEntry] = mutableListOf()
+
         commands[commandEntry.rootAnnotation.name.replace(" ", "").toLowerCase()] = commandEntry
         if (commandEntry.rootAnnotation.aliases.isNotEmpty()) {
             commandEntry.rootAnnotation.aliases.map { it.toLowerCase().replace(" ", "") }.forEach {
@@ -177,12 +180,12 @@ class CommandRegistry internal constructor() {
             }
         }
         commandEntry.subcommands.map { it.key }.forEach {
-            commands[commandEntry.rootAnnotation.name.replace(" ", "").toLowerCase() + " $it".toLowerCase()] = commandEntry
+            subcommands[commandEntry]!!.add(it.toLowerCase())
         }
         commandEntry.jdalisteners.forEach { entry ->
             val map = mutableMapOf<Method, CommandEntry>()
             entry.value.forEach { map.put(it, commandEntry) }
-            if(!jdalisteners.containsKey(entry.key)) jdalisteners.put(entry.key, mutableMapOf<Method, CommandEntry>())
+               if(!jdalisteners.containsKey(entry.key)) jdalisteners.put(entry.key, mutableMapOf<Method, CommandEntry>())
             jdalisteners[entry.key]!!.putAll(map)
         }
     }
@@ -194,24 +197,25 @@ class CommandRegistry internal constructor() {
         val split = command.split(" ")
         val jda = event.jda
         val args: Array<String>
-        if (split.size > 1) {
-            val subcommand = commands[split[0] + ' ' + split[1]]
-            if (subcommand != null) {
+        val command = commands[split[0].toLowerCase()] ?: return Triple(split[0], null, null to null)
+
+        if (split.size >= 2) {
+            if (subcommands[command]!!.contains(split[1])) {
+                args =
                 if (split.size > 2) {
-                    args = Arrays.copyOfRange(split.toTypedArray(), 2, split.size)
+                    Arrays.copyOfRange(split.toTypedArray(), 2, split.size)
                 } else {
-                    args = arrayOf()
+                    arrayOf()
                 }
-                return Triple(split[0] + " " + split[1], subcommand.subcommands[split[1]]!!.first, SubCommandContext(jda, jda.selfUser, event.message, event, event.author, event.channel, subcommand.rootAnnotation, subcommand.subcommands, args, subcommand.subcommands[split[1]]!!.second) to subcommand.instance)
+                return Triple(split[0] + " " + split[1], command.subcommands[split[1]]!!.first, SubCommandContext(jda, jda.selfUser, event.message, event, event.author, event.channel, command.rootAnnotation, command.subcommands, args, command.subcommands[split[1]]!!.second) to command.instance)
             }
         }
-        val method = commands[split[0].toLowerCase()] ?: return Triple(split[0], null, null to null)
         if (split.size > 1) {
             args = Arrays.copyOfRange(split.toTypedArray(), 1, split.size)
         } else {
             args = arrayOf()
         }
-        return Triple(split[0], method.rootMethod, RootCommandContext(jda, jda.selfUser, event.message, event, event.author, event.channel, method.rootAnnotation, method.subcommands, args) to method.instance)
+        return Triple(split[0], command.rootMethod, RootCommandContext(jda, jda.selfUser, event.message, event, event.author, event.channel, command.rootAnnotation, command.subcommands, args) to command.instance)
     }
 }
 
@@ -244,7 +248,7 @@ class CommandEntry(@Suppress("CanBeParameter") val clazz: Class<*>) {
             method.getAnnotation(JDAListener::class.java) ?: continue
             val eventListener = method.parameterTypes.first() as Class<Event>
             if (!jdalisteners.containsKey(eventListener)) jdalisteners.put(eventListener, mutableListOf<Method>())
-            jdalisteners.get(eventListener)!!.add(method)
+            jdalisteners[eventListener]!!.add(method)
         }
     }
 }

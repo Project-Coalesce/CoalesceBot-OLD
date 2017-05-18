@@ -5,9 +5,14 @@ import com.coalesce.bot.ReputationValue
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.gson
 import com.coalesce.bot.reputationFile
+import com.google.gson.reflect.TypeToken
+import jdk.nashorn.internal.objects.NativeArray.forEach
 import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 
 class Reputation {
@@ -21,15 +26,11 @@ class Reputation {
             globalCooldown = 3.0
     )
     fun execute(context: RootCommandContext) {
-        val reputationStorage = HashMap<User, ReputationValue>()
         verifyExistance()
-        reputationFile.inputStream().use {
-            it.reader().use {
-                reputationStorage.putAll(gson.fromJson(it, reputationStorage::class.java))
-            }
-        }
+        val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
+        val reputationStorage = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFile.readText(), type.type)
 
-        val rep = reputationStorage[context.message.author] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
+        val rep = reputationStorage[context.message.author.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
 
         val transactionsString = StringBuilder()
         if (rep.transactions.isEmpty()) transactionsString.append("No transactions.")
@@ -55,45 +56,39 @@ class Reputation {
             return
         }
 
-        doThank(context.message.guild, context.message.channel, context.message.author, context.message.mentionedUsers.first())
+        doThank(context.message.guild, context.message.channel, context.message.author, context.message.mentionedUsers.first(), context.jda)
     }
 
     @JDAListener
     fun react(event: MessageReactionAddEvent) {
         if (event.reaction.emote.name == "👍") {
             event.channel.getMessageById(event.messageId).queue {
-                doThank(event.guild, event.channel, event.user, it.author)
+                doThank(event.guild, event.channel, event.user, it.author, event.jda)
             }
         } else if (event.reaction.emote.name == "👎") {
 
         }
     }
 
-    fun doThank(guild: Guild, channel: MessageChannel, from: User, to: User) {
+    fun doThank(guild: Guild, channel: MessageChannel, from: User, to: User, jda: JDA) {
         if (from == to) {
             channel.sendMessage("You can't thank yourself.").queue()
             return
         }
 
-        val reputationStorage = HashMap<User, ReputationValue>()
         verifyExistance()
-        reputationFile.inputStream().use {
-            it.reader().use {
-                reputationStorage.putAll(gson.fromJson(it, reputationStorage::class.java))
-            }
-        }
+        val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
+        val reputationStorage = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFile.readText(), type.type)
 
-        val originValue = reputationStorage[from] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
-        val targetValue = reputationStorage[to] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
+        val originValue = reputationStorage[from.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
+        val targetValue = reputationStorage[to.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
 
         val transactionAmount = Math.min((originValue.total.toDouble() / 80.0) + 20.0, 100.0)
         targetValue.transaction(ReputationTransaction("${from.asMention} thanked you", transactionAmount),
                 channel, guild.getMember(to))
-        reputationStorage[to] = targetValue
+        reputationStorage.put(to.id, targetValue)
 
-        reputationFile.outputStream().use {
-            it.writer(Charsets.UTF_8).write(gson.toJson(reputationStorage))
-        }
+        reputationFile.writeText(gson.toJson(reputationStorage))
     }
 
     //TODO MAKE THIS BETTER
@@ -103,9 +98,7 @@ class Reputation {
         if (!file.parentFile.exists()) file.parentFile.mkdirs()
         if (!file.exists()) {
             file.createNewFile()
-            file.outputStream().use {
-                it.writer(Charsets.UTF_8).write("{}")
-            }
+            file.writeText("{}")
         }
     }
 }
