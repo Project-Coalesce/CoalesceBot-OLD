@@ -84,7 +84,7 @@ class Reputation {
         val targetValue = reputationStorage[to.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
 
         val transactionAmount = Math.min((originValue.total.toDouble() / 80.0) + 20.0, 100.0)
-        targetValue.transaction(ReputationTransaction("${from.asMention} thanked you", transactionAmount),
+        targetValue.transaction(ReputationTransaction("${guild.getMember(from).effectiveName} thanked you", transactionAmount),
                 channel, guild.getMember(to))
         reputationStorage.put(to.id, targetValue)
 
