@@ -50,7 +50,7 @@ class Reputation {
     )
     fun thank(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty()) {
-            context.send("You need to mention someone you wish to thank.")
+            context.send("* You need to mention someone you wish to thank.")
             return
         }
 
@@ -70,7 +70,11 @@ class Reputation {
 
     fun doThank(guild: Guild, channel: MessageChannel, from: User, to: User, jda: JDA) {
         if (from == to) {
-            channel.sendMessage("You can't thank yourself.").queue()
+            channel.sendMessage("* You can't thank yourself.").queue()
+            return
+        }
+        if (to.idLong == 302081044595736577) {
+            channel.sendMessage("* You are welcome.").queue()
             return
         }
 
