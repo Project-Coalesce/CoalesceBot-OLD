@@ -4,6 +4,7 @@ import com.coalesce.bot.reputation.ReputationTransaction
 import com.coalesce.bot.reputation.ReputationValue
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.gson
+import com.coalesce.bot.reputation.ReputationMilestone
 import com.coalesce.bot.reputationFile
 import com.google.gson.reflect.TypeToken
 import net.dv8tion.jda.core.EmbedBuilder
@@ -28,7 +29,7 @@ class Reputation {
         val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
         val reputationStorage = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFile.readText(), type.type)
 
-        val rep = reputationStorage[context.message.author.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
+        val rep = reputationStorage[context.message.author.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<ReputationMilestone>())
 
         val transactionsString = StringBuilder()
         if (rep.transactions.isEmpty()) transactionsString.append("None.")
@@ -82,8 +83,8 @@ class Reputation {
         val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
         val reputationStorage = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFile.readText(), type.type)
 
-        val originValue = reputationStorage[from.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
-        val targetValue = reputationStorage[to.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
+        val originValue = reputationStorage[from.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<ReputationMilestone>())
+        val targetValue = reputationStorage[to.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<ReputationMilestone>())
 
         val transactionAmount = Math.min((originValue.total.toDouble() / 80.0) + 20.0, 100.0)
         targetValue.transaction(ReputationTransaction("${guild.getMember(from).effectiveName} thanked you", transactionAmount),

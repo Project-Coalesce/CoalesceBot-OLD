@@ -3,7 +3,7 @@ package com.coalesce.bot.reputation
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
 
-abstract class ReputationMilestone(val name: String, val messageGotten: String, val messageLost: String) {
+abstract class ReputationMilestone(val name: String, val messageGotten: String, val messageLost: String, val rep: Int) {
     fun reached(member: Member, channel: MessageChannel) {
         channel.sendMessage("Congratulations, ${member.effectiveName}! You have reached the $name milestone! $messageGotten").queue()
         reachHandle(member)
@@ -19,7 +19,7 @@ abstract class ReputationMilestone(val name: String, val messageGotten: String, 
 }
 
 class DownvoteMilestone : ReputationMilestone("downvote", "You can now rate with 👎 for bad messages. Don't abuse this!",
-        "You will no longer get to downvote messages.") {
+        "You will no longer get to downvote messages.", 100) {
     override fun reachHandle(member: Member) {}
     override fun lostHandle(member: Member) {}
 }
