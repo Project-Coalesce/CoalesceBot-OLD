@@ -64,8 +64,6 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             globalCooldown = 30.0
     )
     fun execute(context: RootCommandContext) {
-        throw IOException("test")
-
         val file = respectsLeaderboardsFile
         synchronized(file) {
             if (!file.exists()) {
