@@ -27,8 +27,10 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
 
     init {
         synchronized(registry) {
-            println("Registering commands.")
+            println("Registering commands...")
             registry.register()
+            println("Done.")
+
             checks.add(Predicate {
                 val cooldown: Double = if (it is SubCommandContext) {
                     if (it.currentSubCommand.cooldown) {
@@ -162,7 +164,8 @@ class CommandRegistry internal constructor() {
         val classes = Reflections(ConfigurationBuilder()
                 .setScanners(SubTypesScanner(false), ResourcesScanner())
                 .setUrls(ClasspathHelper.forJavaClassPath())
-                .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.commands.executors")))).getSubTypesOf(Object::class.java).filter { !it.name.contains('$') }
+                .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.commands.executors"))))
+                .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') }
         for (clazz in classes) {
             process(clazz)
         }
