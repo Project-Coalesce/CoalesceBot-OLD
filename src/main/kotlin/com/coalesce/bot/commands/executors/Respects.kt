@@ -45,7 +45,7 @@ class Respects {
             }
 
             val id = context.author.id
-            json[id] = json[id] as? Double ?: 0.0 + 1.0
+            json[id] = (json[id] as? Double ?: 0.0) + 1.0
             if (file.exists()) {
                 file.delete()
             }
