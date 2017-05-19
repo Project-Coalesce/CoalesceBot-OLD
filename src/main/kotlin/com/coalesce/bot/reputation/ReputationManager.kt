@@ -21,11 +21,9 @@ class ReputationManager {
                 .setScanners(SubTypesScanner(false), ResourcesScanner())
                 .setUrls(ClasspathHelper.forJavaClassPath())
                 .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.reputation"))))
-                .getSubTypesOf(milestoneList.javaClass).filter { !it.name.contains('$') }
+                .getSubTypesOf(ReputationMilestone::class.java).filter { !it.name.contains('$') }
         classes.forEach {
-            it.newInstance().forEach {
-                milestoneList.add(it)
-            }
+            milestoneList.add(it.newInstance())
         }
 
         val file = reputationFile
