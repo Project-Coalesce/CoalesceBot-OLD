@@ -1,11 +1,9 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.reputation.ReputationTransaction
-import com.coalesce.bot.reputation.ReputationValue
 import com.coalesce.bot.commands.*
-import com.coalesce.bot.gson
-import com.coalesce.bot.reputationFile
-import com.google.gson.reflect.TypeToken
+import com.coalesce.bot.reputation.ReputationManager
+import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Guild
@@ -13,7 +11,7 @@ import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 
-class Reputation {
+class Reputation @Inject constructor(val reputation: ReputationManager) {
     @RootCommand(
             name = "reputation",
             type = CommandType.INFORMATION,
@@ -24,11 +22,7 @@ class Reputation {
             globalCooldown = 3.0
     )
     fun execute(context: RootCommandContext) {
-        verifyExistance()
-        val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
-        val reputationStorage = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFile.readText(), type.type)
-
-        val rep = reputationStorage[context.message.author.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
+        val rep = reputation[context.message.author]
 
         val transactionsString = StringBuilder()
         if (rep.transactions.isEmpty()) transactionsString.append("None.")
@@ -73,34 +67,17 @@ class Reputation {
             channel.sendMessage("* You can't thank yourself.").queue()
             return
         }
-        if (to.idLong == 302081044595736577) {
+        if (to == jda.selfUser) {
             channel.sendMessage("* You are welcome.").queue()
             return
         }
 
-        verifyExistance()
-        val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
-        val reputationStorage = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFile.readText(), type.type)
-
-        val originValue = reputationStorage[from.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
-        val targetValue = reputationStorage[to.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>())
+        val originValue = reputation[from]
+        val targetValue = reputation[to]
 
         val transactionAmount = Math.min((originValue.total.toDouble() / 80.0) + 20.0, 100.0)
         targetValue.transaction(ReputationTransaction("${guild.getMember(from).effectiveName} thanked you", transactionAmount),
                 channel, guild.getMember(to))
-        reputationStorage.put(to.id, targetValue)
-
-        reputationFile.writeText(gson.toJson(reputationStorage))
-    }
-
-    //TODO MAKE THIS BETTER
-    fun verifyExistance() {
-        val file = reputationFile
-
-        if (!file.parentFile.exists()) file.parentFile.mkdirs()
-        if (!file.exists()) {
-            file.createNewFile()
-            file.writeText("{}")
-        }
+        reputation[to] = targetValue
     }
 }

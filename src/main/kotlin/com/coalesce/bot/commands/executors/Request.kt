@@ -6,6 +6,7 @@ import com.coalesce.bot.commands.JDAListener
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import com.coalesce.bot.gson
+import com.coalesce.bot.punishmentals.PunishmentManager
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.MessageChannel
