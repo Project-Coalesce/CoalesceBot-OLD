@@ -52,7 +52,7 @@ class Main private constructor() {
         repManager = ReputationManager()
         punishments = PunishmentManager(this) // Load it.
         injector = Guice.createInjector(Injects(this, punishments))
-        listener = Listener()
+        listener = Listener(jda)
         jda.addEventListener(listener)
 
         // Finished loading.

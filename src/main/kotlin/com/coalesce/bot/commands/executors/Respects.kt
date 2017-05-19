@@ -16,6 +16,7 @@ import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.*
@@ -63,6 +64,8 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             globalCooldown = 30.0
     )
     fun execute(context: RootCommandContext) {
+        throw IOException("test")
+
         val file = respectsLeaderboardsFile
         synchronized(file) {
             if (!file.exists()) {
