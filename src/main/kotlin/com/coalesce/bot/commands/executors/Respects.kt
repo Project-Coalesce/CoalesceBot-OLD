@@ -75,14 +75,19 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             val map = gson.fromJson<LinkedTreeMap<String, Any?>>(file.readText(), type.type)
 
             var respects = mutableListOf<Member>()
+            val amountPositions = mutableListOf<Double>()
+
             map.forEach { key, value ->
                 val member = context.message.guild.getMember(jda.getUserById(key))
                 if (member != null &&
                         value is Double && // For safety with json, in case the host manages to edit it into something else
                         value > 0) { // invalid/punished values shouldnt be accepted.
                     respects.add(member)
+                    amountPositions.add(value)
                 }
             }
+
+            Collections.sort(amountPositions)
             respects = respects.subList(0, Math.min(respects.size, 10))
             Collections.sort(respects, { second, first -> (map[first.user.id] as Double).toInt() - (map[second.user.id] as Double).toInt() })
             if (respects.size > 10) {
@@ -97,21 +102,33 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             val nameStr = StringBuilder()
             val respectsPaidStr = StringBuilder()
 
-            respects.forEachIndexed { index, it ->
-                positionStr.append("#${index + 1}\n")
+            respects.forEach {
+                val value = map[it.user.id] as Double
+
+                positionStr.append("${getPositionStr(amountPositions.indexOf(value))}\n")
                 nameStr.append("${(it.effectiveName).limit(16)}\n")
-                respectsPaidStr.append("${(map[it.user.id] as Double).toInt()}\n")
+                respectsPaidStr.append("${value.toInt()}\n")
             }
+
             val member = context.message.member
             if(respects.contains(member) && respects.indexOf(member) > 10) {
-                positionStr.append("...\n${respects.indexOf(member)}")
+                val value = map[member.user.id] as Double
+
+                positionStr.append("...\n${getPositionStr(amountPositions.indexOf(value))}")
                 nameStr.append("...\n${(member.effectiveName).limit(16)}")
-                respectsPaidStr.append("...\n${(map[member.user.id] as Double).toInt()}")
+                respectsPaidStr.append("...\n${value.toInt()}")
             }
             builder.addField("Position", positionStr.toString(), true)
                     .addField("Name", nameStr.toString(), true)
                     .addField("Respects", respectsPaidStr.toString(), true)
             context(builder)
         }
+    }
+
+    fun getPositionStr(pos: Int): String {
+        if (pos == 0) return "<:medal1st:315560441478774785>"
+        else if (pos == 1) return "<:medal2nd:315560432939040771>"
+        else if (pos == 2) return "<:medal3rd:315560839845249026>"
+        else return "#${pos + 1}"
     }
 }
