@@ -57,7 +57,6 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
                         if (current > System.currentTimeMillis()) {
                             // TODO: Prettify current seconds
                             val remaining = (current.toLong() - System.currentTimeMillis())
-                            println(System.currentTimeMillis().toString() + ", " + current.toLong() + ", " + remaining)
                             it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
                                     .setDescription("That command is on global cooldown for ${prettify(remaining)}."))
                             return@Predicate false
