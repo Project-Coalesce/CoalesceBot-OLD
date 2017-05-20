@@ -13,6 +13,7 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
+import java.io.DataOutputStream
 
 class ReputationManager {
     private val reputationStorage: MutableMap<String, ReputationValue>
@@ -33,7 +34,9 @@ class ReputationManager {
         if (!file.parentFile.exists()) file.parentFile.mkdirs()
         if (!file.exists()) {
             file.createNewFile()
-            file.writeText("{}")
+            file.outputStream().use {
+                DataOutputStream(it).writeLong(-1L)
+            }
         }
 
         serializer = ReputationSerializer(file)

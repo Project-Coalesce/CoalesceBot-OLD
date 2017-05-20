@@ -12,6 +12,7 @@ import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
+import java.io.DataOutputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -29,8 +30,11 @@ class Respects {
 
         val file = respectsLeaderboardsFile
         synchronized(file) {
-            if (!file.parentFile.exists()) {
-                file.parentFile.mkdirs()
+            if (!file.exists()) {
+                file.createNewFile()
+                file.outputStream().use {
+                    DataOutputStream(it).writeLong(-1L)
+                }
             }
 
             val serializer = RespectsLeaderboardSerializer(file)
@@ -98,7 +102,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             respects.forEach {
                 val value = map[it.user.id] as Double
 
-                positionStr.append("${amountPositions.indexOf(value)}\n")
+                positionStr.append("#${amountPositions.indexOf(value) + 1}\n")
                 nameStr.append("${(it.effectiveName).limit(16)}\n")
                 respectsPaidStr.append("${value.toInt()}\n")
             }
@@ -107,7 +111,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             if(respects.contains(member) && respects.indexOf(member) > 10) {
                 val value = map[member.user.id] as Double
 
-                positionStr.append("...\n${amountPositions.indexOf(value)}")
+                positionStr.append("...\n#${amountPositions.indexOf(value) + 1}")
                 nameStr.append("...\n${(member.effectiveName).limit(16)}")
                 respectsPaidStr.append("...\n${value.toInt()}")
             }
