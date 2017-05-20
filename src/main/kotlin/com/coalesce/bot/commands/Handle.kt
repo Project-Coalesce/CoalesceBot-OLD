@@ -3,6 +3,7 @@ package com.coalesce.bot.commands
 import com.coalesce.bot.Main
 import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
+import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
@@ -19,11 +20,12 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
-class Listener internal constructor() : ListenerAdapter(), Embeddables {
+class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddables {
     val registry = CommandRegistry()
     val checks = mutableSetOf<Predicate<CommandContext>>()
     private val cooldowns = mutableMapOf<String, Long>() // <command identifier, until in millis>
     private val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
+    private val errorLogChannel = jda.getTextChannelById("308755436046385153")
 
     init {
         synchronized(registry) {
@@ -122,7 +124,11 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
     override fun onGenericEvent(event: Event) {
         if (registry.jdalisteners.containsKey(event::class.java)) {
             registry.jdalisteners[event::class.java]!!.forEach {
-                it.key.invoke(it.value.instance, event)
+                try {
+                    it.key.invoke(it.value.instance, event)
+                } catch (ex: Exception) {
+                    errorReport(ex, "Handling event: ${event.javaClass.name}")
+                }
             }
         }
 
@@ -134,11 +140,15 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
             return
         }
         val command = event.message.rawContent.substring(commandPrefixLen)
+        var inputStr: String? = null
+
         try {
             val (input, method, third) = registry[command, event]
+            inputStr = input
             val (context, clazz) = third
             if (method == null || context == null || clazz == null) {
-                event.message.addReaction("❔").queue() //dats better
+                //event.message.addReaction("❔").queue()
+                //I only removed it because proxi asked for it and he's such a nice guy
                 return
             }
 
@@ -150,7 +160,27 @@ class Listener internal constructor() : ListenerAdapter(), Embeddables {
             method.invoke(clazz, context)
         } catch (ex: Exception) {
             ex.printStackTrace()
-            event.channel.sendMessage("* An error occured while trying to handle that command. Please ask Project Coalesce developers to look at the error.").queue()
+            errorReport(ex, "Handling command: ${inputStr ?: "Unknown"}")
+            event.channel.sendMessage("* An error occured while trying to handle that command. It has been reported to CoalesceBot devs.").queue()
+        }
+    }
+
+    fun errorReport(ex: Exception, occ: String) {
+        val builder = StringBuilder()
+        builder.append("An error occured ($occ) ${ex.javaClass.name}:${ex.message}\n")
+        addElements(ex, builder)
+
+        errorLogChannel.sendMessage(builder.toString()).queue()
+    }
+
+    fun addElements(thrw: Throwable, builder: StringBuilder) {
+        for (el in thrw.stackTrace) {
+            builder.append("    at ${el.methodName}(${el.fileName}:${el.lineNumber})\n")
+        }
+        if (thrw.cause != null) {
+            val cause = thrw.cause!!
+            builder.append("Caused by ${cause.javaClass.name}: ${cause.message}\n")
+            addElements(cause, builder)
         }
     }
 }

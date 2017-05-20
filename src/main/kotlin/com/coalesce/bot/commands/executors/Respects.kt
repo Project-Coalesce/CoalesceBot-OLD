@@ -5,14 +5,18 @@ import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import com.coalesce.bot.gson
+import com.coalesce.bot.reputation.ReputationValue
+import com.coalesce.bot.reputationFile
 import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
 import com.google.gson.internal.LinkedTreeMap
+import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.*
@@ -35,22 +39,17 @@ class Respects {
             if (!file.parentFile.exists()) {
                 file.parentFile.mkdirs()
             }
-            val json = LinkedTreeMap<String, Any?>()
-            if (file.exists()) {
-                file.inputStream().use {
-                    it.reader().use {
-                        json.putAll(gson.fromJson(it, json::class.java))
-                    }
-                }
-            }
+
+            val type = object: TypeToken<LinkedTreeMap<String, Any?>>() {}
+            val map = gson.fromJson<LinkedTreeMap<String, Any?>>(file.readText(), type.type)
 
             val id = context.author.id
-            json[id] = json[id] as? Double ?: 0.0 + 1.0
+            map[id] = (map[id] as? Double ?: 0.0) + 1.0
             if (file.exists()) {
                 file.delete()
             }
             file.createNewFile()
-            Files.write(file.toPath(), gson.toJson(json).toByteArray(), StandardOpenOption.WRITE)
+            file.writeText(gson.toJson(map))
         }
     }
 }
@@ -71,14 +70,12 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                 context("Sadly nobody has paid respects yet.")
                 return
             }
-            val json = mutableMapOf<String, Any?>()
-            file.inputStream().use {
-                it.reader().use {
-                    json.putAll(gson.fromJson(it, json::class.java))
-                }
-            }
+
+            val type = object: TypeToken<LinkedTreeMap<String, Any?>>() {}
+            val map = gson.fromJson<LinkedTreeMap<String, Any?>>(file.readText(), type.type)
+
             var respects = mutableListOf<Member>()
-            json.forEach { key, value ->
+            map.forEach { key, value ->
                 val member = context.message.guild.getMember(jda.getUserById(key))
                 if (member != null &&
                         value is Double && // For safety with json, in case the host manages to edit it into something else
@@ -87,7 +84,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                 }
             }
             respects = respects.subList(0, Math.min(respects.size, 10))
-            Collections.sort(respects, { second, first -> (json[first.user.id] as Double).toInt() - (json[second.user.id] as Double).toInt() })
+            Collections.sort(respects, { second, first -> (map[first.user.id] as Double).toInt() - (map[second.user.id] as Double).toInt() })
             if (respects.size > 10) {
                 val back = mutableListOf<Member>()
                 back.addAll(respects.subList(0, 10))
@@ -103,13 +100,13 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             respects.forEachIndexed { index, it ->
                 positionStr.append("#${index + 1}\n")
                 nameStr.append("${(it.effectiveName).limit(16)}\n")
-                respectsPaidStr.append("${(json[it.user.id] as Double).toInt()}\n")
+                respectsPaidStr.append("${(map[it.user.id] as Double).toInt()}\n")
             }
             val member = context.message.member
             if(respects.contains(member) && respects.indexOf(member) > 10) {
                 positionStr.append("...\n${respects.indexOf(member)}")
                 nameStr.append("...\n${(member.effectiveName).limit(16)}")
-                respectsPaidStr.append("...\n${(json[member.user.id] as Double).toInt()}")
+                respectsPaidStr.append("...\n${(map[member.user.id] as Double).toInt()}")
             }
             builder.addField("Position", positionStr.toString(), true)
                     .addField("Name", nameStr.toString(), true)
