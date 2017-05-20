@@ -105,7 +105,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             respects.forEach {
                 val value = map[it.user.id] as Double
 
-                positionStr.append("${getPositionStr(amountPositions.indexOf(value))}\n")
+                positionStr.append("${amountPositions.indexOf(value)}\n")
                 nameStr.append("${(it.effectiveName).limit(16)}\n")
                 respectsPaidStr.append("${value.toInt()}\n")
             }
@@ -114,7 +114,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             if(respects.contains(member) && respects.indexOf(member) > 10) {
                 val value = map[member.user.id] as Double
 
-                positionStr.append("...\n${getPositionStr(amountPositions.indexOf(value))}")
+                positionStr.append("...\n${amountPositions.indexOf(value)}")
                 nameStr.append("...\n${(member.effectiveName).limit(16)}")
                 respectsPaidStr.append("...\n${value.toInt()}")
             }
@@ -123,12 +123,5 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                     .addField("Respects", respectsPaidStr.toString(), true)
             context(builder)
         }
-    }
-
-    fun getPositionStr(pos: Int): String {
-        if (pos == 0) return "<:medal1st:315560441478774785>"
-        else if (pos == 1) return "<:medal2nd:315560432939040771>"
-        else if (pos == 2) return "<:medal3rd:315560839845249026>"
-        else return "#${pos + 1}"
     }
 }
