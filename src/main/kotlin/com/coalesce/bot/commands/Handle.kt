@@ -147,7 +147,8 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
             inputStr = input
             val (context, clazz) = third
             if (method == null || context == null || clazz == null) {
-                event.message.addReaction("❔").queue() //dats better
+                //event.message.addReaction("❔").queue()
+                //I only removed it because proxi asked for it and he's such a nice guy
                 return
             }
 
