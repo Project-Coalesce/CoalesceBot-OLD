@@ -1,18 +1,20 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.*
+import com.coalesce.bot.binary.ReputationSerializer
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
-import com.coalesce.bot.canDelete
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
-import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
+import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
 import java.io.DataOutputStream
+import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -30,12 +32,7 @@ class Respects {
 
         val file = respectsLeaderboardsFile
         synchronized(file) {
-            if (!file.exists()) {
-                file.createNewFile()
-                file.outputStream().use {
-                    DataOutputStream(it).writeLong(-1L)
-                }
-            }
+            if (!file.exists()) generateFile(file)
 
             val serializer = RespectsLeaderboardSerializer(file)
             val map = serializer.read()
@@ -47,6 +44,25 @@ class Respects {
             }
             file.createNewFile()
             serializer.write(map)
+        }
+    }
+}
+
+fun generateFile(file: File) {
+    file.createNewFile()
+    if (respectsLeaderboardsFileOld.exists()) {
+        val type = object: TypeToken<HashMap<String, Any?>>() {}
+        val oldMap = gson.fromJson<MutableMap<String, Any?>>(respectsLeaderboardsFileOld.readText(), type.type)
+
+        val repSerializer = RespectsLeaderboardSerializer(file)
+        repSerializer.write(oldMap)
+
+        val oldSize = respectsLeaderboardsFileOld.length()
+        respectsLeaderboardsFileOld.delete()
+        println("Updated reputation file to binary, removing ${oldSize - file.length()} bytes.")
+    } else {
+        file.outputStream().use {
+            DataOutputStream(it).writeLong(-1L)
         }
     }
 }

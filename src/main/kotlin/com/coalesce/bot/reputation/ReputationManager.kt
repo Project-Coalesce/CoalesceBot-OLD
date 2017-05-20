@@ -3,6 +3,7 @@ package com.coalesce.bot.reputation
 import com.coalesce.bot.binary.ReputationSerializer
 import com.coalesce.bot.gson
 import com.coalesce.bot.reputationFile
+import com.coalesce.bot.reputationFileOld
 import com.google.gson.reflect.TypeToken
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
@@ -14,6 +15,7 @@ import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
 import java.io.DataOutputStream
+import java.io.File
 
 class ReputationManager {
     private val reputationStorage: MutableMap<String, ReputationValue>
@@ -32,15 +34,29 @@ class ReputationManager {
         val file = reputationFile
 
         if (!file.parentFile.exists()) file.parentFile.mkdirs()
-        if (!file.exists()) {
-            file.createNewFile()
+        if (!file.exists())  generateFile(file)
+
+        serializer = ReputationSerializer(file)
+        reputationStorage = serializer.read()
+    }
+
+    fun generateFile(file: File) {
+        file.createNewFile()
+        if (reputationFileOld.exists()) {
+            val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
+            val oldMap = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFileOld.readText(), type.type)
+
+            val repSerializer = ReputationSerializer(file)
+            repSerializer.write(oldMap)
+
+            val oldSize = reputationFileOld.length()
+            reputationFileOld.delete()
+            println("Updated reputation file to binary, removing ${oldSize - file.length()} bytes.")
+        } else {
             file.outputStream().use {
                 DataOutputStream(it).writeLong(-1L)
             }
         }
-
-        serializer = ReputationSerializer(file)
-        reputationStorage = serializer.read()
     }
 
     fun save() {
