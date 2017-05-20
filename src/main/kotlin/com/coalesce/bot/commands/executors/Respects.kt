@@ -1,24 +1,17 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.canDelete
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
-import com.coalesce.bot.gson
-import com.coalesce.bot.reputation.ReputationValue
-import com.coalesce.bot.reputationFile
 import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
-import com.google.gson.internal.LinkedTreeMap
-import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -40,8 +33,8 @@ class Respects {
                 file.parentFile.mkdirs()
             }
 
-            val type = object: TypeToken<LinkedTreeMap<String, Any?>>() {}
-            val map = gson.fromJson<LinkedTreeMap<String, Any?>>(file.readText(), type.type)
+            val serializer = RespectsLeaderboardSerializer(file)
+            val map = serializer.read()
 
             val id = context.author.id
             map[id] = (map[id] as? Double ?: 0.0) + 1.0
@@ -49,7 +42,7 @@ class Respects {
                 file.delete()
             }
             file.createNewFile()
-            file.writeText(gson.toJson(map))
+            serializer.write(map)
         }
     }
 }
@@ -71,8 +64,8 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                 return
             }
 
-            val type = object: TypeToken<LinkedTreeMap<String, Any?>>() {}
-            val map = gson.fromJson<LinkedTreeMap<String, Any?>>(file.readText(), type.type)
+            val serializer = RespectsLeaderboardSerializer(file)
+            val map = serializer.read()
 
             var respects = mutableListOf<Member>()
             val amountPositions = mutableListOf<Double>()

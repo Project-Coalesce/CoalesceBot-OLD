@@ -1,5 +1,6 @@
 package com.coalesce.bot.reputation
 
+import com.coalesce.bot.binary.ReputationSerializer
 import com.coalesce.bot.gson
 import com.coalesce.bot.reputationFile
 import com.google.gson.reflect.TypeToken
@@ -15,6 +16,7 @@ import org.reflections.util.FilterBuilder
 
 class ReputationManager {
     private val reputationStorage: MutableMap<String, ReputationValue>
+    private val serializer : ReputationSerializer
 
     init {
         val classes = Reflections(ConfigurationBuilder()
@@ -34,12 +36,12 @@ class ReputationManager {
             file.writeText("{}")
         }
 
-        val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
-        reputationStorage = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFile.readText(), type.type)
+        serializer = ReputationSerializer(file)
+        reputationStorage = serializer.read()
     }
 
     fun save() {
-        reputationFile.writeText(gson.toJson(reputationStorage))
+        serializer.write(reputationStorage)
     }
 
     operator fun set(user: User, value: ReputationValue) {
@@ -48,13 +50,13 @@ class ReputationManager {
     }
 
     operator fun get(from: User): ReputationValue {
-        return reputationStorage[from.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<ReputationMilestone>())
+        return reputationStorage[from.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<String>())
     }
 }
 
 val milestoneList = mutableListOf<ReputationMilestone>()
 
-class ReputationValue(var total: Double, var transactions: MutableList<ReputationTransaction>, val milestones: MutableList<ReputationMilestone>) {
+class ReputationValue(var total: Double, var transactions: MutableList<ReputationTransaction>, val milestones: MutableList<String>) {
     fun transaction(transaction: ReputationTransaction, channel: MessageChannel, member: Member) {
         transactions.add(transaction)
         if (transactions.size > 10) transactions = transactions.subList(0, 10)
@@ -64,10 +66,12 @@ class ReputationValue(var total: Double, var transactions: MutableList<Reputatio
         total += transaction.amount
 
         milestoneList.forEach {
-            if (!milestones.contains(it) && total >= it.rep) {
+            if (!milestones.contains(it.name) && total >= it.rep) {
                 it.reached(member, channel)
-            } else if (milestones.contains(it) && total < it.rep) {
+                milestones.add(it.name)
+            } else if (milestones.contains(it.name) && total < it.rep) {
                 it.lost(member, channel)
+                milestones.remove(it.name)
             }
         }
     }
