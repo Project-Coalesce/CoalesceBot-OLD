@@ -10,6 +10,7 @@ import java.util.stream.Collectors
 class RankManager internal constructor(jda: JDA) {
     val ranks = hashTableOf<Long, WrappedRole>()
     val users = hashTableOf<Long, WrappedUser>()
+    val global = mutableListOf<String>()
 
     init {
         jda.guilds.map { it.members }.forEach { it.forEach { users.put(it.user.idLong, WrappedUser(it.user)) } }
@@ -38,8 +39,8 @@ class RankManager internal constructor(jda: JDA) {
             return true
         }
         val permsMap = getPermissions(member)
-        val perms = permsMap.entries.map { it.key }
+        val perms = permsMap.entries.stream().filter { it.value }.map { it.key }.toArray()
 
-        return Arrays.stream(permissions).allMatch { perms.contains(it) }
+        return Arrays.stream(permissions).allMatch { perms.contains(it) || global.contains(it) }
     }
 }
