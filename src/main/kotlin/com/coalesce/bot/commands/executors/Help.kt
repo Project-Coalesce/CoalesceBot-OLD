@@ -25,23 +25,24 @@ class Help @Inject constructor(val bot: Main) : Embeddables {
                 map[value.rootAnnotation.type] = map[value.rootAnnotation.type]?.apply { add(value) } ?: mutableSetOf()
             }
         }
+        val member = context.message.guild.getMember(context.message.author)
         val out = mutableMapOf<CommandType, String>()
         map.forEach { type, entries ->
-            val builder = StringBuilder("```\n")
+            val builder = StringBuilder()
             entries.forEach {
-                builder.append(if (it.rootAnnotation.name == "xD") "xD" else it.rootAnnotation.name.capitalize())
-                builder.append(' ').append(it.rootAnnotation.usage)
+                builder.append("`${if (it.rootAnnotation.name == "xD") "xD" else it.rootAnnotation.name.capitalize()}`")
+                builder.append(" (${it.rootAnnotation.usage}) ")
                 if (it.rootAnnotation.aliases.isNotEmpty()) {
-                    builder.append(' ').append(Arrays.toString(it.rootAnnotation.aliases.map { it.capitalize() }.toTypedArray()))
+                    builder.append(Arrays.toString(it.rootAnnotation.aliases.map { it.capitalize() }.toTypedArray()))
                 }
-                builder.append(": " + it.rootAnnotation.description)
-                builder.append("\n")
+                builder.append(": ${it.rootAnnotation.description}\n ${if (bot.listener.perms.hasPermission(member,
+                        it.rootAnnotation.permission)) "<:permissable:315634057625075712>" else "<:no_permission:315617783738007552>"}")
             }
-            out[type] = builder.append("\n```").toString().trim()
+            out[type] = builder.toString().trim()
         }
 
-        for (type in CommandType.values()) {
-            embed.field(type.name.toLowerCase().capitalize(), out[type] ?: continue, true)
+        out.forEach { k, v ->
+            embed.field(k.name.toLowerCase().capitalize(), v, true)
         }
         context(embed) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(45, TimeUnit.SECONDS) } }
     }

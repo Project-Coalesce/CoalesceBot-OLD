@@ -1,17 +1,17 @@
 package com.coalesce.bot.permissions
 
-import com.coalesce.bot.Main
 import com.coalesce.bot.utilities.hashTableOf
+import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
 import java.util.*
 import java.util.stream.Collectors
 
-class RankManager internal constructor(bot: Main) {
+class RankManager internal constructor(jda: JDA) {
     private val ranks = hashTableOf<Long, WrappedRole>()
     private val users = hashTableOf<Long, WrappedUser>()
 
     init {
-        bot.jda.guilds.map { it.members }.forEach { it.forEach { users.put(it.user.idLong, WrappedUser(it.user)) } }
+        jda.guilds.map { it.members }.forEach { it.forEach { users.put(it.user.idLong, WrappedUser(it.user)) } }
     }
 
     fun getPermissions(member: Member): Map<String, Boolean> {
@@ -30,6 +30,7 @@ class RankManager internal constructor(bot: Main) {
         }
         val permsMap = getPermissions(member)
         val perms = permsMap.entries.map { it.key }
+
         return Arrays.stream(permissions).allMatch { perms.contains(it) }
     }
 }

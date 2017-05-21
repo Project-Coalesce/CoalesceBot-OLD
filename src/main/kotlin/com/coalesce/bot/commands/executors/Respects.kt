@@ -46,25 +46,26 @@ class Respects {
             serializer.write(map)
         }
     }
-}
 
-fun generateFile(file: File) {
-    file.createNewFile()
-    if (respectsLeaderboardsFileOld.exists()) {
-        val type = object: TypeToken<HashMap<String, Any?>>() {}
-        val oldMap = gson.fromJson<MutableMap<String, Any?>>(respectsLeaderboardsFileOld.readText(), type.type)
+    fun generateFile(file: File) {
+        file.createNewFile()
+        if (respectsLeaderboardsFileOld.exists()) {
+            val type = object: TypeToken<HashMap<String, Any?>>() {}
+            val oldMap = gson.fromJson<MutableMap<String, Any?>>(respectsLeaderboardsFileOld.readText(), type.type)
 
-        val repSerializer = RespectsLeaderboardSerializer(file)
-        repSerializer.write(oldMap)
+            val repSerializer = RespectsLeaderboardSerializer(file)
+            repSerializer.write(oldMap)
 
-        val oldSize = respectsLeaderboardsFileOld.length()
-        respectsLeaderboardsFileOld.delete()
-        println("Updated reputation file to binary, removing ${oldSize - file.length()} bytes.")
-    } else {
-        file.outputStream().use {
-            DataOutputStream(it).writeLong(-1L)
+            val oldSize = respectsLeaderboardsFileOld.length()
+            respectsLeaderboardsFileOld.delete()
+            println("Updated reputation file to binary, removing ${oldSize - file.length()} bytes.")
+        } else {
+            file.outputStream().use {
+                DataOutputStream(it).writeLong(-1L)
+            }
         }
     }
+
 }
 
 class RespectsLeaderboard @Inject constructor(val jda: JDA) {
