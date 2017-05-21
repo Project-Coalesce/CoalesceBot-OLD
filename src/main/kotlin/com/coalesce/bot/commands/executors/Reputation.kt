@@ -1,5 +1,6 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.Main
 import com.coalesce.bot.reputation.ReputationTransaction
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.reputation.ReputationManager
@@ -10,8 +11,9 @@ import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
+import java.util.concurrent.TimeUnit
 
-class Reputation @Inject constructor(val reputation: ReputationManager) {
+class Reputation @Inject constructor(val bot: Main, val reputation: ReputationManager) {
     @RootCommand(
             name = "reputation",
             type = CommandType.INFORMATION,
@@ -54,8 +56,12 @@ class Reputation @Inject constructor(val reputation: ReputationManager) {
     @JDAListener
     fun react(event: MessageReactionAddEvent) {
         if (event.reaction.emote.name == "✌") {
-            event.channel.getMessageById(event.messageId).queue {
-                doThank(event.guild, event.channel, event.user, it.author, event.jda)
+            if (bot.listener.userCooldowns[event.member.user.idLong]!!["reputation"]!! > System.currentTimeMillis()) {
+                event.channel.sendMessage("Wait before you thank again.").queue { it.delete().queueAfter(5L, TimeUnit.SECONDS) }
+            } else {
+                event.channel.getMessageById(event.messageId).queue {
+                    doThank(event.guild, event.channel, event.user, it.author, event.jda)
+                }
             }
         } else if (event.reaction.emote.name == "👎") {
 

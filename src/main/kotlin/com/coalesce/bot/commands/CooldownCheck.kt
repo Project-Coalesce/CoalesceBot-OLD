@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
 class CooldownCheck(val listener: Listener): Predicate<CommandContext>, Embeddables {
-
     override fun test(it: CommandContext): Boolean {
         val cooldown: Double = if (it is SubCommandContext) {
             if (it.currentSubCommand.cooldown) {
@@ -90,5 +89,4 @@ class CooldownCheck(val listener: Listener): Predicate<CommandContext>, Embeddab
     fun ensurePlural(numb: Long, str: String): String {
         return if (numb > 1) " ${str}s" else " $str"
     }
-
 }
