@@ -29,7 +29,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
     private val errorLogChannel = jda.getTextChannelById("308755436046385153")
 
-    init {
+    fun register() {
         synchronized(registry) {
             println("Registering commands...")
             registry.register()

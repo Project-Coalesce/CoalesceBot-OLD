@@ -53,6 +53,7 @@ class Main private constructor() {
         punishments = PunishmentManager(this) // Load it.
         injector = Guice.createInjector(Injects(this, punishments))
         listener = Listener(jda)
+        listener.register()
         jda.addEventListener(listener)
 
         // Finished loading.

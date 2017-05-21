@@ -19,7 +19,8 @@ class Permission @Inject constructor(val bot: Main) {
             type = CommandType.ADMINISTRATION,
             permission = "commands.permissions",
             description = "Allows for changing permissions. Roles with 'Administrator' permissions and guild creators have all permissions.",
-            cooldownSubs = false
+            cooldownSubs = false,
+            aliases = arrayOf("perms", "permissions", "perm")
     )
     fun execute(context: RootCommandContext) {
         if (context.args.size < 2) {
