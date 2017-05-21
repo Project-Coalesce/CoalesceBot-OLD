@@ -1,9 +1,7 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.canDelete
-import com.coalesce.bot.commands.CommandType
-import com.coalesce.bot.commands.RootCommand
-import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.commands.*
 import com.coalesce.bot.gson
 import com.coalesce.bot.utilities.ifwithDo
 import com.google.gson.JsonElement
@@ -15,7 +13,7 @@ import java.util.Scanner
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
-class UrbanDefinition @Inject constructor(val executorService: ExecutorService) {
+class UrbanDefinition @Inject constructor(val executorService: ExecutorService) : Embeddables {
     @RootCommand(
             name = "Definition",
             aliases = arrayOf("define", "dictionary", "urban"), description = "Defines a word or phrase with Urban Dictionary.",
@@ -48,7 +46,7 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
                 val json = gson.fromJson(stringBuilder.toString(), JsonElement::class.java).asJsonObject
                 if (json.get("result_type").asString == "no_results") {
                     mention("No definitions found!")
-                    return
+                    return@submit
                 }
 
                 val firstResult = json.get("list").asJsonArray.get(0).asJsonObject
@@ -61,13 +59,9 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
                 }
                 context(builder) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
             } catch (ex: Exception) {
-                val embedBuilder = EmbedBuilder()
-
-                embedBuilder.setColor(Color(232, 46, 0))
-                embedBuilder.setTitle("Error", null)
-                embedBuilder.setDescription("An error occured while trying to handle that command:\n${ex.javaClass.name}: ${ex.message}")
-
-                context(embedBuilder)
+                context(embed().setColor(Color(232, 46, 0)).setTitle("Error", null).setDescription("An error occured with that command:\n" +
+                        "${ex.javaClass.name}: ${ex.message}\nPlease report this to project coalesce developers."))
+                ex.printStackTrace()
             }
         }
     }

@@ -56,7 +56,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
                 try {
                     it.key.invoke(it.value.instance, event)
                 } catch (ex: Exception) {
-                    errorReport(ex, "Handling event: ${event.javaClass.name}")
+                    ex.printStackTrace()
                 }
             }
         }
@@ -88,28 +88,10 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
 
             method.invoke(clazz, context)
         } catch (ex: Exception) {
+            event.channel.sendMessage(embed().setColor(Color(232, 46, 0)).setTitle("Error", null)
+                    .setDescription("An error occured with that command:\n${ex.javaClass.name}: ${ex.message}\n" +
+                    "Please report this to project coalesce developers.").build())
             ex.printStackTrace()
-            errorReport(ex, "Handling command: ${inputStr ?: "Unknown"}")
-            event.channel.sendMessage("* An error occured while trying to handle that command. It has been reported to CoalesceBot devs.").queue()
-        }
-    }
-
-    fun errorReport(ex: Exception, occ: String) {
-        val builder = StringBuilder()
-        builder.append("An error occured ($occ) ${ex.javaClass.name}:${ex.message}\n")
-        addElements(ex, builder)
-
-        errorLogChannel.sendMessage(builder.toString()).queue()
-    }
-
-    fun addElements(thrw: Throwable, builder: StringBuilder) {
-        for (el in thrw.stackTrace) {
-            builder.append("    at ${el.methodName}(${el.fileName}:${el.lineNumber})\n")
-        }
-        if (thrw.cause != null) {
-            val cause = thrw.cause!!
-            builder.append("Caused by ${cause.javaClass.name}: ${cause.message}\n")
-            addElements(cause, builder)
         }
     }
 }
