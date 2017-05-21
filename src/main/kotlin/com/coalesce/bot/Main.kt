@@ -46,18 +46,20 @@ class Main private constructor() {
                 setCorePoolSize(6)
                 setAudioEnabled(true) // Depri has implemented a Youtube player that proxi fucked up.
                 @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET")
-            setGame(Game.of("with my settings"))
+            setGame(Game.of("the loading game"))
+            setIdle(true)
         }.buildBlocking()
 
         repManager = ReputationManager()
         punishments = PunishmentManager(this) // Load it.
         injector = Guice.createInjector(Injects(this, punishments))
         listener = Listener(jda)
+        listener.register()
         jda.addEventListener(listener)
 
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
-        jda.presence.game = Game.of("with myself")
+        jda.presence.game = Game.of("mienkreft")
 
         githubSecret = secret
     }
@@ -81,8 +83,11 @@ class Injects(val main: Main, val pmanager: PunishmentManager) : AbstractModule(
 const val commandPrefix = "!"
 const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
-val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.json")
-val reputationFile = File(dataDirectory, "reputation.json")
+val permissionsFile = File(dataDirectory, "permissions.dat")
+val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.dat")
+val respectsLeaderboardsFileOld = File(dataDirectory, "leaderboard.json")
+val reputationFile = File(dataDirectory, "reputation.dat")
+val reputationFileOld = File(dataDirectory, "reputation.json")
 val gson: Gson = GsonBuilder().enableComplexMapKeySerialization().setPrettyPrinting().serializeNulls().disableHtmlEscaping().registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance)).create()
 typealias Colour = java.awt.Color
 val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!

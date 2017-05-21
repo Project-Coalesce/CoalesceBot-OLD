@@ -1,24 +1,20 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.canDelete
+import com.coalesce.bot.*
+import com.coalesce.bot.binary.ReputationSerializer
+import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
-import com.coalesce.bot.gson
-import com.coalesce.bot.reputation.ReputationValue
-import com.coalesce.bot.reputationFile
-import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
-import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
+import java.io.DataOutputStream
+import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -36,12 +32,10 @@ class Respects {
 
         val file = respectsLeaderboardsFile
         synchronized(file) {
-            if (!file.parentFile.exists()) {
-                file.parentFile.mkdirs()
-            }
+            if (!file.exists()) generateFile(file)
 
-            val type = object: TypeToken<LinkedTreeMap<String, Any?>>() {}
-            val map = gson.fromJson<LinkedTreeMap<String, Any?>>(file.readText(), type.type)
+            val serializer = RespectsLeaderboardSerializer(file)
+            val map = serializer.read()
 
             val id = context.author.id
             map[id] = (map[id] as? Double ?: 0.0) + 1.0
@@ -49,9 +43,29 @@ class Respects {
                 file.delete()
             }
             file.createNewFile()
-            file.writeText(gson.toJson(map))
+            serializer.write(map)
         }
     }
+
+    fun generateFile(file: File) {
+        file.createNewFile()
+        if (respectsLeaderboardsFileOld.exists()) {
+            val type = object: TypeToken<HashMap<String, Any?>>() {}
+            val oldMap = gson.fromJson<MutableMap<String, Any?>>(respectsLeaderboardsFileOld.readText(), type.type)
+
+            val repSerializer = RespectsLeaderboardSerializer(file)
+            repSerializer.write(oldMap)
+
+            val oldSize = respectsLeaderboardsFileOld.length()
+            respectsLeaderboardsFileOld.delete()
+            println("Updated reputation file to binary, removing ${oldSize - file.length()} bytes.")
+        } else {
+            file.outputStream().use {
+                DataOutputStream(it).writeLong(-1L)
+            }
+        }
+    }
+
 }
 
 class RespectsLeaderboard @Inject constructor(val jda: JDA) {
@@ -71,18 +85,23 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
                 return
             }
 
-            val type = object: TypeToken<LinkedTreeMap<String, Any?>>() {}
-            val map = gson.fromJson<LinkedTreeMap<String, Any?>>(file.readText(), type.type)
+            val serializer = RespectsLeaderboardSerializer(file)
+            val map = serializer.read()
 
             var respects = mutableListOf<Member>()
+            val amountPositions = mutableListOf<Double>()
+
             map.forEach { key, value ->
                 val member = context.message.guild.getMember(jda.getUserById(key))
                 if (member != null &&
                         value is Double && // For safety with json, in case the host manages to edit it into something else
                         value > 0) { // invalid/punished values shouldnt be accepted.
                     respects.add(member)
+                    amountPositions.add(value)
                 }
             }
+
+            Collections.sort(amountPositions)
             respects = respects.subList(0, Math.min(respects.size, 10))
             Collections.sort(respects, { second, first -> (map[first.user.id] as Double).toInt() - (map[second.user.id] as Double).toInt() })
             if (respects.size > 10) {
@@ -97,16 +116,21 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             val nameStr = StringBuilder()
             val respectsPaidStr = StringBuilder()
 
-            respects.forEachIndexed { index, it ->
-                positionStr.append("#${index + 1}\n")
+            respects.forEach {
+                val value = map[it.user.id] as Double
+
+                positionStr.append("#${amountPositions.indexOf(value) + 1}\n")
                 nameStr.append("${(it.effectiveName).limit(16)}\n")
-                respectsPaidStr.append("${(map[it.user.id] as Double).toInt()}\n")
+                respectsPaidStr.append("${value.toInt()}\n")
             }
+
             val member = context.message.member
             if(respects.contains(member) && respects.indexOf(member) > 10) {
-                positionStr.append("...\n${respects.indexOf(member)}")
+                val value = map[member.user.id] as Double
+
+                positionStr.append("...\n#${amountPositions.indexOf(value) + 1}")
                 nameStr.append("...\n${(member.effectiveName).limit(16)}")
-                respectsPaidStr.append("...\n${(map[member.user.id] as Double).toInt()}")
+                respectsPaidStr.append("...\n${value.toInt()}")
             }
             builder.addField("Position", positionStr.toString(), true)
                     .addField("Name", nameStr.toString(), true)

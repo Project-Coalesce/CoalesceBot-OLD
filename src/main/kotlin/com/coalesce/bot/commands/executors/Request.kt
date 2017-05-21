@@ -39,7 +39,7 @@ class Request @Inject constructor(val bot: Main) {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context("You need to provide a role!")
+            context("* You need to provide a role!")
             return
         }
 
@@ -51,7 +51,7 @@ class Request @Inject constructor(val bot: Main) {
             val roles = bot.jda.getRolesByName(context.args.first(), true)
 
             if (roles.isEmpty()) {
-                context("Role not found.")
+                context("* Invalid role.")
                 return
             }
 
@@ -59,12 +59,12 @@ class Request @Inject constructor(val bot: Main) {
         }
 
         if (!acceptableRoles.contains(role)) {
-            context("You can't request that role.")
+            context("* Invalid role.")
             return
         }
 
         if (context.message.guild.getMember(context.message.author).roles.contains(role)) {
-            context("You can't ask for a role you already have.")
+            context("* You already have that role.")
             return
         }
 
@@ -183,7 +183,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
         }
     }
 
-    private fun verifyAuthenticationTokenGithub(code: String) : String {
+    private fun verifyAuthenticationTokenGithub(code: String): String {
         val url = URL("https://github.com/login/oauth/access_token")
         val userURL = "https://api.github.com/user"
 
