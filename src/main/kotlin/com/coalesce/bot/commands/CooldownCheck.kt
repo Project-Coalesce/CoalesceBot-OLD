@@ -75,10 +75,6 @@ class CooldownCheck(val listener: Listener): Predicate<CommandContext>, Embeddab
         return true
     }
 
-    fun findClock(cooldownTime: Double, userCooldown: Long) {
-
-    }
-
     fun prettify(timeDiff: Long): String { //I just got this from an old project of mine, I'll prettify it later
         val second = timeDiff / 1000 % 60
         val minute = timeDiff / (1000 * 60) % 60

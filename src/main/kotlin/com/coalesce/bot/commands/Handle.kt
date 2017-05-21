@@ -7,6 +7,8 @@ import com.coalesce.bot.permissions.RankManager
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.events.Event
+import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent
+import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.reflections.Reflections
@@ -27,7 +29,11 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     val perms = RankManager(jda)
     val cooldowns = mutableMapOf<String, Long>() // <command identifier, until in millis>
     val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
-    private val errorLogChannel = jda.getTextChannelById("308755436046385153")
+    private val generalChannel = jda.getTextChannelById("268187052753944576")
+    private val welcomeMessage = "Welcome, %s to the Coalesce Coding Discord server!\n" +
+            "If you are able to code in an language and would like to have a fancy color for it, use !request <rank>.\n" +
+            "The currently supported languages include Java, Kotlin, Web, Spigot and Python.\n" +
+            "Follow the rules at %s and enjoy your stay!"
 
     fun register() {
         synchronized(registry) {
@@ -48,6 +54,14 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
                 return@Predicate permissable
             })
         }
+    }
+
+    override fun onGuildMemberJoin(event: GuildMemberJoinEvent?) {
+        generalChannel.sendMessage(String.format(welcomeMessage, event!!.member.asMention, "<#269178364483338250>"))
+    }
+
+    override fun onGuildMemberLeave(event: GuildMemberLeaveEvent?) {
+        generalChannel.sendMessage("Today, we see ${event!!.member.effectiveName} leave us.")
     }
 
     override fun onGenericEvent(event: Event) {
