@@ -1,17 +1,19 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Main
-import com.coalesce.bot.reputation.ReputationTransaction
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.reputation.ReputationManager
+import com.coalesce.bot.reputation.ReputationTransaction
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Guild
+import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 
 class Reputation @Inject constructor(val bot: Main, val reputation: ReputationManager) {
     @RootCommand(
@@ -53,18 +55,40 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         doThank(context.message.guild, context.message.channel, context.message.author, context.message.mentionedUsers.first(), context.jda)
     }
 
+    @SubCommand(
+            name = "unrate",
+            permission = "commands.reputation.unrate",
+            aliases = arrayOf("dislike", "downrate", "unrate"),
+            globalCooldown = 5.0,
+            userCooldown = 720.0
+    )
+    fun unrate(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty()) {
+            context.send("* You need to mention someone you wish to unrate.")
+            return
+        }
+
+        doUnrate(context.message.guild, context.message.channel, context.message.author, context.message.mentionedUsers.first(), context.jda)
+    }
+
     @JDAListener
     fun react(event: MessageReactionAddEvent) {
         if (event.reaction.emote.name == "✌") {
-            if (bot.listener.userCooldowns[event.member.user.idLong]!!["reputation"]!! > System.currentTimeMillis()) {
-                event.channel.sendMessage("Wait before you thank again.").queue { it.delete().queueAfter(5L, TimeUnit.SECONDS) }
-            } else {
-                event.channel.getMessageById(event.messageId).queue {
-                    doThank(event.guild, event.channel, event.user, it.author, event.jda)
-                }
-            }
+            reactionCheck(event, Consumer {
+                doThank(event.guild, event.channel, event.user, it.author, event.jda)
+            })
         } else if (event.reaction.emote.name == "👎") {
+            reactionCheck(event, Consumer {
+                doUnrate(event.guild, event.channel, event.user, it.author, event.jda)
+            })
+        }
+    }
 
+    fun reactionCheck(event: MessageReactionAddEvent, consumer: Consumer<Message>) {
+        if (bot.listener.userCooldowns[event.member.user.idLong]!!["reputation"]!! > System.currentTimeMillis()) {
+            event.channel.sendMessage("Wait before you thank again.").queue { it.delete().queueAfter(5L, TimeUnit.SECONDS) }
+        } else {
+            event.channel.getMessageById(event.messageId).queue(consumer::accept)
         }
     }
 
@@ -83,6 +107,29 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
 
         val transactionAmount = Math.min((originValue.total.toDouble() / 80.0) + 20.0, 100.0)
         targetValue.transaction(ReputationTransaction("${guild.getMember(from).effectiveName} thanked you", transactionAmount),
+                channel, guild.getMember(to))
+        reputation[to] = targetValue
+    }
+
+    fun doUnrate(guild: Guild, channel: MessageChannel, from: User, to: User, jda: JDA) {
+        if (from == to) {
+            channel.sendMessage("* You can't thank yourself.").queue()
+            return
+        }
+        if (to == jda.selfUser) {
+            channel.sendMessage("* You are welcome.").queue()
+            return
+        }
+
+        val originValue = reputation[from]
+        val targetValue = reputation[to]
+
+        if (originValue.total < 100) {
+            channel.sendMessage("* You need 100 reputation to unrate.").queue()
+            return
+        }
+
+        targetValue.transaction(ReputationTransaction("${guild.getMember(from).effectiveName} down-rated you", -20.0),
                 channel, guild.getMember(to))
         reputation[to] = targetValue
     }
