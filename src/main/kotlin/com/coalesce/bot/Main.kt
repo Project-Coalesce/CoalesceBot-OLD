@@ -18,6 +18,7 @@ import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Guild
 import java.io.File
+import java.io.PrintStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.regex.Pattern
@@ -46,9 +47,13 @@ class Main private constructor() {
                 setCorePoolSize(6)
                 setAudioEnabled(true) // Depri has implemented a Youtube player that proxi fucked up.
                 @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET")
-            setGame(Game.of("the loading game"))
-            setIdle(true)
+                setGame(Game.of("the loading game"))
+                setIdle(true)
         }.buildBlocking()
+
+        System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById("315934708879982592"))))
+        System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById("315934723354656768"))))
+        println("Outputting messages to this channel.")
 
         repManager = ReputationManager()
         punishments = PunishmentManager(this) // Load it.
@@ -60,6 +65,7 @@ class Main private constructor() {
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
         jda.presence.game = Game.of("mienkreft")
+        jda.presence.isIdle = false
 
         githubSecret = secret
     }

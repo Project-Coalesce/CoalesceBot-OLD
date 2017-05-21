@@ -38,13 +38,10 @@ class Permission @Inject constructor(val bot: Main) {
         }
 
         if (context.args.size == 1) {
-            if (perms.global.contains(perm)) {
-                perms.global.remove(perm)
-                context("Removed $perm from being accessed globally.")
-            } else {
-                perms.global.add(perm)
-                context("Added $perm to being accessed globally.")
-            }
+            //Global permissions
+            perms.global[perm] = !(perms.global[perm] ?: false)
+            perms.saveGlobal()
+            context("${if(perms.global[perm]!!) "Added" else "Removed"} $perm to being accessed globally.")
         } else if (context.message.mentionedUsers.isNotEmpty()) {
             changePermissionForUser(context.message.guild.getMember(context.message.author), perm, value, context)
         } else if (context.message.mentionedRoles.isNotEmpty()) {
@@ -65,6 +62,7 @@ class Permission @Inject constructor(val bot: Main) {
     fun changePermissionForRole(role: Role, perm: String, value: Boolean?, context: RootCommandContext) {
         val wrappedRole = findWrappedRole(role)
         wrappedRole.permissions[perm] = value ?: !(wrappedRole.permissions[perm] ?: false)
+        wrappedRole.save()
         context("${if(wrappedRole.permissions[perm]!!) "Added" else "Removed"} $perm for ${role.name}")
     }
 
@@ -78,19 +76,20 @@ class Permission @Inject constructor(val bot: Main) {
     }
 
     fun changePermissionForUser(member: Member, perm: String, value: Boolean?, context: RootCommandContext) {
-        val guildMap = findGuildMap(member)
+        val (user, guildMap) = findGuildMap(member)
         guildMap[perm] = value ?: !(guildMap[perm] ?: false)
+        user.save()
         context("${if(guildMap[perm]!!) "Added" else "Removed"} $perm for ${member.effectiveName}")
     }
 
-    fun findGuildMap(member: Member): MutableMap<String, Boolean> {
+    fun findGuildMap(member: Member): Pair<WrappedUser, MutableMap<String, Boolean>> {
         val wrappedUser = findWrappedUser(member.user)
         val guildMap = wrappedUser.permissions[member.guild]
         if (guildMap == null) {
             wrappedUser.permissions[member.guild] = mutableMapOf()
-            return wrappedUser.permissions[member.guild]!!
+            return wrappedUser to wrappedUser.permissions[member.guild]!!
         }
-        return guildMap
+        return wrappedUser to guildMap
     }
 
     fun findWrappedUser(user: User): WrappedUser {

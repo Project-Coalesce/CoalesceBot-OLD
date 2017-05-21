@@ -43,7 +43,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
 
             checks.add(CooldownCheck(this))
             checks.add(Predicate {
-                val permissable = perms.hasPermission(it.message.guild.getMember(it.message.author), it.rootCommand.permission)
+                val permissable = it.channel.idLong == 315934590109745154 || perms.hasPermission(it.message.guild.getMember(it.message.author), it.rootCommand.permission)
 
                 if (!permissable) {
                     it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)

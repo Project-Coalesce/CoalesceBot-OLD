@@ -1,19 +1,33 @@
 package com.coalesce.bot.permissions
 
+import com.coalesce.bot.binary.PermissionsMapSerializer
+import com.coalesce.bot.dataDirectory
 import com.coalesce.bot.utilities.hashTableOf
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.entities.Member
+import java.io.File
 import java.util.*
 import java.util.stream.Collectors
 
 class RankManager internal constructor(jda: JDA) {
     val ranks = hashTableOf<Long, WrappedRole>()
     val users = hashTableOf<Long, WrappedUser>()
-    val global = mutableListOf<String>()
+    val global = mutableMapOf<String, Boolean>()
 
     init {
         jda.guilds.map { it.members }.forEach { it.forEach { users.put(it.user.idLong, WrappedUser(it.user)) } }
+    }
+
+    fun saveGlobal() {
+        val globalFile = File(dataDirectory, "global.dat")
+        if (globalFile.exists()) {
+            globalFile.delete()
+        }
+        globalFile.createNewFile()
+
+        val serializer = PermissionsMapSerializer(globalFile)
+        serializer.write(global)
     }
 
     fun getPermissions(member: Member): Map<String, Boolean> {
