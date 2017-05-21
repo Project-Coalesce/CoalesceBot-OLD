@@ -29,8 +29,9 @@ class CooldownCheck(val listener: Listener): Predicate<CommandContext>, Embeddab
                 if (current > System.currentTimeMillis()) {
                     // TODO: Prettify current seconds
                     val remaining = (current.toLong() - System.currentTimeMillis())
-                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
-                            .setDescription("That command is on global cooldown for ${prettify(remaining)}."))
+                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
+                            .setTitle("Cooldown for", null)
+                            .setDescription("${prettify(remaining)}."))
                     return false
                 }
             }
@@ -58,8 +59,9 @@ class CooldownCheck(val listener: Listener): Predicate<CommandContext>, Embeddab
             if (userCooldown != null) {
                 if (userCooldown > System.currentTimeMillis()) {
                     val remaining = (userCooldown.toLong() - System.currentTimeMillis())
-                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
-                            .setDescription("That command is on cooldown for ${prettify(remaining)}."))
+                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
+                            .setTitle("Global Cooldown for", null)
+                            .setDescription("${prettify(remaining)}."))
                     return false
                 }
             }
@@ -71,6 +73,10 @@ class CooldownCheck(val listener: Listener): Predicate<CommandContext>, Embeddab
         }
 
         return true
+    }
+
+    fun findClock(cooldownTime: Double, userCooldown: Long) {
+
     }
 
     fun prettify(timeDiff: Long): String { //I just got this from an old project of mine, I'll prettify it later

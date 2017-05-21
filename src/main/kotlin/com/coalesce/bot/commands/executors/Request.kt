@@ -183,7 +183,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
         }
     }
 
-    private fun verifyAuthenticationTokenGithub(code: String) : String {
+    private fun verifyAuthenticationTokenGithub(code: String): String {
         val url = URL("https://github.com/login/oauth/access_token")
         val userURL = "https://api.github.com/user"
 
