@@ -20,7 +20,7 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
             name = "Definition",
             aliases = arrayOf("define", "dictionary", "urban"), description = "Defines a word or phrase with Urban Dictionary.",
             permission = "command.definition",
-            globalCooldown = 5.0,
+            globalCooldown = 15.0,
             type = CommandType.INFORMATION
     )
     fun execute(context: RootCommandContext) {
@@ -48,6 +48,7 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
                 val json = gson.fromJson(stringBuilder.toString(), JsonElement::class.java).asJsonObject
                 if (json.get("result_type").asString == "no_results") {
                     mention("No definitions found!")
+                    return
                 }
 
                 val firstResult = json.get("list").asJsonArray.get(0).asJsonObject
