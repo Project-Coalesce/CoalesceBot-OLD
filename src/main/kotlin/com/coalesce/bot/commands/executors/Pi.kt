@@ -13,6 +13,6 @@ class Pi {
             globalCooldown = 5.0
     )
     fun execute(context: RootCommandContext) {
-        context(context.author, "${Math.PI}\nhttps://cdn.discordapp.com/attachments/315565346973024256/315680638759993345/enhanced-buzz-29529-1363197741-16.png")
+        context(context.author, "${Math.PI}\nhttp://i.imgur.com/INtrkr2.png")
     }
 }
