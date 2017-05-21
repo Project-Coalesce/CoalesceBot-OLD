@@ -3,6 +3,7 @@ package com.coalesce.bot.commands
 import com.coalesce.bot.Main
 import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
+import com.coalesce.bot.permissions.RankManager
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.events.Event
@@ -23,102 +24,30 @@ import java.util.function.Predicate
 class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddables {
     val registry = CommandRegistry()
     val checks = mutableSetOf<Predicate<CommandContext>>()
-    private val cooldowns = mutableMapOf<String, Long>() // <command identifier, until in millis>
-    private val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
+    val perms = RankManager(jda)
+    val cooldowns = mutableMapOf<String, Long>() // <command identifier, until in millis>
+    val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
     private val errorLogChannel = jda.getTextChannelById("308755436046385153")
 
-    init {
+    fun register() {
         synchronized(registry) {
             println("Registering commands...")
             registry.register()
             println("Done.")
 
+            checks.add(CooldownCheck(this))
             checks.add(Predicate {
-                val cooldown: Double = if (it is SubCommandContext) {
-                    if (it.currentSubCommand.cooldown) {
-                        if (it.currentSubCommand.globalCooldown == 0.0) {
-                            it.rootCommand.recursiveGlobalCooldown
-                        } else {
-                            it.currentSubCommand.globalCooldown
-                        }
-                    } else {
-                        0.0
-                    }
-                } else {
-                    it.rootCommand.globalCooldown
+                val permissable = perms.hasPermission(it.message.guild.getMember(it.message.author), it.rootCommand.permission)
+
+                if (!permissable) {
+                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
+                            .setTitle("Permission", null)
+                            .setDescription("<:no_permission:315617783738007552> You are not permitted to run that command."))
                 }
 
-                val identifier = if (it is SubCommandContext) "${it.rootCommand.name} ${it.currentSubCommand.name}" else it.rootCommand.name
-
-                var setGlobal: Boolean = false
-                if (cooldown != 0.0) {
-                    val current = cooldowns[identifier]
-                    if (current != null) {
-                        if (current > System.currentTimeMillis()) {
-                            // TODO: Prettify current seconds
-                            val remaining = (current.toLong() - System.currentTimeMillis())
-                            println(System.currentTimeMillis().toString() + ", " + current.toLong() + ", " + remaining)
-                            it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
-                                    .setDescription("That command is on global cooldown for ${prettify(remaining)}."))
-                            return@Predicate false
-                        }
-                    }
-                    setGlobal = true
-                }
-
-                // Global cooldown passed.
-                val annoUser: Double = if (it is SubCommandContext) {
-                    if (it.currentSubCommand.cooldown) {
-                        if (it.currentSubCommand.userCooldown == 0.0) {
-                            it.rootCommand.recursiveUserCooldown
-                        } else {
-                            it.currentSubCommand.userCooldown
-                        }
-                    } else {
-                        0.0
-                    }
-                } else {
-                    it.rootCommand.userCooldown
-                }
-
-                if (annoUser != 0.0) {
-                    val user = userCooldowns[it.author.idLong] ?: mutableMapOf() // All users should have one as long as it isnt empty.
-                    val userCooldown = user[identifier]
-                    if (userCooldown != null) {
-                        if (userCooldown > System.currentTimeMillis()) {
-                            val remaining = (userCooldown.toLong() - System.currentTimeMillis())
-                            it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl).setTitle("Cooldown", null)
-                                    .setDescription("That command is on cooldown for ${prettify(remaining)}."))
-                            return@Predicate false
-                        }
-                    }
-                    user[identifier] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(annoUser.toLong())
-                    userCooldowns[it.author.idLong] = user
-                }
-                if (setGlobal) {
-                    cooldowns[identifier] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(cooldown.toLong())
-                }
-
-                return@Predicate true
+                return@Predicate permissable
             })
         }
-    }
-
-    fun prettify(timeDiff: Long): String { //I just got this from an old project of mine, I'll prettify it later
-        val second = timeDiff / 1000 % 60
-        val minute = timeDiff / (1000 * 60) % 60
-        val hour = timeDiff / (1000 * 60 * 60) % 24
-        val day = timeDiff / (1000 * 60 * 60 * 24)
-
-        if (day > 0) return "$day${ensurePlural(day, "day")} and $hour${ensurePlural(hour, "hour")}"
-        if (hour > 0) return "$hour${ensurePlural(hour, "hour")} and $minute${ensurePlural(minute, "minute")}"
-        if (minute > 0) return "$minute${ensurePlural(minute, "minute")} and $second${ensurePlural(second, "second")}"
-        if (second > 0) return "$second${ensurePlural(second, "second")}"
-        return timeDiff.toString() + "ms"
-    }
-
-    fun ensurePlural(numb: Long, str: String): String {
-        return if (numb > 1) " ${str}s" else " $str"
     }
 
     override fun onGenericEvent(event: Event) {

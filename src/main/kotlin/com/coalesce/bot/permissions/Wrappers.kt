@@ -1,5 +1,6 @@
 package com.coalesce.bot.permissions
 
+import com.coalesce.bot.binary.PermissionsMapSerializer
 import com.coalesce.bot.dataDirectory
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Role
@@ -10,14 +11,13 @@ data class WrappedRole(val role: Role, val permissions: MutableMap<String, Boole
 
 data class WrappedUser(val member: User, val permissions: MutableMap<Guild, MutableMap<String, Boolean>> = mutableMapOf()) {
     init {
-        for (guild in member.mutualGuilds) {
-            val guildDir = File(dataDirectory, guild.id)
+        member.mutualGuilds.forEach {
+            val guildDir = File(dataDirectory, "Guild_${it.id}")
             if (guildDir.exists()) {
-                val userFile = File(guildDir, member.id + ".json")
+                val userFile = File(guildDir, "${member.id}.dat")
                 if (userFile.exists()) {
-                    userFile.bufferedReader().use {
-                        // TODO: Load permissions from json's Map<Guild, Map<String permission, Boolean whether or not its enabled>>
-                    }
+                    val serializer = PermissionsMapSerializer(userFile)
+                    permissions[it] = serializer.read()
                 }
             }
         }
