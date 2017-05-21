@@ -77,7 +77,7 @@ val milestoneList = mutableListOf<ReputationMilestone>()
 
 class ReputationValue(var total: Double, var transactions: MutableList<ReputationTransaction>, val milestones: MutableList<String>) {
     fun transaction(transaction: ReputationTransaction, channel: MessageChannel, member: Member) {
-        transactions.add(transaction)
+        transactions.add(0, transaction)
         if (transactions.size > 10) transactions = transactions.subList(0, 10)
 
         channel.sendMessage("${member.asMention}: ${transaction.message}\n" +
