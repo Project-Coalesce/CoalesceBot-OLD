@@ -20,15 +20,16 @@ class ReputationSerializer(file: File): BinarySerializer<MutableMap<String, Repu
             val transactionCount = inputStream.readInt()
             var numb = 0
             while (true) {
-                ++numb
                 if (numb >= transactionCount) break
                 transactions.add(ReputationTransaction(inputStream.readUTF(), inputStream.readDouble()))
+                ++numb
             }
+            val milestoneCount = inputStream.readInt()
             numb = 0
             while (true) {
-                ++numb
-                if (numb >= transactionCount) break
+                if (numb >= milestoneCount) break
                 milestones.add(inputStream.readUTF())
+                ++numb
             }
 
             map[total.toString()] = ReputationValue(total, transactions, milestones)
