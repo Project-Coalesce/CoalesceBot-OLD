@@ -23,7 +23,7 @@ class Permission @Inject constructor(val bot: Main) {
             aliases = arrayOf("perms", "permissions", "perm")
     )
     fun execute(context: RootCommandContext) {
-        if (context.args.size < 2) {
+        if (context.args.isEmpty()) {
             context("* Invalid Syntax.")
             return
         }
@@ -37,10 +37,15 @@ class Permission @Inject constructor(val bot: Main) {
             value = null
         }
 
-        if (context.message.mentionedUsers.isNotEmpty()) {
-            changePermissionForUser(context.message.guild.getMember(context.message.author), perm, value)
+        if (context.args.size == 1) {
+            //Global permissions
+            perms.global[perm] = !(perms.global[perm] ?: false)
+            perms.saveGlobal()
+            context("${if(perms.global[perm]!!) "Added" else "Removed"} $perm to being accessed globally.")
+        } else if (context.message.mentionedUsers.isNotEmpty()) {
+            changePermissionForUser(context.message.guild.getMember(context.message.author), perm, value, context)
         } else if (context.message.mentionedRoles.isNotEmpty()) {
-            changePermissionForRole(context.message.mentionedRoles.first(), perm, value)
+            changePermissionForRole(context.message.mentionedRoles.first(), perm, value, context)
         } else if (context.args.isNotEmpty()) {
             val roles = bot.jda.getRolesByName(context.args.first(), true)
 
@@ -50,13 +55,15 @@ class Permission @Inject constructor(val bot: Main) {
             }
 
             val role = roles.first()
-            changePermissionForRole(role, perm, value)
+            changePermissionForRole(role, perm, value, context)
         }
     }
 
-    fun changePermissionForRole(role: Role, perm: String, value: Boolean?) {
+    fun changePermissionForRole(role: Role, perm: String, value: Boolean?, context: RootCommandContext) {
         val wrappedRole = findWrappedRole(role)
         wrappedRole.permissions[perm] = value ?: !(wrappedRole.permissions[perm] ?: false)
+        wrappedRole.save()
+        context("${if(wrappedRole.permissions[perm]!!) "Added" else "Removed"} $perm for ${role.name}")
     }
 
     fun findWrappedRole(role: Role): WrappedRole {
@@ -68,19 +75,21 @@ class Permission @Inject constructor(val bot: Main) {
         return wrappedRole
     }
 
-    fun changePermissionForUser(member: Member, perm: String, value: Boolean?) {
-        val guildMap = findGuildMap(member)
+    fun changePermissionForUser(member: Member, perm: String, value: Boolean?, context: RootCommandContext) {
+        val (user, guildMap) = findGuildMap(member)
         guildMap[perm] = value ?: !(guildMap[perm] ?: false)
+        user.save()
+        context("${if(guildMap[perm]!!) "Added" else "Removed"} $perm for ${member.effectiveName}")
     }
 
-    fun findGuildMap(member: Member): MutableMap<String, Boolean> {
+    fun findGuildMap(member: Member): Pair<WrappedUser, MutableMap<String, Boolean>> {
         val wrappedUser = findWrappedUser(member.user)
         val guildMap = wrappedUser.permissions[member.guild]
         if (guildMap == null) {
             wrappedUser.permissions[member.guild] = mutableMapOf()
-            return wrappedUser.permissions[member.guild]!!
+            return wrappedUser to wrappedUser.permissions[member.guild]!!
         }
-        return guildMap
+        return wrappedUser to guildMap
     }
 
     fun findWrappedUser(user: User): WrappedUser {
