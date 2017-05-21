@@ -17,10 +17,10 @@ class ReputationSerializer(file: File): BinarySerializer<MutableMap<String, Repu
             val transactions = mutableListOf<ReputationTransaction>()
             val milestones = mutableListOf<String>()
 
-            for (i in 0 .. inputStream.readInt()) {
+            for (i in 1 .. inputStream.readInt()) {
                 transactions.add(ReputationTransaction(inputStream.readUTF(), inputStream.readDouble()))
             }
-            for (i in 0 .. inputStream.readInt()) {
+            for (i in 1 .. inputStream.readInt()) {
                 milestones.add(inputStream.readUTF())
             }
 
