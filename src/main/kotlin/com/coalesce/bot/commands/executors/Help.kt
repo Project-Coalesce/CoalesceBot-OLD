@@ -40,10 +40,10 @@ class Help @Inject constructor(val bot: Main) : Embeddables {
             out[type] = builder.toString().trim()
         }
 
-        val messageBuilder = StringBuilder("***Help***\n\n")
+        val messageBuilder = StringBuilder("***Help***\n")
         out.forEach { k, v ->
             messageBuilder.append("\n\n**${k.name.toLowerCase().capitalize()}:**\n$v")
         }
-        context(messageBuilder.toString()) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(45, TimeUnit.SECONDS) } }
+        context(messageBuilder.toString()) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(1, TimeUnit.MINUTES) } }
     }
 }

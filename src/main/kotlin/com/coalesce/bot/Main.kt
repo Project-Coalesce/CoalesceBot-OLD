@@ -46,7 +46,8 @@ class Main private constructor() {
                 setCorePoolSize(6)
                 setAudioEnabled(true) // Depri has implemented a Youtube player that proxi fucked up.
                 @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET")
-            setGame(Game.of("with my settings"))
+            setGame(Game.of("the loading game"))
+            setIdle(true)
         }.buildBlocking()
 
         repManager = ReputationManager()
@@ -58,7 +59,7 @@ class Main private constructor() {
 
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
-        jda.presence.game = Game.of("with myself")
+        jda.presence.game = Game.of("mienkreft")
 
         githubSecret = secret
     }
