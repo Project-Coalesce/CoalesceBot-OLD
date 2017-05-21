@@ -28,7 +28,7 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
             context(context.author, text)
         }
         if (context.args.isEmpty()) {
-            mention("Please specify a word to chec the definition of.")
+            mention("Please specify a word to check the definition of.")
             return
         }
         val phrase = context.args.joinToString(separator = "+")
