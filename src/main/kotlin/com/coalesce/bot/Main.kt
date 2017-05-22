@@ -21,7 +21,10 @@ import java.io.File
 import java.io.PrintStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadLocalRandom
 import java.util.regex.Pattern
+
+val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
     Preconditions.checkArgument(args.isNotEmpty(), "You need to specify a token.")
@@ -64,7 +67,7 @@ class Main private constructor() {
 
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
-        jda.presence.game = Game.of("mienkreft")
+        jda.presence.game = Game.of(GAMES[ThreadLocalRandom.current().nextInt(GAMES.size)])
         jda.presence.isIdle = false
 
         githubSecret = secret

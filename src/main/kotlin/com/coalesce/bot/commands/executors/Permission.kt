@@ -28,34 +28,45 @@ class Permission @Inject constructor(val bot: Main) {
             return
         }
 
-        val perm = context.args[1]
-        val value: Boolean?
-
-        if (context.args.size >= 3) {
-            value = context.args[2].toBoolean()
-        } else {
-            value = null
-        }
-
         if (context.args.size == 1) {
             //Global permissions
-            perms.global[perm] = !(perms.global[perm] ?: false)
-            perms.saveGlobal()
-            context("${if(perms.global[perm]!!) "Added" else "Removed"} $perm to being accessed globally.")
-        } else if (context.message.mentionedUsers.isNotEmpty()) {
-            changePermissionForUser(context.message.guild.getMember(context.message.author), perm, value, context)
-        } else if (context.message.mentionedRoles.isNotEmpty()) {
-            changePermissionForRole(context.message.mentionedRoles.first(), perm, value, context)
-        } else if (context.args.isNotEmpty()) {
-            val roles = bot.jda.getRolesByName(context.args.first(), true)
-
-            if (roles.isEmpty()) {
-                context("* The entered argument for what the change permission does not exist.")
+            val perm = context.args[0]
+            if (perm == ";") {
+                context("That permission is reserved.")
                 return
             }
 
-            val role = roles.first()
-            changePermissionForRole(role, perm, value, context)
+            perms.global[perm] = !(perms.global[perm] ?: false)
+            perms.saveGlobal()
+            context("${if (perms.global[perm]!!) "Added" else "Removed"} $perm to being accessed globally.")
+        } else {
+            val perm = context.args[1]
+            if (perm == ";") {
+                context("That permission is reserved.")
+                return
+            }
+            val value: Boolean?
+            if (context.args.size >= 3) {
+                value = context.args[2].toBoolean()
+            } else {
+                value = null
+            }
+
+            if (context.message.mentionedUsers.isNotEmpty()) {
+                changePermissionForUser(context.message.guild.getMember(context.message.author), perm, value, context)
+            } else if (context.message.mentionedRoles.isNotEmpty()) {
+                changePermissionForRole(context.message.mentionedRoles.first(), perm, value, context)
+            } else if (context.args.isNotEmpty()) {
+                val roles = bot.jda.getRolesByName(context.args.first(), true)
+
+                if (roles.isEmpty()) {
+                    context("* The entered argument for what the change permission does not exist.")
+                    return
+                }
+
+                val role = roles.first()
+                changePermissionForRole(role, perm, value, context)
+            }
         }
     }
 
