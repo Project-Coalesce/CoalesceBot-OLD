@@ -31,14 +31,21 @@ class Permission @Inject constructor(val bot: Main) {
         if (context.args.size == 1) {
             //Global permissions
             val perm = context.args[0]
+            if (perm == ";") {
+                context("That permission is reserved.")
+                return
+            }
 
             perms.global[perm] = !(perms.global[perm] ?: false)
             perms.saveGlobal()
             context("${if (perms.global[perm]!!) "Added" else "Removed"} $perm to being accessed globally.")
         } else {
             val perm = context.args[1]
+            if (perm == ";") {
+                context("That permission is reserved.")
+                return
+            }
             val value: Boolean?
-
             if (context.args.size >= 3) {
                 value = context.args[2].toBoolean()
             } else {

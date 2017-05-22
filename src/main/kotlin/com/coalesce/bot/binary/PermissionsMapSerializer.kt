@@ -6,12 +6,11 @@ class PermissionsMapSerializer(file: File): BinarySerializer<MutableMap<String, 
     override fun serializeIn(): MutableMap<String, Boolean> {
         val map = mutableMapOf<String, Boolean>()
 
-        var long: Long
         while (true) {
-            long = inputStream.readLong()
-            if (long == -1L) break
+            val string = inputStream.readUTF()
+            if (string == ";") break
 
-            map[long.toString()] = inputStream.readBoolean()
+            map[string] = inputStream.readBoolean()
         }
 
         return map
@@ -19,10 +18,10 @@ class PermissionsMapSerializer(file: File): BinarySerializer<MutableMap<String, 
 
     override fun serializeOut(data: MutableMap<String, Boolean>) {
         data.forEach { k, v ->
-            outputStream.writeLong(k.toLong())
+            outputStream.writeUTF(k)
             outputStream.writeBoolean(v)
         }
-        outputStream.writeLong(-1L)
+        outputStream.writeUTF(";")
     }
 
 }
