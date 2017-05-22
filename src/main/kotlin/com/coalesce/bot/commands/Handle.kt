@@ -99,6 +99,10 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
             if (checks.any { !it.test(context) }) {
                 return
             }
+            else if (context.rootCommand.type == CommandType.DEBUG
+                    && event.guild.idLong != 308755436046385153L) {
+                return
+            }
 
             method.invoke(clazz, context)
         } catch (ex: Exception) {
