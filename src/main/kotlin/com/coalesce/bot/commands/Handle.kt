@@ -29,7 +29,6 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     val perms = RankManager(jda)
     val cooldowns = mutableMapOf<String, Long>() // <command identifier, until in millis>
     val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
-    private val generalChannel = jda.getTextChannelById("268187052753944576")
     private val welcomeMessage = "Welcome, %s to the Coalesce Coding Discord server!\n" +
             "If you are able to code in an language and would like to have a fancy color for it, use !request <rank>.\n" +
             "The currently supported languages include Java, Kotlin, Web, Spigot and Python.\n" +
@@ -57,11 +56,11 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     }
 
     override fun onGuildMemberJoin(event: GuildMemberJoinEvent?) {
-        generalChannel.sendMessage(String.format(welcomeMessage, event!!.member.asMention, "<#269178364483338250>"))
+        event!!.guild.publicChannel.sendMessage(String.format(welcomeMessage, event!!.member.asMention, "<#269178364483338250>"))
     }
 
     override fun onGuildMemberLeave(event: GuildMemberLeaveEvent?) {
-        generalChannel.sendMessage("Today, we see ${event!!.member.effectiveName} leave us.")
+        event!!.guild.publicChannel.sendMessage("Today, we see ${event!!.member.effectiveName} leave us.")
     }
 
     override fun onGenericEvent(event: Event) {
@@ -100,14 +99,14 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
                 return
             }
             else if (context.rootCommand.type == CommandType.DEBUG
-                    && event.guild.idLong != 308755436046385153L) {
+                     && event.channel.idLong != 315934590109745154L /** CoalesceBot #console id */) {
                 return
             }
 
             method.invoke(clazz, context)
         } catch (ex: Exception) {
             event.channel.sendMessage(embed().setColor(Color(232, 46, 0)).setTitle("Error", null)
-                    .setDescription("An error occured with that command:\n${ex.javaClass.name}: ${ex.message}\n" +
+                    .setDescription("An error occurred with that command:\n${ex.javaClass.name}: ${ex.message}\n" +
                     "Please report this to project coalesce developers.").build())
             ex.printStackTrace()
         }

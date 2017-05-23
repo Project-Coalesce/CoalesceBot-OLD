@@ -88,7 +88,8 @@ class Injects(val main: Main, val pmanager: PunishmentManager) : AbstractModule(
         bind(ReputationManager::class.java).toInstance(main.repManager)
     }
 }
-
+const val COALESCE_GUILD = 268187052753944576L
+const val DEBUG_GUILD = 308755436046385153L
 const val commandPrefix = "!"
 const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
