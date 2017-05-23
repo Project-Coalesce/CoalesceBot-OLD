@@ -5,9 +5,7 @@ import com.coalesce.bot.commands.*
 import com.google.inject.Inject
 import java.util.concurrent.ExecutorService
 
-const val MAX_DELETE_COUNT = 2500
 const val MAX_BULK_SIZE = 100
-
 
 class Purge @Inject constructor(val executorService: ExecutorService) {
 
@@ -64,21 +62,26 @@ class Purge @Inject constructor(val executorService: ExecutorService) {
         var amount: Int = 1
 
         val provided = context.args[2].toIntOrNull()
-        if (provided != null) amount = Math.min(MAX_DELETE_COUNT, provided)
+        if (provided != null) amount = Math.min(MAX_BULK_SIZE, provided)
 
         //TODO see how I can improve this
         executorService.submit {
-            while (amount > 0) {
-                val history = channel.history.retrievePast(MAX_BULK_SIZE).complete()
-                if (history.isEmpty()) break
-                history.forEach {
-                    val author = it.author
-                    if (author != null && author.idLong == member.user.idLong) {
-                        it.delete().queue()
-                        amount--
-                    }
+            var removed = 0
+
+            val history = channel.history.retrievePast(MAX_BULK_SIZE).complete()
+            if (history.isEmpty()) mention("No history found!")
+
+            history.forEach {
+                val author = it.author
+
+                if (removed >= amount) return@forEach
+
+                if (author != null && author.idLong == member.user.idLong) {
+                    it.delete().queue()
+                    removed++
                 }
             }
+            mention("Removed $removed/$amount messages requested!")
         }
     }
 }
