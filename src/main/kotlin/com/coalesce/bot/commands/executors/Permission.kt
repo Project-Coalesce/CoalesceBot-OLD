@@ -4,10 +4,7 @@ import com.coalesce.bot.Main
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
-import com.coalesce.bot.permissions.WrappedUser
 import com.google.inject.Inject
-import net.dv8tion.jda.core.entities.Member
-import net.dv8tion.jda.core.entities.User
 
 class Permission @Inject constructor(val bot: Main) {
     private val perms = bot.listener.perms
