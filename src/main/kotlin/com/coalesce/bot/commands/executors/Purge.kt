@@ -3,12 +3,14 @@ package com.coalesce.bot.commands.executors
 import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.commands.*
 import com.google.inject.Inject
+import net.dv8tion.jda.core.entities.Message
+import net.dv8tion.jda.core.entities.TextChannel
 import java.util.concurrent.ExecutorService
+import java.util.function.Predicate
 
 const val MAX_BULK_SIZE = 100
 
-class Purge @Inject constructor(val executorService: ExecutorService) {
-
+class Purge {
     @RootCommand(
             name = "purge",
             permission = "command.purge",
@@ -49,7 +51,7 @@ class Purge @Inject constructor(val executorService: ExecutorService) {
             context(context.author, text)
         }
 
-        if (context.args.isEmpty() || context.args.size < 1) {
+        if (context.args.isEmpty()) {
             mention("Usage: !purge user <user> <channel> [optional amount]")
             return
         }
@@ -64,24 +66,23 @@ class Purge @Inject constructor(val executorService: ExecutorService) {
         val provided = context.args[2].toIntOrNull()
         if (provided != null) amount = Math.min(MAX_BULK_SIZE, provided)
 
-        //TODO see how I can improve this
-        executorService.submit {
+        purge(Predicate { it.author != null && it.author.idLong == member.user.idLong }, channel, amount)
+
+    }
+
+    fun purge(check: Predicate<Message>, channel: TextChannel, amount: Int) {
+        channel.history.retrievePast(MAX_BULK_SIZE).queue {
+            if (it.isEmpty()) channel.sendMessage("* No history found!").queue()
             var removed = 0
 
-            val history = channel.history.retrievePast(MAX_BULK_SIZE).complete()
-            if (history.isEmpty()) mention("No history found!")
-
-            history.forEach {
-                val author = it.author
-
-                if (removed >= amount) return@forEach
-
-                if (author != null && author.idLong == member.user.idLong) {
-                    it.delete().queue()
-                    removed++
-                }
+            it.forEach {
+                if (!check.test(it)) return@forEach
+                it.delete().queue()
+                ++ removed
             }
-            mention("Removed $removed/$amount messages requested!")
+
+            channel.sendMessage("Removed $removed/$amount messages requested!")
         }
+
     }
 }

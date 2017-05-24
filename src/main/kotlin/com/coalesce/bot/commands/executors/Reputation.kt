@@ -113,7 +113,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
 
     fun doUnrate(guild: Guild, channel: MessageChannel, from: User, to: User, jda: JDA) {
         if (from == to) {
-            channel.sendMessage("* You can't thank yourself.").queue()
+            channel.sendMessage("* You can't unrate yourself.").queue()
             return
         }
         if (to == jda.selfUser) {
