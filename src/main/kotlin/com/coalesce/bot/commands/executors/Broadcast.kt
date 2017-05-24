@@ -14,10 +14,11 @@ class Broadcast {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, ": Specify a message to broadcast!")
+            context(context.author, "Specify a message to broadcast!")
             return
         }
-        val broadcastMessage = context.args.joinToString(separator = " ")
-        context.jda.guilds.forEach { it.publicChannel.sendMessage("__***BROADCAST!***__\n$broadcastMessage") }
+        context.jda.guilds.forEach {
+            it.publicChannel.sendMessage("__***BROADCAST!***__\n${context.args.joinToString(separator = " ")}").queue()
+        }
     }
 }
