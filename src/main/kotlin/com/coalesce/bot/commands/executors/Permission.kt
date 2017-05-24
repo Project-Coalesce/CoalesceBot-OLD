@@ -4,11 +4,9 @@ import com.coalesce.bot.Main
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
-import com.coalesce.bot.permissions.WrappedRole
 import com.coalesce.bot.permissions.WrappedUser
 import com.google.inject.Inject
 import net.dv8tion.jda.core.entities.Member
-import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.User
 
 class Permission @Inject constructor(val bot: Main) {
@@ -36,8 +34,7 @@ class Permission @Inject constructor(val bot: Main) {
                 return
             }
 
-            perms.global[perm] = !(perms.global[perm] ?: false)
-            perms.saveGlobal()
+            perms[perm] = !(perms.global[perm] ?: false)
             context("${if (perms.global[perm]!!) "Added" else "Removed"} $perm to being accessed globally.")
         } else {
             val perm = context.args[1]
@@ -53,9 +50,14 @@ class Permission @Inject constructor(val bot: Main) {
             }
 
             if (context.message.mentionedUsers.isNotEmpty()) {
-                changePermissionForUser(context.message.guild.getMember(context.message.author), perm, value, context)
+                perms[context.message.author] = Triple(context.message.guild, perm, value)
+
+                val member = context.message.guild.getMember(context.message.author)
+                context("${if(perms[Triple(context.message.author, context.message.guild, perm)]) "Added" else "Removed"} $perm for ${member.asMention}")
             } else if (context.message.mentionedRoles.isNotEmpty()) {
-                changePermissionForRole(context.message.mentionedRoles.first(), perm, value, context)
+                val role = context.message.mentionedRoles.first()
+                perms[role] = perm to value
+                context("${if(perms[role to perm]) "Added" else "Removed"} $perm for ${role.name}")
             } else if (context.args.isNotEmpty()) {
                 val roles = bot.jda.getRolesByName(context.args.first(), true)
 
@@ -65,25 +67,10 @@ class Permission @Inject constructor(val bot: Main) {
                 }
 
                 val role = roles.first()
-                changePermissionForRole(role, perm, value, context)
+                perms[role] = perm to value
+                context("${if(perms[role to perm]) "Added" else "Removed"} $perm for ${role.name}")
             }
         }
-    }
-
-    fun changePermissionForRole(role: Role, perm: String, value: Boolean?, context: RootCommandContext) {
-        val wrappedRole = findWrappedRole(role)
-        wrappedRole.permissions[perm] = value ?: !(wrappedRole.permissions[perm] ?: false)
-        wrappedRole.save()
-        context("${if(wrappedRole.permissions[perm]!!) "Added" else "Removed"} $perm for ${role.name}")
-    }
-
-    fun findWrappedRole(role: Role): WrappedRole {
-        val wrappedRole = perms.ranks[role.idLong]
-        if (wrappedRole == null) {
-            perms.ranks[role.idLong] = WrappedRole(role)
-            return perms.ranks[role.idLong]!!
-        }
-        return wrappedRole
     }
 
     fun changePermissionForUser(member: Member, perm: String, value: Boolean?, context: RootCommandContext) {
