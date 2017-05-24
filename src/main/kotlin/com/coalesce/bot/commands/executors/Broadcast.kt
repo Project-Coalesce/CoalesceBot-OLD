@@ -18,7 +18,7 @@ class Broadcast {
             return
         }
         context.jda.guilds.forEach {
-            it.publicChannel.sendMessage("__***BROADCAST!***__\n${context.args.joinToString(separator = " ")}")
+            it.publicChannel.sendMessage("__***BROADCAST!***__\n${context.args.joinToString(separator = " ")}").queue()
         }
     }
 }
