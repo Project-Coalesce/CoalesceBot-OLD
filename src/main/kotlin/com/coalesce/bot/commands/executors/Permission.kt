@@ -72,30 +72,4 @@ class Permission @Inject constructor(val bot: Main) {
             }
         }
     }
-
-    fun changePermissionForUser(member: Member, perm: String, value: Boolean?, context: RootCommandContext) {
-        val (user, guildMap) = findGuildMap(member)
-        guildMap[perm] = value ?: !(guildMap[perm] ?: false)
-        user.save()
-        context("${if(guildMap[perm]!!) "Added" else "Removed"} $perm for ${member.effectiveName}")
-    }
-
-    fun findGuildMap(member: Member): Pair<WrappedUser, MutableMap<String, Boolean>> {
-        val wrappedUser = findWrappedUser(member.user)
-        val guildMap = wrappedUser.permissions[member.guild]
-        if (guildMap == null) {
-            wrappedUser.permissions[member.guild] = mutableMapOf()
-            return wrappedUser to wrappedUser.permissions[member.guild]!!
-        }
-        return wrappedUser to guildMap
-    }
-
-    fun findWrappedUser(user: User): WrappedUser {
-        val wrappedUser = perms.users[user.idLong]
-        if (wrappedUser == null) {
-            perms.users[user.idLong] = WrappedUser(user)
-            return perms.users[user.idLong]!!
-        }
-        return wrappedUser
-    }
 }
