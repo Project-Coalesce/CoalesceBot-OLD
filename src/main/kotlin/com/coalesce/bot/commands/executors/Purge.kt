@@ -2,10 +2,8 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.commands.*
-import com.google.inject.Inject
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.TextChannel
-import java.util.concurrent.ExecutorService
 import java.util.function.Predicate
 
 const val MAX_BULK_SIZE = 100
@@ -52,7 +50,7 @@ class Purge {
         }
 
         if (context.args.isEmpty()) {
-            mention("Usage: !purge user <user> <channel> [optional amount]")
+            mention("Usage: `!purge user <user> <channel> [optional amount]`")
             return
         }
 
@@ -81,7 +79,7 @@ class Purge {
                 ++ removed
             }
 
-            channel.sendMessage("Removed $removed/$amount messages requested!")
+            channel.sendMessage("Removed $removed/$amount messages requested!").queue()
         }
 
     }
