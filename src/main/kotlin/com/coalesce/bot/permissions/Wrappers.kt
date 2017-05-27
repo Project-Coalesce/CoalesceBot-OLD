@@ -13,6 +13,7 @@ data class WrappedRole(val role: Role, val permissions: MutableMap<String, Boole
         if (guildDir.exists()) {
             val roleFile = File(guildDir, "Role_${role.id}.dat")
             if (roleFile.exists()) {
+                println("Loaded permissions from existing file for: ${role.name}.")
                 val serializer = PermissionsMapSerializer(roleFile)
                 permissions.putAll(serializer.read())
             }
@@ -42,6 +43,7 @@ data class WrappedUser(val member: User, val permissions: MutableMap<Guild, Muta
             if (guildDir.exists()) {
                 val userFile = File(guildDir, "Member_${member.id}.dat")
                 if (userFile.exists()) {
+                    println("Loaded permissions from existing file for: ${member.name}.")
                     val serializer = PermissionsMapSerializer(userFile)
                     permissions[it] = serializer.read()
                 }
