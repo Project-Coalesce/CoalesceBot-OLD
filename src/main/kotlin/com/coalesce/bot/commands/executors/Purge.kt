@@ -11,7 +11,7 @@ const val MAX_BULK_SIZE = 100
 class Purge {
     @RootCommand(
             name = "purge",
-            permission = "command.purge",
+            permission = "commands.purge",
             type = CommandType.DEBUG,
             description = "Purge messages in chat"
     )
