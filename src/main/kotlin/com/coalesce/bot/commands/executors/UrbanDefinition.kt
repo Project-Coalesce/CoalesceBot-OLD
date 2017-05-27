@@ -17,7 +17,7 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
     @RootCommand(
             name = "Definition",
             aliases = arrayOf("define", "dictionary", "urban"), description = "Defines a word or phrase with Urban Dictionary.",
-            permission = "command.definition",
+            permission = "commands.definition",
             globalCooldown = 15.0,
             type = CommandType.INFORMATION
     )
