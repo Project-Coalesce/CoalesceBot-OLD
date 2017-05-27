@@ -11,10 +11,7 @@ import com.google.gson.GsonBuilder
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Injector
-import net.dv8tion.jda.core.AccountType
-import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.JDABuilder
-import net.dv8tion.jda.core.Permission
+import net.dv8tion.jda.core.*
 import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Guild
 import java.io.File
@@ -24,6 +21,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ThreadLocalRandom
 import java.util.regex.Pattern
 
+val REVISION = 0
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -51,12 +49,12 @@ class Main private constructor() {
                 setAudioEnabled(true) // Depri has implemented a Youtube player that proxi fucked up.
                 @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET")
                 setGame(Game.of("the loading game"))
-                setIdle(true)
+                setStatus(OnlineStatus.DO_NOT_DISTURB)
         }.buildBlocking()
 
         System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById("315934708879982592"))))
         System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById("315934723354656768"))))
-        println("Outputting messages to this channel.")
+        println("Outputting messages to this channel. Running CoalesceBot revision $REVISION.")
 
         repManager = ReputationManager()
         punishments = PunishmentManager(this) // Load it.
@@ -68,7 +66,7 @@ class Main private constructor() {
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
         jda.presence.game = Game.of(GAMES[ThreadLocalRandom.current().nextInt(GAMES.size)])
-        jda.presence.isIdle = false
+        jda.presence.status = OnlineStatus.ONLINE
 
         githubSecret = secret
     }

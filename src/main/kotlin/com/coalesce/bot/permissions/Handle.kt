@@ -21,6 +21,7 @@ class RankManager internal constructor(jda: JDA) {
     init {
         jda.guilds.map { it.members }.forEach { it.forEach { users.put(it.user.idLong, WrappedUser(it.user)) } }
         if (globalPermissionsFile.exists()) {
+            println("Loaded global permissions from existing file.")
             global.putAll(serializer.read())
         }
     }
@@ -96,9 +97,11 @@ class RankManager internal constructor(jda: JDA) {
     }
 
     fun hasPermission(member: Member, vararg permissions: String): Boolean {
+        /*
         if (permissions.isEmpty() || member.guild.owner == member || member.roles.stream().anyMatch { it.hasPermission(Permission.ADMINISTRATOR) }) {
             return true
         }
+        */
 
         val permsMap = getPermissions(member)
         val perms = permsMap.entries.stream().filter { it.value }.map { it.key }.toArray()

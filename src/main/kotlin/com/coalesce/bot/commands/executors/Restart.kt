@@ -12,7 +12,8 @@ class Restart {
             type = CommandType.DEBUG
     )
     fun execute(context: RootCommandContext) {
-        context("Goodbye, cruel world.")
-        System.exit(-1)
+        context("Goodbye, cruel world.") {
+            System.exit(-1)
+        }
     }
 }
