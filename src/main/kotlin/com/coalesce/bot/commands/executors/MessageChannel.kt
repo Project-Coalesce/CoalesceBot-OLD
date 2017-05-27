@@ -8,7 +8,7 @@ class MessageChannel {
 
     @RootCommand(
             name = "messagechannel",
-            permission = "command.messagechannel",
+            permission = "commands.messagechannel",
             aliases = arrayOf("sendch", "msgch"),
             type = CommandType.DEBUG,
             description = "Message a specific channel"

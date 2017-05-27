@@ -9,7 +9,8 @@ class Playing {
 
     @RootCommand(
             name = "playing",
-            permission = "command.playing",
+            permission = "commands.playing",
+            aliases = arrayOf("setstatus"),
             type = CommandType.DEBUG,
             description = "Change bot game message"
     )

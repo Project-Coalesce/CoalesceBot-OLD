@@ -10,7 +10,7 @@ class Lmgtfy {
             name = "lmgtfy",
             aliases = arrayOf("justgoogleretard", "googlethat"),
             description = "Meme command (Have you tried with Google yet? Let me do it for you)",
-            permission = "command.lmgtfy",
+            permission = "commands.lmgtfy",
             usage = "<user : optional> <phrase>",
             globalCooldown = 5.0,
             type = CommandType.INFORMATION

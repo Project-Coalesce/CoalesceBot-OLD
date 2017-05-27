@@ -8,7 +8,7 @@ class Broadcast {
 
     @RootCommand(
             name = "send",
-            permission = "command.broadcast",
+            permission = "commands.broadcast",
             type = CommandType.DEBUG,
             description = "Broadcast message into all guilds in their public channel"
     )
