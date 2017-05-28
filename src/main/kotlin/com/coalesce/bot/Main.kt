@@ -5,6 +5,8 @@ import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
 import com.coalesce.bot.reputation.ReputationManager
+import com.google.code.chatterbotapi.ChatterBotFactory
+import com.google.code.chatterbotapi.ChatterBotType
 import com.google.common.base.Preconditions
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -90,6 +92,7 @@ const val COALESCE_GUILD = 268187052753944576L
 const val commandPrefix = "!"
 const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
+val quotedFile = File(dataDirectory, "quoted.txt")
 val globalPermissionsFile = File(dataDirectory, "global.dat")
 val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.dat")
 val respectsLeaderboardsFileOld = File(dataDirectory, "leaderboard.json")

@@ -97,11 +97,9 @@ class RankManager internal constructor(jda: JDA) {
     }
 
     fun hasPermission(member: Member, vararg permissions: String): Boolean {
-        /*
         if (permissions.isEmpty() || member.guild.owner == member || member.roles.stream().anyMatch { it.hasPermission(Permission.ADMINISTRATOR) }) {
             return true
         }
-        */
 
         val permsMap = getPermissions(member)
         val perms = permsMap.entries.stream().filter { it.value }.map { it.key }.toArray()
