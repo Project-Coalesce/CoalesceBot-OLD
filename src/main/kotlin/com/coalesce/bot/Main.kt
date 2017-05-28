@@ -5,8 +5,6 @@ import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
 import com.coalesce.bot.reputation.ReputationManager
-import com.google.code.chatterbotapi.ChatterBotFactory
-import com.google.code.chatterbotapi.ChatterBotType
 import com.google.common.base.Preconditions
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
