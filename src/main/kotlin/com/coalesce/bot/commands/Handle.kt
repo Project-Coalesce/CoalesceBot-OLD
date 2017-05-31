@@ -4,8 +4,8 @@ import com.coalesce.bot.Main
 import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
 import com.coalesce.bot.permissions.RankManager
+import com.coalesce.bot.quotedFile
 import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent
@@ -20,7 +20,6 @@ import org.reflections.util.FilterBuilder
 import java.awt.Color
 import java.lang.reflect.Method
 import java.util.*
-import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
 class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddables {
@@ -29,7 +28,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     val perms = RankManager(jda)
     val cooldowns = mutableMapOf<String, Long>() // <command identifier, until in millis>
     val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
-    private val welcomeMessage = "Welcome, %s to the Coalesce Coding Discord server!\n" +
+    private val welcomeMessage = "Welcome, %s, to the Coalesce Coding Discord server!\n" +
             "If you are able to code in an language and would like to have a fancy color for it, use !request <rank>.\n" +
             "The currently supported languages include Java, Kotlin, Web, Spigot and Python.\n" +
             "Follow the rules at %s and enjoy your stay!"
@@ -55,12 +54,12 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
         }
     }
 
-    override fun onGuildMemberJoin(event: GuildMemberJoinEvent?) {
-        event!!.guild.publicChannel.sendMessage(String.format(welcomeMessage, event!!.member.asMention, "<#269178364483338250>"))
+    override fun onGuildMemberJoin(event: GuildMemberJoinEvent) {
+        event.guild.publicChannel.sendMessage(String.format(welcomeMessage, event.member.asMention, "<#269178364483338250>"))
     }
 
-    override fun onGuildMemberLeave(event: GuildMemberLeaveEvent?) {
-        event!!.guild.publicChannel.sendMessage("Today, we see ${event!!.member.effectiveName} leave us.")
+    override fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
+        event.guild.publicChannel.sendMessage("Today, we see ${event.member.effectiveName} leave us.")
     }
 
     override fun onGenericEvent(event: Event) {
@@ -78,6 +77,14 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
+        if (event.message.rawContent.startsWith(jda.selfUser.asMention)) {
+            val quoted = event.message.rawContent.substring(jda.selfUser.asMention.length)
+            quotedFile.writeText("\n$quoted")
+
+            val response = "We're working on the chat bot. Try again later!"
+            event.message.channel.sendMessage("${event.author.asMention}: $response")
+        }
+
         if (!event.message.rawContent.startsWith(commandPrefix)) {
             return
         }

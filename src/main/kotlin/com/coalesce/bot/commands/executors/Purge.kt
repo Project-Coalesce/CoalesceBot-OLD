@@ -6,9 +6,9 @@ import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.TextChannel
 import java.util.function.Predicate
 
-const val MAX_BULK_SIZE = 100
-
 class Purge {
+    val MAX_BULK_SIZE = 100
+
     @RootCommand(
             name = "purge",
             permission = "commands.purge",
