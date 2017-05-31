@@ -1,9 +1,9 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.*
-import com.coalesce.bot.binary.ReputationSerializer
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.commands.CommandType
+import com.coalesce.bot.commands.JDAListener
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import com.coalesce.bot.utilities.ifwithDo
@@ -12,13 +12,18 @@ import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
+import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
+import net.dv8tion.jda.core.entities.Message
+import net.dv8tion.jda.core.entities.User
+import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.io.DataOutputStream
 import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 
-class Respects {
+class Respects @Inject constructor(val bot: Main) {
     @RootCommand(
             name = "Respects",
             aliases = arrayOf("f", "nahusdream"),
@@ -28,8 +33,53 @@ class Respects {
             globalCooldown = 6.0 * 3600.0
     )
     fun execute(context: RootCommandContext) {
-        context(context.author, "Respects have been paid!") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
+        context(context.author, "Respects have been paid! You got +5 respects.") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
 
+        transaction(context.author, 5.0)
+    }
+
+    @JDAListener
+    fun react(event: MessageReactionAddEvent) {
+        if (event.channel.idLong == 308791021343473675L) {
+            if (event.reaction.emote.name == "<:dank:318557118791680000>") {
+                reactionCheck(event, Consumer {
+                    dank(event.guild, event.channel!!, event.user, it.author, event.jda)
+                })
+            } else if (event.reaction.emote.name == "<:lifehack:304043388523511808>") {
+                reactionCheck(event, Consumer {
+                    notDankEnough(event.guild, event.channel!!, event.user, it.author, event.jda)
+                })
+            }
+        }
+    }
+
+    private fun dank(guild: Guild, channel: net.dv8tion.jda.core.entities.MessageChannel, from: User, to: User, jda: JDA) {
+        if (from == to) {
+            channel.sendMessage("* You see, doing that is what makes you not dank.").queue()
+            return
+        }
+        if (to == jda.selfUser) {
+            channel.sendMessage("* My shit's fucking lit ain't it").queue()
+            return
+        }
+        transaction(to, 1.0)
+        channel.sendMessage("${to.asMention}: Dank - 10/10 ${from.asMention} **+1 respect**").queue()
+    }
+
+    private fun notDankEnough(guild: Guild, channel: net.dv8tion.jda.core.entities.MessageChannel, from: User, to: User, jda: JDA) {
+        if (from == to) {
+            channel.sendMessage("* You such an emo kid.").queue()
+            return
+        }
+        if (to == jda.selfUser) {
+            channel.sendMessage("* Don't you dare say that about my messages.").queue()
+            return
+        }
+        transaction(to, -1.0)
+        channel.sendMessage("${to.asMention}: Not Dank Enough - 0/10 ${from.asMention} **-1 respect**").queue()
+    }
+
+    private fun transaction(user: User, amount: Double) {
         val file = respectsLeaderboardsFile
         synchronized(file) {
             if (!file.exists()) generateFile(file)
@@ -37,14 +87,18 @@ class Respects {
             val serializer = RespectsLeaderboardSerializer(file)
             val map = serializer.read()
 
-            val id = context.author.id
-            map[id] = (map[id] as? Double ?: 0.0) + 1.0
+            val id = user.id
+            map[id] = (map[id] as? Double ?: 0.0) + amount
             if (file.exists()) {
                 file.delete()
             }
             file.createNewFile()
             serializer.write(map)
         }
+    }
+
+    fun reactionCheck(event: MessageReactionAddEvent, consumer: Consumer<Message>) {
+        event.channel.getMessageById(event.messageId).queue(consumer::accept)
     }
 
     fun generateFile(file: File) {
@@ -65,7 +119,6 @@ class Respects {
             }
         }
     }
-
 }
 
 class RespectsLeaderboard @Inject constructor(val jda: JDA) {
