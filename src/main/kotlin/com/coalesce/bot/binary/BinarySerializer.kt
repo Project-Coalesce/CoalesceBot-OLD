@@ -10,11 +10,21 @@ abstract class BinarySerializer<T>(val file: File) {
     fun read(): T {
         var byteArray: ByteArray = ByteArray(0)
         file.inputStream().use {
-            byteArray = it.readBytes()
+            try {
+                byteArray = it.readBytes()
+            } catch (ex: Exception) {
+
+            }
         }
 
         inputStream = DataInputStream(ByteArrayInputStream(byteArray))
-        return serializeIn()
+
+        try {
+            return serializeIn()
+        } catch (ex: Exception) {
+            System.err.println("An error occured while trying to serialize ${file.absolutePath}.")
+            throw ex
+        }
     }
 
     fun write(data: T) {

@@ -5,6 +5,7 @@ import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
 import com.coalesce.bot.reputation.ReputationManager
+import com.coalesce.bot.utilities.tryLog
 import com.google.common.base.Preconditions
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -52,8 +53,9 @@ class Main private constructor() {
                 setStatus(OnlineStatus.DO_NOT_DISTURB)
         }.buildBlocking()
 
-        repManager = ReputationManager()
-        punishments = PunishmentManager(this) // Load it.
+
+        tryLog("Failed to load Reputation Manager") { repManager = ReputationManager() }
+        tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
         injector = Guice.createInjector(Injects(this, punishments))
         listener = Listener(jda)
         listener.register()
