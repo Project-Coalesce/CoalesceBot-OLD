@@ -85,9 +85,15 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
     }
 
     fun reactionCheck(event: MessageReactionAddEvent, consumer: Consumer<Message>) {
-        if (bot.listener.userCooldowns[event.member.user.idLong]!!["reputation"]!! > System.currentTimeMillis()) {
-            event.channel.sendMessage("Wait before you thank again.").queue { it.delete().queueAfter(5L, TimeUnit.SECONDS) }
-        } else {
+        if (bot.listener.userCooldowns[event.member.user.idLong] == null) {
+            event.channel.getMessageById(event.messageId).queue(consumer::accept)
+            return
+        }
+        bot.listener.userCooldowns[event.member.user.idLong]!!.apply {
+            if (this["reputation"] != null && this["reputation"]!! > System.currentTimeMillis()) {
+                event.channel.sendMessage("* Wait before you thank again.").queue { it.delete().queueAfter(5L, TimeUnit.SECONDS) }
+                return
+            }
             event.channel.getMessageById(event.messageId).queue(consumer::accept)
         }
     }
