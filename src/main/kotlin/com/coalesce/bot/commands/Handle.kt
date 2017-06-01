@@ -5,6 +5,7 @@ import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
 import com.coalesce.bot.permissions.RankManager
 import com.coalesce.bot.quotedFile
+import com.coalesce.bot.utilities.tryLog
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent
@@ -132,7 +133,7 @@ class CommandRegistry internal constructor() {
                 .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.commands.executors"))))
                 .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') }
         for (clazz in classes) {
-            process(clazz)
+            tryLog("Failed to process ${clazz.name}") { process(clazz) }
         }
     }
 
