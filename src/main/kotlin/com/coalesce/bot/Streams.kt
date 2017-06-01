@@ -1,5 +1,6 @@
 package com.coalesce.bot
 
+import com.coalesce.bot.utilities.quietly
 import net.dv8tion.jda.core.entities.MessageChannel
 import java.io.OutputStream
 
@@ -13,7 +14,7 @@ class ChatOutputStream(val channel: MessageChannel): OutputStream() {
         lineBuilder.append(stringInstance)
 
         if (stringInstance == "\n") {
-            channel.sendMessage(lineBuilder.toString()).queue()
+            quietly { channel.sendMessage(lineBuilder.toString()).queue() }
             lineBuilder = StringBuilder()
         }
     }

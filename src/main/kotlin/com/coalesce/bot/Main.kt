@@ -52,10 +52,6 @@ class Main private constructor() {
                 setStatus(OnlineStatus.DO_NOT_DISTURB)
         }.buildBlocking()
 
-        System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById("315934708879982592"))))
-        System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById("315934723354656768"))))
-        println("Outputting messages to this channel. Running CoalesceBot revision $REVISION.")
-
         repManager = ReputationManager()
         punishments = PunishmentManager(this) // Load it.
         injector = Guice.createInjector(Injects(this, punishments))
@@ -69,6 +65,10 @@ class Main private constructor() {
         jda.presence.status = OnlineStatus.ONLINE
 
         githubSecret = secret
+
+        System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById("315934708879982592"))))
+        System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById("315934723354656768"))))
+        println("Outputting messages to this channel. Running CoalesceBot revision $REVISION.")
     }
 
     companion object {

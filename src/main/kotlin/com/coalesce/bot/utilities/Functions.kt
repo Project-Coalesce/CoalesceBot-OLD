@@ -2,6 +2,8 @@ package com.coalesce.bot.utilities
 
 import java.util.*
 
+fun quietly(func: () -> Unit) = func()
+
 fun <K, V> hashTableOf(): Hashtable<K, V> = Hashtable()
 
 fun <K, V> hashTableOf(vararg elements: Pair<K, V>): Hashtable<K, V> = Hashtable<K, V>(elements.size).apply { putAll(elements) }
