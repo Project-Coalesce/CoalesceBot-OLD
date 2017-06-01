@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 class Boi {
     private val images = arrayOf("http://i.imgur.com/wBjEsAZ.jpg", "http://i.imgur.com/fhHuvIP.jpg", "http://i.imgur.com/k5BqbxH.jpg",
             "http://i.imgur.com/2VeEUTS.jpg", "http://i.imgur.com/hOYMcij.jpg", "http://i.imgur.com/Hx06UHz.jpg", "http://i.imgur.com/DpLS3ZV.jpg",
-            "http://i.imgur.com/riXIKEq.jpg")
+            "http://i.imgur.com/riXIKEq.jpg", "http://i.imgur.com/f7QugVt.jpg")
 
     @RootCommand(
             name = "boi",
