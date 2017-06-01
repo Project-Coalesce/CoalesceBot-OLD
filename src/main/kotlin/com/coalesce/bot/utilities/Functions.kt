@@ -2,7 +2,7 @@ package com.coalesce.bot.utilities
 
 import java.util.*
 
-fun quietly(func: () -> Unit) = func()
+fun quietly(func: () -> Unit) = try{ func() } catch (ex: Exception) { /* Ignore */ }
 
 fun <K, V> hashTableOf(): Hashtable<K, V> = Hashtable()
 
