@@ -39,6 +39,6 @@ class Lmgtfy {
         }
 
         val phrase = arguments.joinToString(separator = "+")
-        context(member, "Have you tried Googling it? <http://lmgtfy.com/?q=$phrase>")
+        context(member, "Have you tried Googling it? http://lmgtfy.com/?q=$phrase")
     }
 }
