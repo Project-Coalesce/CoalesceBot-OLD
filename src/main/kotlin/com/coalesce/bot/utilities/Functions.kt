@@ -4,7 +4,7 @@ import java.util.*
 
 fun tryLog(message: String, func: () -> Unit) =
     try {
-        func
+        func()
     } catch (ex: Exception) {
         System.err.println(message)
         ex.printStackTrace()
