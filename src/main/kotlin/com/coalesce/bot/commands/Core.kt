@@ -1,12 +1,14 @@
 package com.coalesce.bot.commands
 
 import com.coalesce.bot.Colour
+import com.coalesce.bot.Main
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.lang.reflect.Method
+import java.util.concurrent.TimeUnit
 
 enum class CommandType {
     FUN,
@@ -155,6 +157,35 @@ abstract class CommandContext(
 
     inline fun send(builder: EmbedBuilder, crossinline after: Message.() -> Unit) {
         send(builder.build()) { after(this) }
+    }
+}
+
+class EventContext(
+        private val listener: Listener,
+        val jda: JDA,
+        val command: RootCommand
+) {
+    fun runChecks(user: User, channel: MessageChannel): Boolean {
+        val userCooldowns = listener.userCooldowns
+        val specificUser = userCooldowns[user.idLong] ?: run {
+            userCooldowns[user.idLong] = mutableMapOf(
+                    command.name to System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(command.userCooldown.toLong())
+            )
+            return true
+        }
+        (specificUser[command.name] ?: run {
+            specificUser[command.name] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(command.userCooldown.toLong())
+            return true
+        }).apply {
+            if (System.currentTimeMillis() > this) {
+                channel.sendMessage("* Wait before you can do this again.").queue()
+                return false
+            }
+
+            specificUser[command.name] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(command.userCooldown.toLong())
+            return true
+        }
+        return true
     }
 }
 

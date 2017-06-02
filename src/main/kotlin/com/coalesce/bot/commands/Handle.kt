@@ -67,7 +67,8 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
         if (registry.jdalisteners.containsKey(event::class.java)) {
             registry.jdalisteners[event::class.java]!!.forEach {
                 try {
-                    it.key.invoke(it.value.instance, event)
+                    if (it.key.parameterCount == 2) it.key.invoke(it.value.instance, event, EventContext(this, jda, it.value.rootAnnotation))
+                    else it.key.invoke(it.value.instance, event)
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                 }

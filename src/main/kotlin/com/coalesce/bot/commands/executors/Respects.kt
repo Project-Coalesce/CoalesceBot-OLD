@@ -2,10 +2,7 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.*
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
-import com.coalesce.bot.commands.CommandType
-import com.coalesce.bot.commands.JDAListener
-import com.coalesce.bot.commands.RootCommand
-import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
 import com.google.gson.reflect.TypeToken
@@ -39,16 +36,20 @@ class Respects @Inject constructor(val bot: Main) {
     }
 
     @JDAListener
-    fun react(event: MessageReactionAddEvent) {
+    fun react(event: MessageReactionAddEvent, context: EventContext) {
         if (event.channel.idLong == 308791021343473675L) {
             if (event.reaction.emote.name == "<:dank:318557118791680000>") {
-                reactionCheck(event, Consumer {
-                    dank(event.guild, event.channel!!, event.user, it.author, event.jda)
-                })
+                if (context.runChecks(event.user, event.channel!!)) {
+                    event.channel.getMessageById(event.messageId).queue {
+                        dank(event.guild, event.channel!!, event.user, it.author, event.jda)
+                    }
+                }
             } else if (event.reaction.emote.name == "<:lifehack:304043388523511808>") {
-                reactionCheck(event, Consumer {
-                    notDankEnough(event.guild, event.channel!!, event.user, it.author, event.jda)
-                })
+                if (context.runChecks(event.user, event.channel!!)) {
+                    event.channel.getMessageById(event.messageId).queue {
+                        notDankEnough(event.guild, event.channel!!, event.user, it.author, event.jda)
+                    }
+                }
             }
         }
     }
@@ -95,10 +96,6 @@ class Respects @Inject constructor(val bot: Main) {
             file.createNewFile()
             serializer.write(map)
         }
-    }
-
-    fun reactionCheck(event: MessageReactionAddEvent, consumer: Consumer<Message>) {
-        event.channel.getMessageById(event.messageId).queue(consumer::accept)
     }
 
     fun generateFile(file: File) {
