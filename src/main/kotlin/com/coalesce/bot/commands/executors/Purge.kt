@@ -77,7 +77,7 @@ class Purge {
             var removed = 0
 
             it.forEach {
-                if (!check.test(it)) return@forEach
+                if (!check.test(it) && removed >= amount) return@forEach
                 it.delete().queue()
                 ++ removed
             }
