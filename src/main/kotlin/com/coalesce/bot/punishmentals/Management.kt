@@ -3,16 +3,15 @@ package com.coalesce.bot.punishmentals
 import com.coalesce.bot.Main
 import com.coalesce.bot.dataDirectory
 import com.coalesce.bot.gson
-import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.User
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
-class PunishmentManager internal constructor(bot: Main) {
+class PunishmentManager internal constructor(bot: Main): Runnable {
     val punishmentsFile = File(dataDirectory, "punishments.json")
     val punishments = mutableMapOf<Long, MutableSet<Punishment>>()
-    val mutedRole: Role? = bot.jda.getRoleById(303317692608282625)
+    val tempPunishments = mutableMapOf<Long, MutableSet<Punishment>>()
 
     init {
         if (punishmentsFile.exists()) {
@@ -22,6 +21,23 @@ class PunishmentManager internal constructor(bot: Main) {
             }
             punishmentsJson.forEach { (id, list) ->
                 punishments[id] = list.toMutableSet()
+                list.forEach {
+                    if (!it.expired) {
+                        if (System.currentTimeMillis() > it.expiration!!) it.unmute()
+                        else tempPunishments[it.expiration!!]?.apply { add(it) } ?: mutableSetOf<Punishment>()
+                    }
+                }
+            }
+        }
+
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 1L, 1L, TimeUnit.MINUTES)
+    }
+
+    override fun run() {
+        tempPunishments.forEach { k, v ->
+            if (System.currentTimeMillis() > k) {
+                v.forEach { it.unmute() }
+                tempPunishments.remove(k)
             }
         }
     }
@@ -44,7 +60,7 @@ class PunishmentManager internal constructor(bot: Main) {
             }
         }
         punishments.putAll(copy)
-        Files.write(punishmentsFile.toPath(), gson.toJson(punishments).toByteArray(), StandardOpenOption.WRITE)
+        punishmentsFile.writeText(gson.toJson(punishments))
     }
 
     operator fun get(id: Long): MutableSet<Punishment> {
@@ -57,9 +73,11 @@ class PunishmentManager internal constructor(bot: Main) {
 
     operator fun set(id: Long, punishment: Punishment) {
         punishments[id] = punishments[id]?.apply { add(punishment) } ?: mutableSetOf()
+        if (punishment.expiration != null) tempPunishments[punishment.expiration!!]?.apply { add(punishment) } ?: mutableSetOf()
     }
 
     operator fun set(user: User, punishment: Punishment) {
         this[user.idLong] = punishment
+        if (punishment.expiration != null) tempPunishments[punishment.expiration!!]?.apply { add(punishment) } ?: mutableSetOf()
     }
 }

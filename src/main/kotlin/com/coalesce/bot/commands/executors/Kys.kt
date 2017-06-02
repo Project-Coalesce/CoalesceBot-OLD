@@ -22,6 +22,6 @@ class Kys {
             globalCooldown = 20.0
     )
     fun execute(context: RootCommandContext) {
-        context(context.author, "<:feelsbad:302954104718884875> ${images[ThreadLocalRandom.current().nextInt(images.size)]}") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(10, TimeUnit.SECONDS) } }
+        context(context.author, "<:feelsbad:302954104718884875> ${images[ThreadLocalRandom.current().nextInt(images.size)]}") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(30, TimeUnit.SECONDS) } }
     }
 }

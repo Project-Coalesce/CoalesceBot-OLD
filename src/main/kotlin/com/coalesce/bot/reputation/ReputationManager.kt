@@ -18,7 +18,7 @@ import java.io.DataOutputStream
 import java.io.File
 
 class ReputationManager {
-    private val reputationStorage: MutableMap<String, ReputationValue>
+    private val reputationStorage: MutableMap<Long, ReputationValue>
     private val serializer : ReputationSerializer
 
     init {
@@ -42,20 +42,8 @@ class ReputationManager {
 
     fun generateFile(file: File) {
         file.createNewFile()
-        if (reputationFileOld.exists()) {
-            val type = object: TypeToken<HashMap<String, ReputationValue>>() {}
-            val oldMap = gson.fromJson<MutableMap<String, ReputationValue>>(reputationFileOld.readText(), type.type)
-
-            val repSerializer = ReputationSerializer(file)
-            repSerializer.write(oldMap)
-
-            val oldSize = reputationFileOld.length()
-            reputationFileOld.delete()
-            println("Updated reputation file to binary, removing ${oldSize - file.length()} bytes.")
-        } else {
-            file.outputStream().use {
-                DataOutputStream(it).writeLong(-1L)
-            }
+        file.outputStream().use {
+            DataOutputStream(it).writeLong(-1L)
         }
     }
 
@@ -64,12 +52,12 @@ class ReputationManager {
     }
 
     operator fun set(user: User, value: ReputationValue) {
-        reputationStorage[user.id] = value
+        reputationStorage[user.idLong] = value
         save()
     }
 
     operator fun get(from: User): ReputationValue {
-        return reputationStorage[from.id] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<String>())
+        return reputationStorage[from.idLong] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<String>())
     }
 }
 

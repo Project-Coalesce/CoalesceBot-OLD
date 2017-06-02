@@ -4,9 +4,9 @@ import com.coalesce.bot.reputation.ReputationTransaction
 import com.coalesce.bot.reputation.ReputationValue
 import java.io.File
 
-class ReputationSerializer(file: File): BinarySerializer<MutableMap<String, ReputationValue>>(file) {
-    override fun serializeIn(): MutableMap<String, ReputationValue> {
-        val map = mutableMapOf<String, ReputationValue>()
+class ReputationSerializer(file: File): BinarySerializer<MutableMap<Long, ReputationValue>>(file) {
+    override fun serializeIn(): MutableMap<Long, ReputationValue> {
+        val map = mutableMapOf<Long, ReputationValue>()
 
         var long: Long
         while (true) {
@@ -34,15 +34,15 @@ class ReputationSerializer(file: File): BinarySerializer<MutableMap<String, Repu
                 ++numb
             }
 
-            map[total.toString()] = ReputationValue(total, transactions, milestones)
+            map[long] = ReputationValue(total, transactions, milestones)
         }
 
         return map
     }
 
-    override fun serializeOut(data: MutableMap<String, ReputationValue>) {
+    override fun serializeOut(data: MutableMap<Long, ReputationValue>) {
         data.forEach { k, v ->
-            outputStream.writeLong(k.toLong())
+            outputStream.writeLong(k)
             outputStream.writeDouble(v.total)
 
             outputStream.writeInt(v.transactions.size)

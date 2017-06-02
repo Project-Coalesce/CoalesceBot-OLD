@@ -72,29 +72,19 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
     }
 
     @JDAListener
-    fun react(event: MessageReactionAddEvent) {
+    fun react(event: MessageReactionAddEvent, context: EventContext) {
         if (event.reaction.emote.name == "✌") {
-            reactionCheck(event, Consumer {
-                doThank(event.guild, event.channel, event.user, it.author, event.jda)
-            })
-        } else if (event.reaction.emote.name == "👎") {
-            reactionCheck(event, Consumer {
-                doUnrate(event.guild, event.channel, event.user, it.author, event.jda)
-            })
-        }
-    }
-
-    fun reactionCheck(event: MessageReactionAddEvent, consumer: Consumer<Message>) {
-        if (bot.listener.userCooldowns[event.member.user.idLong] == null) {
-            event.channel.getMessageById(event.messageId).queue(consumer::accept)
-            return
-        }
-        bot.listener.userCooldowns[event.member.user.idLong]!!.apply {
-            if (this["reputation"] != null && this["reputation"]!! > System.currentTimeMillis()) {
-                event.channel.sendMessage("* Wait before you thank again.").queue { it.delete().queueAfter(5L, TimeUnit.SECONDS) }
-                return
+            if (context.runChecks(event.user, event.channel!!)) {
+                event.channel.getMessageById(event.messageId).queue {
+                    doThank(event.guild, event.channel!!, event.user, it.author, event.jda)
+                }
             }
-            event.channel.getMessageById(event.messageId).queue(consumer::accept)
+        } else if (event.reaction.emote.name == "👎") {
+            if (context.runChecks(event.user, event.channel!!)) {
+                event.channel.getMessageById(event.messageId).queue {
+                    doUnrate(event.guild, event.channel!!, event.user, it.author, event.jda)
+                }
+            }
         }
     }
 
