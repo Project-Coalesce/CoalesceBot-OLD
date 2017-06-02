@@ -37,8 +37,6 @@ class Respects @Inject constructor(val bot: Main) {
 
     @JDAListener
     fun react(event: MessageReactionAddEvent, context: EventContext) {
-        println(event.reaction.emote.idLong)
-
         if (event.channel.idLong == 308791021343473675L && event.reaction.guild != null && !event.reaction.emote.emote.isManaged ) {
             if (event.reaction.emote.idLong == 318557118791680000L) {
                 if (context.runChecks(event.user, event.channel!!)) {
