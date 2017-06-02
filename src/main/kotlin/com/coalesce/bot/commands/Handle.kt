@@ -65,8 +65,6 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
         val time = System.currentTimeMillis()
 
         userCooldowns.forEach { id, map ->
-            println("$time $id ${map.size}")
-
             map.forEach { cmd, until ->
                 if (time > until) {
                     map.remove(cmd)
