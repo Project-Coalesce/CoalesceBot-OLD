@@ -152,6 +152,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             }
 
             Collections.sort(amountPositions)
+            Collections.reverse(amountPositions)
             respects = respects.subList(0, Math.min(respects.size, 10))
             Collections.sort(respects, { second, first -> (map[first.user.id] as Double).toInt() - (map[second.user.id] as Double).toInt() })
             if (respects.size > 10) {
