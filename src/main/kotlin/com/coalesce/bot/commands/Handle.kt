@@ -37,7 +37,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
             "Follow the rules at %s and enjoy your stay!"
 
     init {
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 5L, 5L, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 5L, 5L, TimeUnit.MINUTES)
     }
 
     fun register() {
