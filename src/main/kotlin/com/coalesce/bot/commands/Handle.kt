@@ -37,7 +37,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
             "Follow the rules at %s and enjoy your stay!"
 
     init {
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 5L, 5L, TimeUnit.MINUTES)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 5L, 5L, TimeUnit.SECONDS)
     }
 
     fun register() {
@@ -62,9 +62,13 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
     }
 
     override fun run() {
+        val time = System.currentTimeMillis()
+
         userCooldowns.forEach { id, map ->
+            println("$time $id ${map.size}")
+
             map.forEach { cmd, until ->
-                if (System.currentTimeMillis() > until) {
+                if (time > until) {
                     map.remove(cmd)
                 }
             }
@@ -73,7 +77,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
         }
 
         cooldowns.forEach { cmd, until ->
-            if (System.currentTimeMillis() > until) {
+            if (time > until) {
                 cooldowns.remove(cmd)
             }
         }
