@@ -16,12 +16,13 @@ class Lmgtfy {
             type = CommandType.INFORMATION
     )
     fun execute(context: RootCommandContext) {
-        fun printError() {
+        if (context.args.isEmpty()) {
             context(context.author, "Please specify a phrase to print!")
+            return
         }
 
-        if (context.args.isEmpty()) {
-            printError()
+        if (context.message.mentionsEveryone() || context.message.mentionedUsers.isNotEmpty() || context.message.mentionedRoles.isNotEmpty()) {
+            context(context.author, "You can't tag roles, users or @everyone.")
             return
         }
 
@@ -31,10 +32,6 @@ class Lmgtfy {
             member = context.author
             arguments = context.args
         } else {
-            if (context.args.size < 1) {
-                printError()
-                return
-            }
             arguments = context.args.copyOfRange(1, context.args.size)
         }
 
