@@ -12,7 +12,6 @@ import java.nio.file.StandardOpenOption
 class PunishmentManager internal constructor(bot: Main) {
     val punishmentsFile = File(dataDirectory, "punishments.json")
     val punishments = mutableMapOf<Long, MutableSet<Punishment>>()
-    val mutedRole: Role? = bot.jda.getRoleById(303317692608282625)
 
     init {
         if (punishmentsFile.exists()) {
@@ -44,7 +43,7 @@ class PunishmentManager internal constructor(bot: Main) {
             }
         }
         punishments.putAll(copy)
-        Files.write(punishmentsFile.toPath(), gson.toJson(punishments).toByteArray(), StandardOpenOption.WRITE)
+        punishmentsFile.writeText(gson.toJson(punishments))
     }
 
     operator fun get(id: Long): MutableSet<Punishment> {
