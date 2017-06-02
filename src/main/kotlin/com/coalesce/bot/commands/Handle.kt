@@ -21,9 +21,11 @@ import org.reflections.util.FilterBuilder
 import java.awt.Color
 import java.lang.reflect.Method
 import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
-class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddables {
+class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable, Embeddables {
     val registry = CommandRegistry()
     val checks = mutableSetOf<Predicate<CommandContext>>()
     val perms = RankManager(jda)
@@ -33,6 +35,10 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
             "If you are able to code in an language and would like to have a fancy color for it, use !request <rank>.\n" +
             "The currently supported languages include Java, Kotlin, Web, Spigot and Python.\n" +
             "Follow the rules at %s and enjoy your stay!"
+
+    init {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 5L, 5L, TimeUnit.MINUTES)
+    }
 
     fun register() {
         synchronized(registry) {
@@ -52,6 +58,24 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
 
                 return@Predicate permissable
             })
+        }
+    }
+
+    override fun run() {
+        userCooldowns.forEach { id, map ->
+            map.forEach { cmd, until ->
+                if (System.currentTimeMillis() > until) {
+                    map.remove(cmd)
+                }
+            }
+
+            if (map.isEmpty()) userCooldowns.remove(id)
+        }
+
+        cooldowns.forEach { cmd, until ->
+            if (System.currentTimeMillis() > until) {
+                cooldowns.remove(cmd)
+            }
         }
     }
 
