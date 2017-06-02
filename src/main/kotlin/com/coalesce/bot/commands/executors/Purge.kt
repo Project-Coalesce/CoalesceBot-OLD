@@ -17,8 +17,8 @@ class Purge {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "__**Usage:**__\n" +
-                    "`!purge msg <id>` Deletes message based on its id" +
+            context(context.author, "\n__**Usage:**__\n" +
+                    "`!purge msg <id>` Deletes message based on its id\n" +
                     "`!purge user <userId> [optional : amount]` Deletes amount messages from user specified")
         }
     }
@@ -36,7 +36,10 @@ class Purge {
         context.jda.getGuildById(COALESCE_GUILD).textChannels
                 .forEach {
                     val message = it.getMessageById(context.args[0])?: run { context("Invalid message id!"); return@forEach }
-                    message.queue { it.delete().queue() }
+                    message.queue {
+                        it.delete().queue()
+                        context("Message with id: '${context.args[0]}' successfully removed!")
+                    }
                 }
     }
 
@@ -74,7 +77,7 @@ class Purge {
             var removed = 0
 
             it.forEach {
-                if (!check.test(it)) return@forEach
+                if (!check.test(it) && removed >= amount) return@forEach
                 it.delete().queue()
                 ++ removed
             }
