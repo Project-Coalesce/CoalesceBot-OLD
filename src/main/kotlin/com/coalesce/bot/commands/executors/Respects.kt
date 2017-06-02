@@ -37,14 +37,16 @@ class Respects @Inject constructor(val bot: Main) {
 
     @JDAListener
     fun react(event: MessageReactionAddEvent, context: EventContext) {
-        if (event.channel.idLong == 308791021343473675L) {
-            if (event.reaction.emote.name == "<:dank:318557118791680000>") {
+        println(event.reaction.emote.idLong)
+
+        if (event.channel.idLong == 308791021343473675L && event.reaction.guild != null && !event.reaction.emote.emote.isManaged ) {
+            if (event.reaction.emote.idLong == 318557118791680000L) {
                 if (context.runChecks(event.user, event.channel!!)) {
                     event.channel.getMessageById(event.messageId).queue {
                         dank(event.guild, event.channel!!, event.user, it.author, event.jda)
                     }
                 }
-            } else if (event.reaction.emote.name == "<:lifehack:304043388523511808>") {
+            } else if (event.reaction.emote.idLong == 304043388523511808L) {
                 if (context.runChecks(event.user, event.channel!!)) {
                     event.channel.getMessageById(event.messageId).queue {
                         notDankEnough(event.guild, event.channel!!, event.user, it.author, event.jda)
