@@ -26,7 +26,7 @@ class Lmgtfy {
             return
         }
 
-        var arguments: Array<String>
+        val arguments: Array<String>
         var member: User? = context.message.mentionedUsers.firstOrNull()
         if (member == null) {
             member = context.author
