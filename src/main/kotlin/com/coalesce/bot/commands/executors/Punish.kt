@@ -8,6 +8,7 @@ import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.Reason
 import com.google.inject.Inject
+import net.dv8tion.jda.core.entities.TextChannel
 import java.util.*
 
 class Punish @Inject constructor(val bot: Main, val manager: PunishmentManager) {
@@ -52,7 +53,7 @@ class Punish @Inject constructor(val bot: Main, val manager: PunishmentManager) 
             return
         }
 
-        val punishment = Punishment(bot, reason, user, context.author, description, null)
+        val punishment = Punishment(bot, reason, user, context.author, description, null, (context.channel as TextChannel).guild)
         punishment.doActUpon(manager[user], context.channel)
         manager[user] = punishment
     }

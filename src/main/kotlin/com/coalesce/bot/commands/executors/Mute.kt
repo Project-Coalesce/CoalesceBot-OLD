@@ -8,6 +8,7 @@ import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.Reason
 import com.google.inject.Inject
+import net.dv8tion.jda.core.entities.TextChannel
 import java.util.*
 
 class Mute @Inject constructor(val bot: Main, val manager: PunishmentManager) {
@@ -59,7 +60,7 @@ class Mute @Inject constructor(val bot: Main, val manager: PunishmentManager) {
             time?.add(timeUnit, timeAdd)
         }
 
-        val punishment = Punishment(bot, Reason.GENERAL_WARNING, user, context.author, description, time?.timeInMillis)
+        val punishment = Punishment(bot, Reason.GENERAL_WARNING, user, context.author, description, time?.timeInMillis, (context.channel as TextChannel).guild)
         punishment.doActUpon(manager[user], context.channel)
         manager[user] = punishment
     }

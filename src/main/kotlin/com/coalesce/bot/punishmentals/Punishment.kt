@@ -4,6 +4,7 @@ import com.coalesce.bot.Main
 import com.google.gson.*
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.MessageBuilder
+import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
@@ -12,7 +13,16 @@ import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.*
 
-data class Punishment(val bot: Main, val reason: Reason, val punished: User, val punishee: User, val description: String?, var expiration: Long?) {
+data class Punishment(val bot: Main, val reason: Reason, val punished: User, val punishee: User, val description: String?,
+                      var expiration: Long?, val guild: Guild, var expired: Boolean = false) {
+    fun unmute() {
+        val member = guild.getMember(punished)
+        val role = guild.getRoleById("303317692608282625")
+        guild.controller.addRolesToMember(member, role).queue()
+
+        expired = true
+    }
+
     fun doActUpon(record: Collection<Punishment>, channel: MessageChannel) {
         val amount = record.size + 1 // Past record + this
         val totalSev = run {
@@ -80,7 +90,6 @@ data class Punishment(val bot: Main, val reason: Reason, val punished: User, val
             message(channel, EmbedBuilder(), true, null)
         } else {
             //Muting
-            val guild = (channel as? TextChannel ?: throw RuntimeException("A punishment was given privately.")).guild
             val member = guild.getMember(punished)
             val role = guild.getRoleById("303317692608282625")
             guild.controller.addRolesToMember(member, role).queue()
@@ -104,6 +113,7 @@ class PunishmentSerializer(val bot: Main) : JsonDeserializer<Punishment>, JsonSe
         obj.add("reason", JsonPrimitive(src.reason.name.toUpperCase()))
         obj.add("punished", JsonPrimitive(src.punished.id))
         obj.add("punishee", JsonPrimitive(src.punishee.id))
+        obj.add("guild", JsonPrimitive(src.guild.id))
         obj.add("description", if (src.description == null) JsonNull.INSTANCE else JsonPrimitive(src.description))
         obj.add("expiration", if (src.expiration == null) JsonNull.INSTANCE else JsonPrimitive(src.expiration))
         return obj
@@ -114,8 +124,9 @@ class PunishmentSerializer(val bot: Main) : JsonDeserializer<Punishment>, JsonSe
         val reason = Reason.valueOf(obj.get("reason").asString.toUpperCase())
         val punished = bot.jda.getUserById(obj.get("punished").asString)
         val punishee = bot.jda.getUserById(obj.get("punishee").asString)
+        val guild = bot.jda.getGuildById(obj.get("guild").asString)
         val description = obj.get("reason")?.asString // String?
         val expiration = obj.get("expiration")?.asLong
-        return Punishment(bot, reason, punished, punishee, description, expiration)
+        return Punishment(bot, reason, punished, punishee, description, expiration, guild)
     }
 }
