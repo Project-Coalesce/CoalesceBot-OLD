@@ -1,7 +1,6 @@
 package com.coalesce.bot.commands
 
 import com.coalesce.bot.Colour
-import com.coalesce.bot.Main
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.MessageBuilder
@@ -10,14 +9,14 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.lang.reflect.Method
 import java.util.concurrent.TimeUnit
 
-enum class CommandType {
-    FUN,
-    INFORMATION,
-    ADMINISTRATION,
-    DEBUG,
-    MUSIC,
-    MISCELLANEOUS,
-    HIDDEN
+enum class CommandType(val hidden: Boolean) {
+    FUN(false),
+    INFORMATION(false),
+    ADMINISTRATION(false),
+    DEBUG(true),
+    MUSIC(false),
+    MISCELLANEOUS(false),
+    HIDDEN(true)
 }
 
 @Retention(AnnotationRetention.RUNTIME)

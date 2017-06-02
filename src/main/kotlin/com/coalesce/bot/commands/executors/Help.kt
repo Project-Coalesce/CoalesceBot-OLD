@@ -1,16 +1,15 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.Colour
 import com.coalesce.bot.Main
 import com.coalesce.bot.canDelete
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
 import com.google.inject.Inject
-import java.nio.file.Files.delete
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class Help @Inject constructor(val bot: Main) : Embeddables {
+
     @RootCommand(
             name = "Help",
             permission = "commands.help",
@@ -21,7 +20,7 @@ class Help @Inject constructor(val bot: Main) : Embeddables {
     fun execute(context: RootCommandContext) {
         val map = mutableMapOf<CommandType, MutableSet<CommandEntry>>()
         bot.listener.registry.commands.forEach { _, value ->
-            if (value.rootAnnotation.type != CommandType.HIDDEN) {
+            if (!value.rootAnnotation.type.hidden) {
                 map[value.rootAnnotation.type] = map[value.rootAnnotation.type]?.apply { add(value) } ?: mutableSetOf()
             }
         }
