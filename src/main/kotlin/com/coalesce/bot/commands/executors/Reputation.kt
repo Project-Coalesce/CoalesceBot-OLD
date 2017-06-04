@@ -23,7 +23,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             aliases = arrayOf("rep", "reput"),
             description = "View your reputation.",
             userCooldown = 10.0,
-            globalCooldown = 3.0
+            globalCooldown = 0.0
     )
     fun execute(context: RootCommandContext) {
         val rep = reputation[context.message.author]
@@ -43,7 +43,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             name = "thank",
             permission = "commands.reputation.thanks",
             aliases = arrayOf("thanks", "thankyou", "softdonate"),
-            globalCooldown = 5.0,
+            globalCooldown = 0.0,
             userCooldown = 360.0
     )
     fun thank(context: SubCommandContext) {
@@ -59,7 +59,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             name = "unrate",
             permission = "commands.reputation.unrate",
             aliases = arrayOf("dislike", "downrate", "unrate"),
-            globalCooldown = 5.0,
+            globalCooldown = 0.0,
             userCooldown = 720.0
     )
     fun unrate(context: SubCommandContext) {
