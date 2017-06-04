@@ -1,11 +1,13 @@
 package com.coalesce.bot.commands
 
 import com.coalesce.bot.Colour
+import com.coalesce.bot.utilities.formatTimeDiff
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
+import java.awt.Color
 import java.lang.reflect.Method
 import java.util.concurrent.TimeUnit
 
@@ -164,24 +166,30 @@ class EventContext(
         val jda: JDA,
         val command: RootCommand
 ) {
-    fun runChecks(user: User, channel: MessageChannel): Boolean {
+    fun runChecks(user: User, channel: MessageChannel, cooldown: Double = command.userCooldown): Boolean {
+        val timeCooldown = TimeUnit.SECONDS.toMillis(cooldown.toLong())
+
         val userCooldowns = listener.userCooldowns
         val specificUser = userCooldowns[user.idLong] ?: run {
             userCooldowns[user.idLong] = mutableMapOf(
-                    command.name to System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(command.userCooldown.toLong())
+                    command.name to System.currentTimeMillis() + timeCooldown
             )
             return true
         }
         (specificUser[command.name] ?: run {
-            specificUser[command.name] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(command.userCooldown.toLong())
+            specificUser[command.name] = System.currentTimeMillis() + timeCooldown
             return true
         }).apply {
-            if (System.currentTimeMillis() > this) {
-                channel.sendMessage("* Wait before you can do this again.").queue()
+            if (this > System.currentTimeMillis()) {
+                val remaining = (this - System.currentTimeMillis())
+                channel.sendMessage(
+                        EmbedBuilder().setColor(Color(204, 36, 24)).setAuthor(user.name, null, user.avatarUrl)
+                                .setTitle("Cooldown for", null)
+                                .setDescription(remaining.formatTimeDiff()).build()).queue()
                 return false
             }
 
-            specificUser[command.name] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(command.userCooldown.toLong())
+            specificUser[command.name] = System.currentTimeMillis() + timeCooldown
             return true
         }
         return true
