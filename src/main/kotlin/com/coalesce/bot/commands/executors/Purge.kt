@@ -19,7 +19,8 @@ class Purge {
         if (context.args.isEmpty()) {
             context(context.author, "\n__**Usage:**__\n" +
                     "`!purge msg <id>` Deletes message based on its id\n" +
-                    "`!purge user <userId> [optional : amount]` Deletes amount messages from user specified")
+                    "`!purge user <userId> [optional : amount]` Deletes amount messages from user specified\n" +
+                    "`!purge search <search query>` Deletes the message with the search query specified (Based on search feature in discord)")
         }
     }
 
@@ -68,16 +69,18 @@ class Purge {
         if (provided != null) amount = Math.min(MAX_BULK_SIZE, provided)
 
         purge(Predicate { it.author != null && it.author.idLong == member.user.idLong }, channel, amount)
-
     }
 
     fun purge(check: Predicate<Message>, channel: TextChannel, amount: Int) {
         channel.history.retrievePast(MAX_BULK_SIZE).queue {
-            if (it.isEmpty()) channel.sendMessage("* No history found!").queue()
+            if (it.isEmpty()) {
+                channel.sendMessage("* No history found!").queue()
+                return@queue
+            }
             var removed = 0
 
             it.forEach {
-                if (!check.test(it) && removed >= amount) return@forEach
+                if (!check.test(it) || removed >= amount) return@forEach
                 it.delete().queue()
                 ++ removed
             }
