@@ -1,5 +1,6 @@
 package com.coalesce.bot
 
+import com.coalesce.bot.chatbot.ChatBot
 import com.coalesce.bot.commands.Listener
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
@@ -37,6 +38,7 @@ class Main private constructor() {
     lateinit var listener: Listener
     lateinit var githubSecret: String
     lateinit var repManager: ReputationManager
+    lateinit var chatBot: ChatBot
     val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String) {
@@ -53,11 +55,12 @@ class Main private constructor() {
                 setStatus(OnlineStatus.DO_NOT_DISTURB)
         }.buildBlocking()
 
-
         tryLog("Failed to load Reputation Manager") { repManager = ReputationManager() }
         tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
+        chatBot = ChatBot(jda)
+
         injector = Guice.createInjector(Injects(this, punishments))
-        listener = Listener(jda)
+        listener = Listener(jda, chatBot)
         listener.register()
         jda.addEventListener(listener)
 

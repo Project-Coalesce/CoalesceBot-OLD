@@ -1,6 +1,7 @@
 package com.coalesce.bot.commands
 
 import com.coalesce.bot.Main
+import com.coalesce.bot.chatbot.ChatBot
 import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
 import com.coalesce.bot.permissions.RankManager
@@ -25,7 +26,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
-class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable, Embeddables {
+class Listener internal constructor(val jda: JDA, val chatbot: ChatBot) : ListenerAdapter(), Runnable, Embeddables {
     val registry = CommandRegistry()
     val checks = mutableSetOf<Predicate<CommandContext>>()
     val perms = RankManager(jda)
@@ -105,12 +106,12 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
-        if (event.message.rawContent.startsWith(jda.selfUser.asMention)) {
-            val quoted = event.message.rawContent.substring(jda.selfUser.asMention.length)
-            quotedFile.writeText("\n$quoted")
-
-            val response = "We're working on the chat bot. Try again later!"
-            event.message.channel.sendMessage("${event.author.asMention}: $response")
+        if (event.message.isMentioned(jda.selfUser)) {
+            val message = chatbot.getMessage(event.message)
+            event.channel.sendMessage(
+                    if (message.isEmpty()) "* I couldn't find any reasonable answer, whoops!"
+                    else message
+            )
         }
 
         if (!event.message.rawContent.startsWith(commandPrefix)) {
