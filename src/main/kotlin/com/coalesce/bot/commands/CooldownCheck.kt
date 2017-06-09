@@ -28,7 +28,6 @@ class CooldownCheck(val listener: Listener): Predicate<CommandContext>, Embeddab
             val current = listener.cooldowns[identifier]
             if (current != null) {
                 if (current > System.currentTimeMillis()) {
-                    // TODO: Prettify current seconds
                     val remaining = (current.toLong() - System.currentTimeMillis())
                     it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
                             .setTitle("Global Cooldown for", null)

@@ -24,7 +24,6 @@ class Lmgtfy {
             context(context.author, "Please specify a phrase to print!")
             return
         }
-
         val arguments: Array<String>
         var user: User? = context.message.mentionedUsers.firstOrNull()
         if (user == null) {
