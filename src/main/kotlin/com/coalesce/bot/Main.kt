@@ -1,5 +1,6 @@
 package com.coalesce.bot
 
+import com.coalesce.bot.commands.executors.ChatBot
 import com.coalesce.bot.commands.Listener
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
@@ -22,7 +23,13 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ThreadLocalRandom
 import java.util.regex.Pattern
 
-val REVISION = 2
+/**
+ * VERSION
+ *
+ * First digit = number of release
+ * Second  "   = number of the patch
+ * */
+val VERSION = "1.3"
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -37,6 +44,7 @@ class Main private constructor() {
     lateinit var listener: Listener
     lateinit var githubSecret: String
     lateinit var repManager: ReputationManager
+    lateinit var chatBot: ChatBot
     val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String) {
@@ -53,11 +61,12 @@ class Main private constructor() {
                 setStatus(OnlineStatus.DO_NOT_DISTURB)
         }.buildBlocking()
 
-
         tryLog("Failed to load Reputation Manager") { repManager = ReputationManager() }
         tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
+        chatBot = ChatBot(jda)
+
         injector = Guice.createInjector(Injects(this, punishments))
-        listener = Listener(jda)
+        listener = Listener(jda, chatBot)
         listener.register()
         jda.addEventListener(listener)
 
@@ -70,7 +79,7 @@ class Main private constructor() {
 
         System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById("315934708879982592"))))
         System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById("315934723354656768"))))
-        println("Outputting messages to this channel. Running CoalesceBot revision $REVISION.")
+        println("Outputting messages to this channel. Running CoalesceBot version $VERSION.")
     }
 
     companion object {

@@ -1,5 +1,6 @@
 package com.coalesce.bot.commands
 
+import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.Colour
 import com.coalesce.bot.utilities.formatTimeDiff
 import net.dv8tion.jda.core.EmbedBuilder
@@ -183,9 +184,13 @@ class EventContext(
             if (this > System.currentTimeMillis()) {
                 val remaining = (this - System.currentTimeMillis())
                 channel.sendMessage(
-                        EmbedBuilder().setColor(Color(204, 36, 24)).setAuthor(user.name, null, user.avatarUrl)
-                                .setTitle("Cooldown for", null)
-                                .setDescription(remaining.formatTimeDiff()).build()).queue()
+                        EmbedBuilder().apply {
+                            setColor(Color(204, 36, 24))
+                            setAuthor(user.name, null, user.avatarUrl)
+                            setTitle("Cooldown for", null)
+                            setDescription(remaining.formatTimeDiff())
+                        }.build())
+                        .queue{ it.delete().queueAfter(10, TimeUnit.SECONDS) }
                 return false
             }
 

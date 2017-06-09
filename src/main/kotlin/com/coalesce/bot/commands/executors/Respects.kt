@@ -11,14 +11,12 @@ import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
-import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.io.DataOutputStream
 import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
-import java.util.function.Consumer
 
 enum class RespectReactions(val message: String,
                             val amount: Double,

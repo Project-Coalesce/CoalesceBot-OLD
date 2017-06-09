@@ -3,7 +3,10 @@ package com.coalesce.bot.commands.executors
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
+import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.User
+import java.awt.Color
+import java.util.concurrent.TimeUnit
 
 class Lmgtfy {
     @RootCommand(
@@ -13,29 +16,30 @@ class Lmgtfy {
             permission = "commands.lmgtfy",
             usage = "<user : optional> <phrase>",
             globalCooldown = 5.0,
-            type = CommandType.INFORMATION
+            type = CommandType.FUN
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
             context(context.author, "Please specify a phrase to print!")
             return
         }
-
-        if (context.message.mentionsEveryone() || context.message.mentionedUsers.isNotEmpty() || context.message.mentionedRoles.isNotEmpty()) {
-            context(context.author, "You can't tag roles, users or @everyone.")
-            return
-        }
-
         val arguments: Array<String>
-        var member: User? = context.message.mentionedUsers.firstOrNull()
-        if (member == null) {
-            member = context.author
+        var user: User? = context.message.mentionedUsers.firstOrNull()
+        if (user == null) {
+            user = context.author
             arguments = context.args
         } else {
             arguments = context.args.copyOfRange(1, context.args.size)
         }
 
         val phrase = arguments.joinToString(separator = "+")
-        context(member, "Have you tried Googling it? http://lmgtfy.com/?q=$phrase")
+        context.channel.sendMessage(
+                EmbedBuilder().apply {
+                    setColor(Color.ORANGE)
+                    setTitle("Have you tried Googling it?", "http://lmgtfy.com/?q=$phrase")
+                    //setAuthor(user.name, null, context.author.avatarUrl)
+                    setDescription("Click the title for more details")
+                }.setAuthor(user.name, null, user.avatarUrl).build()
+        ).queue{ it.delete().queueAfter(25, TimeUnit.SECONDS) }
     }
 }
