@@ -1,6 +1,6 @@
 package com.coalesce.bot
 
-import com.coalesce.bot.chatbot.ChatBot
+import com.coalesce.bot.commands.executors.ChatBot
 import com.coalesce.bot.commands.Listener
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager

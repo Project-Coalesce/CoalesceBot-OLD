@@ -425,6 +425,17 @@ public class ChatbotBrain {
         }
     }
 
+    public void clear() {
+        observedWords.clear();
+        wordFrequency.clear();
+        wordFrequencyLookup.clear();
+        lastSentence.clear();
+
+        decayRate = 0.10;
+        wordCount = 0;
+        wordValues = 0.0;
+    }
+
     @Override
     public String toString() {
         //TODO make something that actually works

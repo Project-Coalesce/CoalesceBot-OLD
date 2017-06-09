@@ -4,7 +4,6 @@ import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import net.dv8tion.jda.core.EmbedBuilder
-import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
 import java.awt.Color
 import java.util.concurrent.TimeUnit

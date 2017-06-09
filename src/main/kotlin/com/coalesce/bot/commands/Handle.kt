@@ -1,7 +1,7 @@
 package com.coalesce.bot.commands
 
 import com.coalesce.bot.Main
-import com.coalesce.bot.chatbot.ChatBot
+import com.coalesce.bot.commands.executors.ChatBot
 import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
 import com.coalesce.bot.permissions.RankManager
