@@ -20,7 +20,20 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
+enum class RespectReactions(val message: String,
+                            val amount: Double,
+                            val delay: Double,
+                            val rating: String,
+                            val emoteName: Optional<String> = Optional.empty(),
+                            val emoteId: Optional<Long> = Optional.empty()) {
+    NOT_DANK_ENOUGH("Not Dank Enough", -1.0, 1260.0, "0/10", emoteId = Optional.of(304043388523511808L)),
+    FUNNY("Funny 🥚🥚🇩🇪", 1.0, 860.0, "6.9/10", emoteName = Optional.of("😂")),
+    LIT("Lit Fam", 2.0, 720.0, "8.5/10", emoteName = Optional.of("🔥")),
+    DANK("Dank", 3.0, 1260.0, "10/10", emoteId = Optional.of(318557118791680000L))
+}
+
 class Respects @Inject constructor(val bot: Main) {
+
     @RootCommand(
             name = "Respects",
             aliases = arrayOf("f", "nahusdream"),
@@ -37,24 +50,30 @@ class Respects @Inject constructor(val bot: Main) {
 
     @JDAListener
     fun react(event: MessageReactionAddEvent, context: EventContext) {
-        if (event.channel.idLong == 308791021343473675L && event.reaction.guild != null && !event.reaction.emote.emote.isManaged ) {
-            if (event.reaction.emote.idLong == 318557118791680000L) {
-                if (context.runChecks(event.user, event.channel!!, 360.0)) {
-                    event.channel.getMessageById(event.messageId).queue {
-                        dank(event.guild, event.channel!!, event.user, it.author, event.jda)
+        if (event.channel.idLong == 308791021343473675L) {
+            RespectReactions.values().forEach {
+                if (it.emoteName.isPresent && event.reaction.emote.name == it.emoteName.get() && context.runChecks(event.user, event.channel!!, it.delay)) {
+                    event.channel.getMessageById(event.messageId).queue { message ->
+                        dank(event.channel!!, event.user, message.author, event.jda, it)
                     }
+                    return
                 }
-            } else if (event.reaction.emote.idLong == 304043388523511808L) {
-                if (context.runChecks(event.user, event.channel!!, 360.0)) {
-                    event.channel.getMessageById(event.messageId).queue {
-                        notDankEnough(event.guild, event.channel!!, event.user, it.author, event.jda)
+            }
+
+            if (event.reaction.guild != null && !event.reaction.emote.emote.isManaged) {
+                RespectReactions.values().forEach {
+                    if (it.emoteId.isPresent && it.emoteId.get() == event.reaction.emote.idLong && context.runChecks(event.user, event.channel!!, it.delay)) {
+                        event.channel.getMessageById(event.messageId).queue { message ->
+                            dank(event.channel!!, event.user, message.author, event.jda, it)
+                        }
+                        return
                     }
                 }
             }
         }
     }
 
-    private fun dank(guild: Guild, channel: net.dv8tion.jda.core.entities.MessageChannel, from: User, to: User, jda: JDA) {
+    private fun dank(channel: net.dv8tion.jda.core.entities.MessageChannel, from: User, to: User, jda: JDA, reaction: RespectReactions) {
         if (from == to) {
             channel.sendMessage("* You see, doing that is what makes you not dank.").queue()
             return
@@ -63,21 +82,8 @@ class Respects @Inject constructor(val bot: Main) {
             channel.sendMessage("* My shit's fucking lit ain't it").queue()
             return
         }
-        transaction(to, 1.0)
-        channel.sendMessage("${to.asMention}: Dank - 10/10 ${from.asMention} **+1 respect**").queue()
-    }
-
-    private fun notDankEnough(guild: Guild, channel: net.dv8tion.jda.core.entities.MessageChannel, from: User, to: User, jda: JDA) {
-        if (from == to) {
-            channel.sendMessage("* You such an emo kid.").queue()
-            return
-        }
-        if (to == jda.selfUser) {
-            channel.sendMessage("* Don't you dare say that about my messages.").queue()
-            return
-        }
-        transaction(to, -1.0)
-        channel.sendMessage("${to.asMention}: Not Dank Enough - 0/10 ${from.asMention} **-1 respect**").queue()
+        transaction(to, reaction.amount)
+        channel.sendMessage("${to.asMention}: ${reaction.name} - ${reaction.rating} ${from.asMention} **+${reaction.amount.toInt()} respect**").queue()
     }
 
     private fun transaction(user: User, amount: Double) {
