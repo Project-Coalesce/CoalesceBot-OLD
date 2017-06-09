@@ -25,7 +25,7 @@ enum class RespectReactions(val message: String,
                             val emoteName: Optional<String> = Optional.empty(),
                             val emoteId: Optional<Long> = Optional.empty()) {
     NOT_DANK_ENOUGH("Not Dank Enough", -1.0, 1260.0, "0/10", emoteId = Optional.of(304043388523511808L)),
-    FUNNY("Funny 🥚🥚🇩🇪", 1.0, 860.0, "6.9/10", emoteName = Optional.of("😂")),
+    FUNNY("Funny 🥚🥚🇩 🇪", 1.0, 860.0, "6.9/10", emoteName = Optional.of("😂")),
     LIT("Lit Fam", 2.0, 720.0, "8.5/10", emoteName = Optional.of("🔥")),
     DANK("Dank", 3.0, 1260.0, "10/10", emoteId = Optional.of(318557118791680000L))
 }
