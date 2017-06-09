@@ -11,11 +11,14 @@ import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 class Reputation @Inject constructor(val bot: Main, val reputation: ReputationManager) {
+    private val messagesMap = mutableMapOf<User, Int>()
+
     @RootCommand(
             name = "reputation",
             type = CommandType.INFORMATION,
@@ -37,6 +40,17 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         context.send(EmbedBuilder()
                 .setTitle("You have ${rep.total.toInt()} reputation.", null)
                 .addField("Recent", transactionsString.toString(), false))
+    }
+
+    @JDAListener
+    fun messageReceived(event: MessageReceivedEvent, context: EventContext) {
+        messagesMap[event.author] = (messagesMap[event.author] ?: 0) + 1
+
+        if (messagesMap[event.author]!! >= 25 + Math.max((reputation[event.author].total / 5.0).toInt(), 700)) {
+            reputation[event.author].transaction(ReputationTransaction("Award for sending ${messagesMap[event.author]} messages", 10.0),
+                    event.channel, event.guild.getMember(event.author))
+            messagesMap[event.author] = 0
+        }
     }
 
     @SubCommand(
