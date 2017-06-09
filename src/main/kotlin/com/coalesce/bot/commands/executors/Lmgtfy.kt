@@ -4,7 +4,9 @@ import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
+import java.awt.Color
 import java.util.concurrent.TimeUnit
 
 class Lmgtfy {
@@ -23,17 +25,23 @@ class Lmgtfy {
             return
         }
 
-        if (context.message.mentionsEveryone() || context.message.mentionedUsers.isNotEmpty() || context.message.mentionedRoles.isNotEmpty()) {
-            context(context.author, "You can't tag roles, users or everyone.")
-            return
+        val arguments: Array<String>
+        var user: User? = context.message.mentionedUsers.firstOrNull()
+        if (user == null) {
+            user = context.author
+            arguments = context.args
+        } else {
+            arguments = context.args.copyOfRange(1, context.args.size)
         }
-        val phrase = context.args.joinToString(separator = "+")
+
+        val phrase = arguments.joinToString(separator = "+")
         context.channel.sendMessage(
                 EmbedBuilder().apply {
+                    setColor(Color.ORANGE)
                     setTitle("Have you tried Googling it?", "http://lmgtfy.com/?q=$phrase")
-                    setAuthor(context.author.name, null, context.author.avatarUrl)
+                    //setAuthor(user.name, null, context.author.avatarUrl)
                     setDescription("Click the title for more details")
-                }.build()
+                }.setAuthor(user.name, null, user.avatarUrl).build()
         ).queue{ it.delete().queueAfter(25, TimeUnit.SECONDS) }
     }
 }

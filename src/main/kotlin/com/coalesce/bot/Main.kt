@@ -23,7 +23,13 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ThreadLocalRandom
 import java.util.regex.Pattern
 
-val REVISION = 2
+/**
+ * VERSION
+ *
+ * First digit = number of release
+ * Second  "   = number of the patch
+ * */
+val VERSION = "1.3"
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -73,7 +79,7 @@ class Main private constructor() {
 
         System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById("315934708879982592"))))
         System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById("315934723354656768"))))
-        println("Outputting messages to this channel. Running CoalesceBot revision $REVISION.")
+        println("Outputting messages to this channel. Running CoalesceBot version $VERSION.")
     }
 
     companion object {
