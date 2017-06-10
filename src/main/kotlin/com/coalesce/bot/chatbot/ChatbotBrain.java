@@ -318,8 +318,7 @@ public class ChatbotBrain {
      *    sentences are constructed making heavy use of this feature
      */
     public String buildSentence() {
-        int maxDepth = NOMINAL_LENGTH+
-                random.nextInt(MAX_LENGTH - NOMINAL_LENGTH);
+        int maxDepth = NOMINAL_LENGTH + random.nextInt(MAX_LENGTH - NOMINAL_LENGTH);
         ChatSentence cs = new ChatSentence(startWord);
         // We don't want to take too long to "think of an answer"
         long timeout = System.currentTimeMillis() + TIMEOUT;

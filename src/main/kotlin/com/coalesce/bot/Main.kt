@@ -1,7 +1,8 @@
 package com.coalesce.bot
 
-import com.coalesce.bot.commands.executors.ChatBot
+import com.coalesce.bot.chatbot.ChatbotBrain
 import com.coalesce.bot.commands.Listener
+import com.coalesce.bot.commands.executors.ChatBot
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
@@ -16,6 +17,7 @@ import com.google.inject.Injector
 import net.dv8tion.jda.core.*
 import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Guild
+import net.dv8tion.jda.core.entities.Message
 import java.io.File
 import java.io.PrintStream
 import java.util.concurrent.ExecutorService
@@ -63,10 +65,9 @@ class Main private constructor() {
 
         tryLog("Failed to load Reputation Manager") { repManager = ReputationManager() }
         tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
-        chatBot = ChatBot(jda)
 
         injector = Guice.createInjector(Injects(this, punishments))
-        listener = Listener(jda, chatBot)
+        listener = Listener(jda)
         listener.register()
         jda.addEventListener(listener)
 
@@ -113,3 +114,11 @@ val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!
 val temperatureCelsius = Pattern.compile("C*", Pattern.CASE_INSENSITIVE)!!
 val temperatureFahrenheit = Pattern.compile("F*", Pattern.CASE_INSENSITIVE)!!
 val canDelete: (Guild) -> Boolean = { it.selfMember.hasPermission(Permission.MESSAGE_MANAGE) }
+val chatbot = ChatbotBrain()
+
+fun getChatbotMessage(message: Message, jda: JDA): String? {
+    val stripped = message.strippedContent.replace(jda.selfUser.asMention, "")
+    chatbot.decay()
+    chatbot.digestSentence(stripped)
+    return chatbot.buildSentence()
+}

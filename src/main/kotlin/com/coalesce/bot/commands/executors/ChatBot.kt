@@ -1,21 +1,9 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.chatbot.ChatbotBrain
+import com.coalesce.bot.chatbot
 import com.coalesce.bot.commands.*
-import com.google.inject.Inject
-import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.entities.Message
 
-class ChatBot @Inject constructor(val jda: JDA) {
-
-    val brain = ChatbotBrain()
-
-    fun getMessage(message: Message): String {
-        val stripped = message.strippedContent.replace(jda.selfUser.asMention, "")
-        brain.decay()
-        brain.digestSentence(stripped)
-        return brain.buildSentence()
-    }
+class ChatBot {
 
     @RootCommand(
             name = "ChatBot",
@@ -36,7 +24,7 @@ class ChatBot @Inject constructor(val jda: JDA) {
             permission = "commands.chatbot.clear"
     )
     fun clear(context: SubCommandContext) {
-        brain.clear()
+        chatbot.clear()
         context(context.author, "Brain cleared")
     }
 

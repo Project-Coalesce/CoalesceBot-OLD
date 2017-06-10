@@ -1,11 +1,8 @@
 package com.coalesce.bot.commands
 
-import com.coalesce.bot.Main
+import com.coalesce.bot.*
 import com.coalesce.bot.commands.executors.ChatBot
-import com.coalesce.bot.commandPrefix
-import com.coalesce.bot.commandPrefixLen
 import com.coalesce.bot.permissions.RankManager
-import com.coalesce.bot.quotedFile
 import com.coalesce.bot.utilities.tryLog
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.events.Event
@@ -26,7 +23,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
-class Listener internal constructor(val jda: JDA, val chatbot: ChatBot) : ListenerAdapter(), Runnable, Embeddables {
+class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable, Embeddables {
     val registry = CommandRegistry()
     val checks = mutableSetOf<Predicate<CommandContext>>()
     val perms = RankManager(jda)
@@ -107,11 +104,8 @@ class Listener internal constructor(val jda: JDA, val chatbot: ChatBot) : Listen
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.message.isMentioned(jda.selfUser)) {
-            val message = chatbot.getMessage(event.message)
-            event.channel.sendMessage(
-                    if (message.isEmpty()) "* I couldn't find any reasonable answer, whoops!"
-                    else message
-            )
+            getChatbotMessage(event.message, jda).apply { event.channel.sendMessage("${event.message.author.asMention}: " +
+                    if(this!!.isEmpty()) "* Failed to find message" else this).queue() }
         }
 
         if (!event.message.rawContent.startsWith(commandPrefix)) {
