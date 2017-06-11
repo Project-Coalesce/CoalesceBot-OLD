@@ -42,10 +42,7 @@ class RemindMe {
             return
         }
 
-        if (!context.author.hasPrivateChannel()) {
-            mention("You must enable private messages!")
-            return
-        }
+        if (!context.author.hasPrivateChannel()) context.author.openPrivateChannel()
 
         context(EmbedBuilder().apply {
             setTitle("Reminder", null)

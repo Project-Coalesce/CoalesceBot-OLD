@@ -36,7 +36,10 @@ class Kick @Inject constructor(val bot: Main) {
         context.message.guild.controller.kick(user.id)
 
         if (description == null || description.isEmpty()) return
-        if (user.hasPrivateChannel()) user.privateChannel.sendMessage(
+
+        if (!user.hasPrivateChannel()) user.openPrivateChannel()
+
+        user.privateChannel.sendMessage(
                 EmbedBuilder().apply {
                     setAuthor(context.author.name, null, context.author.avatarUrl)
                     setColor(Color.RED)
@@ -44,6 +47,7 @@ class Kick @Inject constructor(val bot: Main) {
                     setFooter("Automatically built message, contact a Moderator for more info", null)
                 }.build()
         ).queue()
+
         context.message.guild.publicChannel
                 .sendMessage("The user ${user.name} has been kicked for $description!").queue()
     }
