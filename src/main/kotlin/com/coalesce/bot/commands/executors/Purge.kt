@@ -19,7 +19,7 @@ class Purge {
         if (context.args.isEmpty()) {
             context(context.author, "\n**Usage:**\n" +
                     "`!purge msg <id>` Deletes message based on its id\n" +
-                    "`!purge user <userId> <channelId> [optional : amount]` Deletes amount messages from user specified\n" +
+                    "`!purge user <user> <channel> [optional : amount]` Deletes amount messages from user specified\n" +
                     "`!purge search <search query>` Deletes the message with the search query specified (Based on search feature in discord)")
         }
     }
@@ -60,13 +60,15 @@ class Purge {
 
         val guild = context.jda.getGuildById(COALESCE_GUILD)
 
-        val member = guild.getMemberById(context.args[0]) ?: run { mention("No user could be found with that id!"); return }
-        val channel = guild.getTextChannelById(context.args[1]) ?: run { mention("No channel could be found with that id!"); return }
+        val member = guild.getMembersByName(context.args[0], true)[0] ?:
+                guild.getMemberById(context.args[0]) ?:
+                run { mention("No user could be found with that name/id!"); return }
+        val channel = guild.getTextChannelsByName(context.args[0], true)[0] ?:
+                guild.getTextChannelById(context.args[0]) ?:
+                run { mention("No channel could be found with that name/id!"); return }
 
-        var amount: Int = 1
-
-        val provided = context.args[2].toIntOrNull()
-        if (provided != null) amount = Math.min(MAX_BULK_SIZE, provided)
+        var amount = context.args[2].toIntOrNull() ?: 1
+        amount = Math.min(MAX_BULK_SIZE, amount)
 
         purge(Predicate { it.author != null && it.author.idLong == member.user.idLong }, channel, amount)
     }
