@@ -10,6 +10,13 @@ public class ChatbotBrain {
     public static final ChatWord END_WORD = new ChatWord("\n");
 
     /**
+     * EVERYTHING GOES WRONG AND THE WORLD IS CHAOS
+     * WHAT ARE WE GONNA DO?
+     *
+     * PANIC BUTTON TO THE RESCUE!
+     */
+    private boolean panicButton;
+    /**
      * A tracking of all observed words. Keyed by the String version of
      * the ChatWord, to allow uniqueness across all ChatWords
      */
@@ -434,6 +441,12 @@ public class ChatbotBrain {
         wordCount = 0;
         wordValues = 0.0;
     }
+
+    /* G E T T E R */
+    public boolean isDisabled() { return panicButton; }
+
+    /* Gotta catch 'em all */
+    public void setDisabled(boolean disabled) { this.panicButton = disabled; }
 
     @Override
     public String toString() {

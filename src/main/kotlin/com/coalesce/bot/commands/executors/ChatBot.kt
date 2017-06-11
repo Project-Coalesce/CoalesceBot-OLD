@@ -15,7 +15,8 @@ class ChatBot {
         if (context.args.isEmpty()) {
             context(context.author, "\n**Usage:**\n" +
                     "`!chatbot clear` Clear the brain\n" +
-                    "`!chatbot stats` See general stats\n")
+                    "`!chatbot stats` See general stats\n" +
+                    "`!chatbot disable` Uh... If everything goes wrong we have a panic button")
         }
     }
 
@@ -34,5 +35,15 @@ class ChatBot {
     )
     fun stats(context: SubCommandContext) {
         //TODO show some lewd stats
+    }
+
+    @SubCommand(
+            name = "disable",
+            permission = "commands.chatbot.disable"
+    )
+    fun disable(context: SubCommandContext) {
+        val value = chatbot.isDisabled
+        chatbot.isDisabled = !value
+        context("** Panic button has been set to: ${value.toString().capitalize()}")
     }
 }

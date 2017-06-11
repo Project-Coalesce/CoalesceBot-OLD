@@ -104,6 +104,8 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.message.isMentioned(jda.selfUser)) {
+            if (chatbot.isDisabled) return
+
             getChatbotMessage(event.message, jda).apply { event.channel.sendMessage("${event.message.author.asMention}: " +
                     if(this!!.isEmpty()) "* Failed to find message" else this).queue() }
         }

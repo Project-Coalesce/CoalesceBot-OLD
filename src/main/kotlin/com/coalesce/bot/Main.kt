@@ -46,7 +46,6 @@ class Main private constructor() {
     lateinit var listener: Listener
     lateinit var githubSecret: String
     lateinit var repManager: ReputationManager
-    lateinit var chatBot: ChatBot
     val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String) {
