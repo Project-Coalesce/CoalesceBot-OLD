@@ -49,7 +49,7 @@ class Respects @Inject constructor(val bot: Main) {
     fun react(event: MessageReactionAddEvent, context: EventContext) {
         if (event.user.isBot) return
 
-        if (event.channel.idLong == 308791021343473675L) {
+        if (event.channel.idLong == 308791021343473675L/* #memes */) {
             RespectReactions.values().forEach {
                 if (it.emoteName.isPresent && event.reaction.emote.name == it.emoteName.get() && context.runChecks(event.user, event.channel!!, it.delay)) {
                     event.channel.getMessageById(event.messageId).queue { message ->

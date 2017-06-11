@@ -115,25 +115,19 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
         else if (!event.message.attachments.isEmpty() && event.channel.idLong == 308791021343473675L) {
             RespectReactions.values().forEach {
                 val emoji = it.emoteName.orElse(null) ?: it.emoteId.get().toString()
-                val emote = event.guild.getEmoteById(emoji.toLongOrNull() ?: 1L)
+                val emote = event.guild.getEmoteById(emoji.toLongOrNull() ?: 1L/* Holy shit this looks ugly */)
                 if (emote != null) event.message.addReaction(emote).queue()
                 else event.message.addReaction(emoji).queue()
             }
         }
-
-        if (!event.message.rawContent.startsWith(commandPrefix)) {
+        else if (!event.message.rawContent.startsWith(commandPrefix)) {
             return
         }
         val command = event.message.rawContent.substring(commandPrefixLen)
-        var inputStr: String? = null
-
         try {
             val (input, method, third) = registry[command, event]
-            inputStr = input
             val (context, clazz) = third
             if (method == null || context == null || clazz == null) {
-                //event.message.addReaction("❔").queue()
-                //I only removed it because proxi asked for it and he's such a nice guy
                 return
             }
 
