@@ -29,5 +29,6 @@ class Broadcast: Embeddables {
         context.jda.guilds.forEach {
             it.publicChannel.sendMessage(message.build()).queue()
         }
+        context("Message broadcast to all guilds!")
     }
 }

@@ -18,7 +18,7 @@ class MessageChannel {
             context(context.author, text)
         }
 
-        if (context.args.isEmpty() || context.args.size < 1) {
+        if (context.args.isEmpty()) {
             mention("Usage: !sendch <channel> <text>")
             return
         }
@@ -26,5 +26,6 @@ class MessageChannel {
         val channel = context.jda.getTextChannelById(context.args[0])
                 ?: run { mention("No channel could be found with that id!"); return }
         channel.sendMessage(context.args.copyOfRange(1, context.args.size).joinToString(separator = " "))
+        mention("Successfully sent message to ${channel.asMention}")
     }
 }
