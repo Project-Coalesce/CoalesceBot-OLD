@@ -6,6 +6,8 @@ import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import com.google.inject.Inject
+import net.dv8tion.jda.core.EmbedBuilder
+import java.awt.Color
 import java.util.*
 
 class Kick @Inject constructor(val bot: Main) {
@@ -29,12 +31,20 @@ class Kick @Inject constructor(val bot: Main) {
         val user = context.message.mentionedUsers.first()
         var description: String? = null
         if (context.args.size > 1) {
-            val desc = StringBuilder()
-            Arrays.asList(context.args).subList(1, context.args.size).forEach { desc.append(it).append(' ') }
-            description = desc.toString().trim()
+            description = context.args.copyOfRange(1, context.args.size).joinToString(separator = " ")
         }
-        // TODO: Private message the description to the user meanwhile broadcast it in the public channel of the guild.
-
         context.message.guild.controller.kick(user.id)
+
+        if (description == null || description.isEmpty()) return
+        if (user.hasPrivateChannel()) user.privateChannel.sendMessage(
+                EmbedBuilder().apply {
+                    setAuthor(context.author.name, null, context.author.avatarUrl)
+                    setColor(Color.RED)
+                    setDescription("$description\n")
+                    setFooter("Automatically built message, contact a Moderator for more info", null)
+                }.build()
+        )
+        context.jda.getGuildById(COALESCE_GUILD).publicChannel
+                .sendMessage("The user ${user.name} has been kicked for $description!")
     }
 }

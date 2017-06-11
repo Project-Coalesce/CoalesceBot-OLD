@@ -37,7 +37,6 @@ class Lmgtfy {
                 EmbedBuilder().apply {
                     setColor(Color.ORANGE)
                     setTitle("Have you tried Googling it?", "http://lmgtfy.com/?q=$phrase")
-                    //setAuthor(user.name, null, context.author.avatarUrl)
                     setDescription("Click the title for more details")
                 }.setAuthor(user.name, null, user.avatarUrl).build()
         ).queue{ it.delete().queueAfter(25, TimeUnit.SECONDS) }
