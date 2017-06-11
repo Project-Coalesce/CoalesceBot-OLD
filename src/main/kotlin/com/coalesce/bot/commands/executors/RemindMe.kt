@@ -4,6 +4,7 @@ import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.entities.PrivateChannel
 import java.awt.Color
 import java.util.concurrent.TimeUnit
 
@@ -42,7 +43,9 @@ class RemindMe {
             return
         }
 
-        if (!context.author.hasPrivateChannel()) context.author.openPrivateChannel()
+        var privateChannel: PrivateChannel
+        if (!context.author.hasPrivateChannel()) privateChannel = context.author.openPrivateChannel().complete()
+        else privateChannel = context.author.privateChannel
 
         context(EmbedBuilder().apply {
             setTitle("Reminder", null)
@@ -50,8 +53,9 @@ class RemindMe {
             setColor(Color.GREEN)
             setDescription("I'll be reminding you in $time ${timeUnit.toString().toLowerCase()}")
         })
-        context.author.privateChannel.sendMessage(
+        privateChannel.sendMessage(
                 EmbedBuilder().apply {
+                    setColor(Color.CYAN)
                     setTitle("Reminder from $time ${timeUnit.toString().toLowerCase()} ago", null)
                     setDescription(message)
                 }.build()

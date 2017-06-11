@@ -9,7 +9,6 @@ import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
@@ -48,6 +47,8 @@ class Respects @Inject constructor(val bot: Main) {
 
     @JDAListener
     fun react(event: MessageReactionAddEvent, context: EventContext) {
+        if (event.user.isBot) return
+
         if (event.channel.idLong == 308791021343473675L) {
             RespectReactions.values().forEach {
                 if (it.emoteName.isPresent && event.reaction.emote.name == it.emoteName.get() && context.runChecks(event.user, event.channel!!, it.delay)) {

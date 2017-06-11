@@ -1,10 +1,13 @@
 package com.coalesce.bot.commands
 
-import com.coalesce.bot.*
-import com.coalesce.bot.commands.executors.ChatBot
+import com.coalesce.bot.Main
+import com.coalesce.bot.commandPrefix
+import com.coalesce.bot.commandPrefixLen
+import com.coalesce.bot.commands.executors.RespectReactions
 import com.coalesce.bot.permissions.RankManager
 import com.coalesce.bot.utilities.tryLog
 import net.dv8tion.jda.core.JDA
+import net.dv8tion.jda.core.entities.Emote
 import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent
@@ -104,10 +107,18 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.message.isMentioned(jda.selfUser)) {
-            if (chatbot.isDisabled) return
+            //if (chatbot.isDisabled) return
 
-            getChatbotMessage(event.message, jda).apply { event.channel.sendMessage("${event.message.author.asMention}: " +
-                    if(this!!.isEmpty()) "* Failed to find message" else this).queue() }
+            //getChatbotMessage(event.message, jda).apply { event.channel.sendMessage("${event.message.author.asMention}: " +
+                    //if(this!!.isEmpty()) "* Failed to find message" else this).queue() }
+        }
+        else if (!event.message.attachments.isEmpty() || event.message.attachments.size > 0) {
+            RespectReactions.values().forEach {
+                val emoji = it.emoteName.orElse(null) ?: it.emoteId.get().toString()
+                val emote = event.guild.getEmoteById(emoji.toLongOrNull() ?: 1L)
+                if (emote != null) event.message.addReaction(emote).queue()
+                else event.message.addReaction(emoji).queue()
+            }
         }
 
         if (!event.message.rawContent.startsWith(commandPrefix)) {

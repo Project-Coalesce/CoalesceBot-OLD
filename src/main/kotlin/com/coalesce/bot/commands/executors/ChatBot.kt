@@ -1,6 +1,6 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.chatbot
+//import com.coalesce.bot.chatbot
 import com.coalesce.bot.commands.*
 
 class ChatBot {
@@ -25,7 +25,7 @@ class ChatBot {
             permission = "commands.chatbot.clear"
     )
     fun clear(context: SubCommandContext) {
-        chatbot.clear()
+        //chatbot.clear()
         context(context.author, "Brain cleared")
     }
 
@@ -42,8 +42,8 @@ class ChatBot {
             permission = "commands.chatbot.disable"
     )
     fun disable(context: SubCommandContext) {
-        val value = chatbot.isDisabled
-        chatbot.isDisabled = !value
-        context("** Panic button has been set to: ${value.toString().capitalize()}")
+        //val value = chatbot.isDisabled
+        //chatbot.isDisabled = !value
+        //context("** Panic button has been set to: ${value.toString().capitalize()}")
     }
 }

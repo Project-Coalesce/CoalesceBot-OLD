@@ -1,8 +1,7 @@
 package com.coalesce.bot
 
-import com.coalesce.bot.chatbot.ChatbotBrain
+//import com.coalesce.bot.chatbot.ChatbotBrain
 import com.coalesce.bot.commands.Listener
-import com.coalesce.bot.commands.executors.ChatBot
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
@@ -113,11 +112,11 @@ val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!
 val temperatureCelsius = Pattern.compile("C*", Pattern.CASE_INSENSITIVE)!!
 val temperatureFahrenheit = Pattern.compile("F*", Pattern.CASE_INSENSITIVE)!!
 val canDelete: (Guild) -> Boolean = { it.selfMember.hasPermission(Permission.MESSAGE_MANAGE) }
-val chatbot = ChatbotBrain()
+//val chatbot = ChatbotBrain()
 
-fun getChatbotMessage(message: Message, jda: JDA): String? {
+/*fun getChatbotMessage(message: Message, jda: JDA): String? {
     val stripped = message.strippedContent.replace(jda.selfUser.asMention, "")
     chatbot.decay()
     chatbot.digestSentence(stripped)
     return chatbot.buildSentence()
-}
+}*/
