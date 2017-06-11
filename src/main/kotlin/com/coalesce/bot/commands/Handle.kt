@@ -112,7 +112,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
             //getChatbotMessage(event.message, jda).apply { event.channel.sendMessage("${event.message.author.asMention}: " +
                     //if(this!!.isEmpty()) "* Failed to find message" else this).queue() }
         }
-        else if (!event.message.attachments.isEmpty() || event.message.attachments.size > 0) {
+        else if (!event.message.attachments.isEmpty() && event.channel.idLong == 308791021343473675L) {
             RespectReactions.values().forEach {
                 val emoji = it.emoteName.orElse(null) ?: it.emoteId.get().toString()
                 val emote = event.guild.getEmoteById(emoji.toLongOrNull() ?: 1L)
