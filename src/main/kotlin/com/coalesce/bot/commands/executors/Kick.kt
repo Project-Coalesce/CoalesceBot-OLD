@@ -44,7 +44,7 @@ class Kick @Inject constructor(val bot: Main) {
                     setFooter("Automatically built message, contact a Moderator for more info", null)
                 }.build()
         )
-        context.jda.getGuildById(COALESCE_GUILD).publicChannel
+        context.message.guild.publicChannel
                 .sendMessage("The user ${user.name} has been kicked for $description!")
     }
 }
