@@ -43,8 +43,8 @@ class Kick @Inject constructor(val bot: Main) {
                     setDescription("$description\n")
                     setFooter("Automatically built message, contact a Moderator for more info", null)
                 }.build()
-        )
+        ).queue()
         context.message.guild.publicChannel
-                .sendMessage("The user ${user.name} has been kicked for $description!")
+                .sendMessage("The user ${user.name} has been kicked for $description!").queue()
     }
 }
