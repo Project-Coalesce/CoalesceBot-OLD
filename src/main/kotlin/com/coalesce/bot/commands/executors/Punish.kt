@@ -1,5 +1,6 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.Main
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
@@ -20,7 +21,7 @@ class Punish @Inject constructor(val bot: Main, val manager: PunishmentManager) 
     )
     fun execute(context: RootCommandContext) {
         // TODO: Support several guilds.
-        if (context.message.guild.idLong == 268187052753944576L &&
+        if (context.message.guild.idLong == COALESCE_GUILD &&
                 !context.message.guild.getMember(context.author).roles.contains(context.jda.getRoleById("268239031467376640"))) {
             context(context.author, "You're not permitted to perform this command.")
             return
