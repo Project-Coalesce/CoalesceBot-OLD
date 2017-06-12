@@ -135,13 +135,8 @@ class ValidateRequest @Inject constructor(val bot: Main) {
             requestsChannel.sendMessage(EmbedBuilder()
                     .setAuthor(user.name, htmlURL, user.avatarUrl?: "https://cdn.discordapp.com/attachments/300377073678286848/313174922677452804/theme_image_22.png")
                     .setTitle("Requested " + role.name, null)
-<<<<<<< HEAD
-                    .setDescription("Click on the author for github URL.")
-                    .setFooter("role ${user.id} ${role.id}", null)
-=======
                     .setDescription("Click on the author for GitHub URL.")
                     .setFooter("${user.id} ${role.id}", null)
->>>>>>> 258290f56e6035333e3b66dc85db82ddfe59995a
                     .build()).queue {
                 it.addReaction("✅").queue()
                 it.addReaction("❎").queue()
