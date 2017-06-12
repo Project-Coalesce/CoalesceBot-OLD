@@ -1,6 +1,7 @@
 package com.coalesce.bot.utilities
 
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 fun tryLog(message: String, func: () -> Unit) =
     try {
@@ -40,6 +41,14 @@ fun Long.formatTimeDiff(): String {
     if (minute > 0) return "$minute${ensurePlural(minute, "minute")} and $second${ensurePlural(second, "second")}"
     if (second > 0) return "$second${ensurePlural(second, "second")}"
     return timeDiff.toString() + "ms"
+}
+
+fun String.parseTimeUnit(): TimeUnit? {
+    try {
+        return TimeUnit.valueOf(this.toUpperCase())
+    } catch (ex: IllegalArgumentException) {
+        return null
+    }
 }
 
 fun String.parseDouble(): Double? {

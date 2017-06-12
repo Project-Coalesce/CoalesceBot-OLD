@@ -19,7 +19,7 @@ class ChannelMessage {
         }
 
         if (context.args.isEmpty()) {
-            mention("Usage: !sendch <channel> <text>")
+            mention("Usage: `!sendch <channel> <text>`")
             return
         }
 

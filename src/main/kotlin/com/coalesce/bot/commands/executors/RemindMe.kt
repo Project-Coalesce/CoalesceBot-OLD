@@ -3,6 +3,7 @@ package com.coalesce.bot.commands.executors
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.utilities.parseTimeUnit
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.PrivateChannel
 import java.awt.Color
@@ -29,12 +30,7 @@ class RemindMe {
         }
 
         val time = context.args[0].toIntOrNull() ?: run { mention("The time must be a number!"); return }
-
-        val timeUnit = try {
-            TimeUnit.valueOf(context.args[1].toUpperCase())
-        } catch (ex: IllegalArgumentException) {
-            mention("The time unit given is invalid!"); return
-        }
+        val timeUnit = context.args[1].parseTimeUnit() ?: run { mention("Invalid unit!"); return }
 
         val message = context.args.copyOfRange(2, context.args.size).joinToString(separator = " ")
 
