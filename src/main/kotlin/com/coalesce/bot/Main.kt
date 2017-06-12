@@ -16,7 +16,6 @@ import com.google.inject.Injector
 import net.dv8tion.jda.core.*
 import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Guild
-import net.dv8tion.jda.core.entities.Message
 import java.io.File
 import java.io.PrintStream
 import java.util.concurrent.ExecutorService
@@ -112,7 +111,6 @@ val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!
 val temperatureCelsius = Pattern.compile("C*", Pattern.CASE_INSENSITIVE)!!
 val temperatureFahrenheit = Pattern.compile("F*", Pattern.CASE_INSENSITIVE)!!
 val canDelete: (Guild) -> Boolean = { it.selfMember.hasPermission(Permission.MESSAGE_MANAGE) }
-<<<<<<< Updated upstream
 //val chatbot = ChatbotBrain()
 
 /*fun getChatbotMessage(message: Message, jda: JDA): String? {
@@ -121,6 +119,3 @@ val canDelete: (Guild) -> Boolean = { it.selfMember.hasPermission(Permission.MES
     chatbot.digestSentence(stripped)
     return chatbot.buildSentence()
 }*/
-=======
-val chatbot = ChatbotBrain()
->>>>>>> Stashed changes

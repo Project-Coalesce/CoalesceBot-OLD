@@ -1,8 +1,5 @@
 package com.coalesce.bot.utilities
 
-import com.coalesce.bot.chatbot
-import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.entities.Message
 import java.util.*
 
 fun tryLog(message: String, func: () -> Unit) =
@@ -25,13 +22,6 @@ fun <E> List<E>.subList(fromIndex: Int): List<E> = subList(fromIndex, size)
 fun <K, V> hashTableOf(): Hashtable<K, V> = Hashtable()
 
 fun <K, V> hashTableOf(vararg elements: Pair<K, V>): Hashtable<K, V> = Hashtable<K, V>(elements.size).apply { putAll(elements) }
-
-fun getChatbotMessage(message: Message, jda: JDA): String? {
-    val stripped = message.strippedContent.replace(jda.selfUser.asMention, "")
-    chatbot.decay()
-    chatbot.digestSentence(stripped)
-    return chatbot.buildSentence()
-}
 
 fun Long.formatTimeDiff(): String {
     fun ensurePlural(numb: Long, str: String): String {
