@@ -87,13 +87,14 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
 
     @JDAListener
     fun react(event: MessageReactionAddEvent, context: EventContext) {
-        if (event.reaction.emote.name == "✌") {
+        System.out.println(event.reaction.emote.name)
+        if (event.reaction.emote.name.contains("✌")) {
             if (context.runChecks(event.user, event.channel!!, 360.0)) {
                 event.channel.getMessageById(event.messageId).queue {
                     doThank(event.guild, event.channel!!, event.user, it.author, event.jda)
                 }
             }
-        } else if (event.reaction.emote.name == "👎") {
+        } else if (event.reaction.emote.name.contains("👎")) {
             if (context.runChecks(event.user, event.channel!!, 720.0)) {
                 event.channel.getMessageById(event.messageId).queue {
                     doUnrate(event.guild, event.channel!!, event.user, it.author, event.jda)
