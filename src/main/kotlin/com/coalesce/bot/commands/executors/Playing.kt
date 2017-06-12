@@ -20,7 +20,8 @@ class Playing {
             return
         }
         val status = context.args.joinToString(separator = " ")
-        context("* Game changed to: $status")
+        context("Now Playing **$status**")
+        @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET")
         context.jda.presence.game = Game.of(status)
     }
 }
