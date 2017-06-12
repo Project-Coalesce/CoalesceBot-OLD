@@ -2,6 +2,7 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Main
 import com.coalesce.bot.commands.*
+import com.coalesce.bot.reputation.DownvoteMilestone
 import com.coalesce.bot.reputation.ReputationManager
 import com.coalesce.bot.reputation.ReputationTransaction
 import com.google.inject.Inject
@@ -116,7 +117,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         val originValue = reputation[from]
         val targetValue = reputation[to]
 
-        val transactionAmount = Math.min((originValue.total.toDouble() / 80.0) + 20.0, 100.0)
+        val transactionAmount = Math.min((originValue.total / 80.0) + 20.0, 100.0)
         targetValue.transaction(ReputationTransaction("${guild.getMember(from).effectiveName} thanked you", transactionAmount),
                 channel, guild.getMember(to))
         reputation[to] = targetValue
@@ -135,8 +136,8 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         val originValue = reputation[from]
         val targetValue = reputation[to]
 
-        if (originValue.total < 100) {
-            channel.sendMessage("* You need 100 reputation to unrate.").queue()
+        if (originValue.total < 250) { //TODO improve this, and get milestone from its respective class
+            channel.sendMessage("* You need 250 reputation to unrate.").queue()
             return
         }
 
