@@ -47,18 +47,8 @@ class RemindMe {
         if (!context.author.hasPrivateChannel()) privateChannel = context.author.openPrivateChannel().complete()
         else privateChannel = context.author.privateChannel
 
-        context(EmbedBuilder().apply {
-            setTitle("Reminder", null)
-            setAuthor(context.author.name, null, context.author.avatarUrl)
-            setColor(Color.GREEN)
-            setDescription("I'll be reminding you in $time ${timeUnit.toString().toLowerCase()}")
-        })
-        privateChannel.sendMessage(
-                EmbedBuilder().apply {
-                    setColor(Color.CYAN)
-                    setTitle("Reminder from $time ${timeUnit.toString().toLowerCase()} ago", null)
-                    setDescription(message)
-                }.build()
-        ).queueAfter(time.toLong(), timeUnit)
+        context(context.author, "I'll be reminding you in $time ${timeUnit.toString().toLowerCase()}")
+        privateChannel.sendMessage("${context.author.asMention}: Reminder from $time ${timeUnit.toString().toLowerCase()} ago\n$message", null)
+                .queueAfter(time.toLong(), timeUnit)
     }
 }
