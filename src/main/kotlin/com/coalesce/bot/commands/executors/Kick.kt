@@ -16,7 +16,7 @@ class Kick @Inject constructor(val bot: Main) {
             name = "Kick",
             permission = "commands.kick",
             type = CommandType.ADMINISTRATION,
-            description = "Kicks the said user out of the server."
+            description = "Kicks the given user out of the server."
     )
     fun execute(context: RootCommandContext) {
         // TODO: Support several guilds.

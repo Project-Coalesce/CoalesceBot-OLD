@@ -23,8 +23,9 @@ class MessageChannel {
             return
         }
 
-        val channel = context.jda.getTextChannelById(context.args[0])
-                ?: run { mention("No channel could be found with that id!"); return }
+        val channel = context.jda.getTextChannelById(context.args[0]) ?:
+                context.jda.getTextChannelsByName(context.args[0], true)[0] ?:
+                run { mention("No channel could be found with that name/id!"); return }
         channel.sendMessage(context.args.copyOfRange(1, context.args.size).joinToString(separator = " "))
         mention("Successfully sent message to ${channel.asMention}")
     }
