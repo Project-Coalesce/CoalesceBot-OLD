@@ -10,6 +10,7 @@ import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
+import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.io.DataOutputStream
@@ -51,7 +52,7 @@ class Respects @Inject constructor(val bot: Main) {
 
         if (event.channel.idLong == 308791021343473675L/* #memes */) {
             RespectReactions.values().forEach {
-                if (it.emoteName.isPresent && event.reaction.emote.name == it.emoteName.get() && context.runChecks(event.user, event.channel!!, it.delay)) {
+                if (it.emoteName.isPresent && event.reaction.emote.name == it.emoteName.get() && context.runChecks(event.user, event.channel!!, it.delay, it.name)) {
                     event.channel.getMessageById(event.messageId).queue { message ->
                         dank(event.channel!!, event.user, message.author, event.jda, it)
                     }
@@ -61,7 +62,7 @@ class Respects @Inject constructor(val bot: Main) {
 
             if (event.reaction.guild != null && !event.reaction.emote.emote.isManaged) {
                 RespectReactions.values().forEach {
-                    if (it.emoteId.isPresent && it.emoteId.get() == event.reaction.emote.idLong && context.runChecks(event.user, event.channel!!, it.delay)) {
+                    if (it.emoteId.isPresent && it.emoteId.get() == event.reaction.emote.idLong && context.runChecks(event.user, event.channel!!, it.delay, it.name)) {
                         event.channel.getMessageById(event.messageId).queue { message ->
                             dank(event.channel!!, event.user, message.author, event.jda, it)
                         }
@@ -72,7 +73,7 @@ class Respects @Inject constructor(val bot: Main) {
         }
     }
 
-    private fun dank(channel: net.dv8tion.jda.core.entities.MessageChannel, from: User, to: User, jda: JDA, reaction: RespectReactions) {
+    private fun dank(channel: MessageChannel, from: User, to: User, jda: JDA, reaction: RespectReactions) {
         if (from == to) {
             channel.sendMessage("* You see, doing that is what makes you not dank.").queue()
             return

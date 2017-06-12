@@ -4,7 +4,7 @@ import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 
-class MessageChannel {
+class ChannelMessage {
 
     @RootCommand(
             name = "messagechannel",
