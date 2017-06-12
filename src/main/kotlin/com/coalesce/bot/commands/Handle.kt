@@ -1,13 +1,12 @@
 package com.coalesce.bot.commands
 
-import com.coalesce.bot.Main
-import com.coalesce.bot.commandPrefix
-import com.coalesce.bot.commandPrefixLen
+import com.coalesce.bot.*
 import com.coalesce.bot.commands.executors.RespectReactions
 import com.coalesce.bot.permissions.RankManager
 import com.coalesce.bot.utilities.tryLog
+import com.google.gson.reflect.TypeToken
 import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.entities.Emote
+import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent
@@ -21,17 +20,18 @@ import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
 import java.awt.Color
 import java.lang.reflect.Method
+import java.nio.file.Files.delete
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.function.Predicate
 
 class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable, Embeddables {
     val registry = CommandRegistry()
-    val checks = mutableSetOf<Predicate<CommandContext>>()
+    val checks = mutableSetOf<(CommandContext) -> Boolean>()
     val perms = RankManager(jda)
     val cooldowns = mutableMapOf<String, Long>() // <command identifier, until in millis>
     val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
+    private val blacklist: MutableMap<Long, String>
     private val welcomeMessage = "Welcome, %s, to the Coalesce Coding Discord server!\n" +
             "If you are able to code in an language and would like to have a fancy color for it, use !request <rank>.\n" +
             "The currently supported languages include Java, Kotlin, Web, Spigot and Python.\n" +
@@ -39,6 +39,8 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
 
     init {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 5L, 5L, TimeUnit.MINUTES)
+        if (blacklistFile.exists()) blacklist = gson.fromJson(blacklistFile.readText(), object: TypeToken<MutableMap<Long, String>>() {}.type)
+        else blacklist = mutableMapOf()
     }
 
     fun register() {
@@ -47,19 +49,51 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
             registry.register()
             println("Done.")
 
-            checks.add(CooldownCheck(this))
-            checks.add(Predicate {
+            checks.add({
+                val isBlacklisted = isBlacklisted(it.author)
+
+                if (isBlacklisted) {
+                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
+                            .setTitle("You are blacklisted from using CoalesceBot.", null)
+                            .addField("Reason", blacklist[it.message.author.idLong], false),
+                            { delete().queueAfter(10L, TimeUnit.SECONDS) })
+                }
+
+                !isBlacklisted
+            })
+            checks.add(CooldownCheck(this)::cooldownCheck)
+            checks.add({
                 val permissable = it.channel.idLong == 315934590109745154 || perms.hasPermission(it.message.guild.getMember(it.message.author), it.rootCommand.permission)
 
                 if (!permissable) {
                     it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
                             .setTitle("Permission", null)
-                            .setDescription("<:no_permission:315617783738007552> You are not permitted to run that command."))
+                            .setDescription("<:no_permission:315617783738007552> You are not permitted to run that command."),
+                            { delete().queueAfter(5L, TimeUnit.SECONDS) })
                 }
 
-                return@Predicate permissable
+                permissable
             })
         }
+    }
+
+    fun isBlacklisted(user: User): Boolean = blacklist.containsKey(user.idLong)
+
+    fun blacklist(user: User, reason: String) {
+        blacklist[user.idLong] = reason
+        blacklistSave()
+    }
+
+    fun unblacklist(user: User) {
+        blacklist.remove(user.idLong)
+        blacklistSave()
+    }
+
+    private fun blacklistSave() {
+        if (blacklistFile.exists()) blacklistFile.delete()
+        if (!blacklistFile.parentFile.exists()) blacklistFile.parentFile.mkdirs()
+        blacklistFile.createNewFile()
+        blacklistFile.writeText(gson.toJson(blacklist))
     }
 
     override fun run() {
@@ -132,7 +166,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
             }
 
             event.message.delete().queue()
-            if (checks.any { !it.test(context) }) {
+            if (checks.any { !it(context) }) {
                 return
             }
             else if (context.rootCommand.type == CommandType.DEBUG

@@ -29,7 +29,7 @@ import java.util.regex.Pattern
  * First digit = number of release
  * Second  "   = number of the patch
  * */
-val VERSION = "1.3"
+val VERSION = "1.4"
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -99,13 +99,18 @@ const val COALESCE_GUILD = 268187052753944576L
 const val commandPrefix = "!"
 const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
-val quotedFile = File(dataDirectory, "quoted.txt")
 val globalPermissionsFile = File(dataDirectory, "global.dat")
 val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.dat")
 val respectsLeaderboardsFileOld = File(dataDirectory, "leaderboard.json")
 val reputationFile = File(dataDirectory, "reputation.dat")
-val reputationFileOld = File(dataDirectory, "reputation.json")
-val gson: Gson = GsonBuilder().enableComplexMapKeySerialization().setPrettyPrinting().serializeNulls().disableHtmlEscaping().registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance)).create()
+val blacklistFile = File(dataDirectory, "blacklist.json")
+val gson: Gson = GsonBuilder().apply {
+    enableComplexMapKeySerialization()
+    setPrettyPrinting()
+    serializeNulls()
+    disableHtmlEscaping()
+    registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance))
+}.create()
 typealias Colour = java.awt.Color
 val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!
 val temperatureCelsius = Pattern.compile("C*", Pattern.CASE_INSENSITIVE)!!

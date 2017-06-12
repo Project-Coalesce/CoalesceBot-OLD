@@ -1,10 +1,7 @@
 package com.coalesce.bot.reputation
 
 import com.coalesce.bot.binary.ReputationSerializer
-import com.coalesce.bot.gson
 import com.coalesce.bot.reputationFile
-import com.coalesce.bot.reputationFileOld
-import com.google.gson.reflect.TypeToken
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User

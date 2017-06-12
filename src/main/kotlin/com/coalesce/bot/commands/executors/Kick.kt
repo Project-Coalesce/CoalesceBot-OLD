@@ -19,12 +19,6 @@ class Kick @Inject constructor(val bot: Main) {
             description = "Kicks the given user out of the server."
     )
     fun execute(context: RootCommandContext) {
-        // TODO: Support several guilds.
-        if (context.message.guild.idLong == COALESCE_GUILD &&
-                !context.message.guild.getMember(context.author).roles.contains(context.jda.getRoleById("268239031467376640"))) {
-            context(context.author, "You're not permitted to perform this command.")
-            return
-        }
         if (context.message.mentionedUsers.isEmpty()) {
             context("You need to mention a user to perform this command.")
             return
@@ -46,7 +40,7 @@ class Kick @Inject constructor(val bot: Main) {
                 EmbedBuilder().apply {
                     setAuthor(context.author.name, null, context.author.avatarUrl)
                     setColor(Color.RED)
-                    setDescription("$description\n")
+                    setDescription("You were kicked from ${context.message.guild.name}.\n$description")
                     setFooter("Automatically built message, contact a Moderator for more info", null)
                 }.build()
         ).queue()
