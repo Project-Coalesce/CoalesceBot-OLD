@@ -41,9 +41,9 @@ class Respects @Inject constructor(val bot: Main) {
             globalCooldown = 6.0 * 3600.0
     )
     fun execute(context: RootCommandContext) {
-        context(context.author, "Respects have been paid! You got +5 respects.") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
+        context(context.author, "Respects have been paid! **+8 respect**") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
 
-        transaction(context.author, 5.0)
+        transaction(context.author, 8.0)
     }
 
     @JDAListener
@@ -83,7 +83,8 @@ class Respects @Inject constructor(val bot: Main) {
             return
         }
         transaction(to, reaction.amount)
-        channel.sendMessage("${to.asMention}: ${reaction.name} - ${reaction.rating} ${from.asMention} **+${reaction.amount.toInt()} respect**").queue()
+        channel.sendMessage("${to.asMention}: ${reaction.name} - ${reaction.rating} ${from.asMention}" +
+                " **${if (reaction.amount > 0) "+" else ""}${reaction.amount.toInt()} respect**").queue()
     }
 
     private fun transaction(user: User, amount: Double) {
