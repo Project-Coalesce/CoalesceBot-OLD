@@ -167,18 +167,18 @@ class EventContext(
         val jda: JDA,
         val command: RootCommand
 ) {
-    fun runChecks(user: User, channel: MessageChannel, cooldown: Double = command.userCooldown): Boolean {
+    fun runChecks(user: User, channel: MessageChannel, cooldown: Double = command.userCooldown, reactionString: String): Boolean {
         val timeCooldown = TimeUnit.SECONDS.toMillis(cooldown.toLong())
 
         val userCooldowns = listener.userCooldowns
         val specificUser = userCooldowns[user.idLong] ?: run {
             userCooldowns[user.idLong] = mutableMapOf(
-                    command.name to System.currentTimeMillis() + timeCooldown
+                    "${command.name} $reactionString" to System.currentTimeMillis() + timeCooldown
             )
             return true
         }
-        (specificUser[command.name] ?: run {
-            specificUser[command.name] = System.currentTimeMillis() + timeCooldown
+        (specificUser["${command.name} $reactionString"] ?: run {
+            specificUser["${command.name} $reactionString"] = System.currentTimeMillis() + timeCooldown
             return true
         }).apply {
             if (this > System.currentTimeMillis()) {
@@ -194,7 +194,7 @@ class EventContext(
                 return false
             }
 
-            specificUser[command.name] = System.currentTimeMillis() + timeCooldown
+            specificUser["${command.name} $reactionString"] = System.currentTimeMillis() + timeCooldown
             return true
         }
         return true

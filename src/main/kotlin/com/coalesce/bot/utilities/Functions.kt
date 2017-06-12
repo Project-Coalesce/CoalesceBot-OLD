@@ -1,5 +1,8 @@
 package com.coalesce.bot.utilities
 
+import com.coalesce.bot.chatbot
+import net.dv8tion.jda.core.JDA
+import net.dv8tion.jda.core.entities.Message
 import java.util.*
 
 fun tryLog(message: String, func: () -> Unit) =
@@ -10,11 +13,25 @@ fun tryLog(message: String, func: () -> Unit) =
         ex.printStackTrace()
     }
 
+inline fun <T> Iterable<T>.allIndexed(predicate: (T, Int) -> Boolean): Boolean {
+    forEachIndexed { index, element -> if (!predicate(element, index)) return false }
+    return true
+}
+
 fun quietly(func: () -> Unit) = try{ func() } catch (ex: Exception) { /* Ignore */ }
+
+fun <E> List<E>.subList(fromIndex: Int): List<E> = subList(fromIndex, size)
 
 fun <K, V> hashTableOf(): Hashtable<K, V> = Hashtable()
 
 fun <K, V> hashTableOf(vararg elements: Pair<K, V>): Hashtable<K, V> = Hashtable<K, V>(elements.size).apply { putAll(elements) }
+
+fun getChatbotMessage(message: Message, jda: JDA): String? {
+    val stripped = message.strippedContent.replace(jda.selfUser.asMention, "")
+    chatbot.decay()
+    chatbot.digestSentence(stripped)
+    return chatbot.buildSentence()
+}
 
 fun Long.formatTimeDiff(): String {
     fun ensurePlural(numb: Long, str: String): String {
@@ -43,6 +60,15 @@ fun String.parseDouble(): Double? {
     }
 }
 
+fun String.matching(regx: Regex): String {
+    val matchList = regx.matchEntire(this)
+    val str = StringBuilder()
+    while (true) {
+        str.append((matchList ?: break).next() ?: break)
+    }
+    return str.toString()
+}
+
 fun String.limit(limit: Int, ending: String = "..."): String {
     if (length > limit) {
         return this.substring(0, limit) + ending
@@ -67,3 +93,28 @@ inline fun <T> ifwithDo(can: (T) -> Boolean, with: T, crossinline todo: () -> Un
         todo.invoke()
     }
 }
+
+fun String.isInteger(): Boolean {
+    if (this.isEmpty()) return false
+    val length = this.length
+    if (length == 0) {
+        return false
+    }
+    var i = 0
+    if (this[0] == '-') {
+        if (length == 1) {
+            return false
+        }
+        i = 1
+    }
+    while (i < length) {
+        val c = this[i]
+        if (c < '0' || c > '9') {
+            return false
+        }
+        i++
+    }
+    return true
+}
+
+val emptyClassList = listOf<Class<*>>()

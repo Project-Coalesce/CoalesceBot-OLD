@@ -112,6 +112,7 @@ val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!
 val temperatureCelsius = Pattern.compile("C*", Pattern.CASE_INSENSITIVE)!!
 val temperatureFahrenheit = Pattern.compile("F*", Pattern.CASE_INSENSITIVE)!!
 val canDelete: (Guild) -> Boolean = { it.selfMember.hasPermission(Permission.MESSAGE_MANAGE) }
+<<<<<<< Updated upstream
 //val chatbot = ChatbotBrain()
 
 /*fun getChatbotMessage(message: Message, jda: JDA): String? {
@@ -120,3 +121,6 @@ val canDelete: (Guild) -> Boolean = { it.selfMember.hasPermission(Permission.MES
     chatbot.digestSentence(stripped)
     return chatbot.buildSentence()
 }*/
+=======
+val chatbot = ChatbotBrain()
+>>>>>>> Stashed changes
