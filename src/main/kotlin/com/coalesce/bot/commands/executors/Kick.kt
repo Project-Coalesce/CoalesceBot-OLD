@@ -7,6 +7,7 @@ import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.entities.PrivateChannel
 import java.awt.Color
 import java.util.*
 
@@ -37,9 +38,11 @@ class Kick @Inject constructor(val bot: Main) {
 
         if (description == null || description.isEmpty()) return
 
-        if (!user.hasPrivateChannel()) user.openPrivateChannel()
+        val privateChannel: PrivateChannel
+        if (!user.hasPrivateChannel()) privateChannel = user.openPrivateChannel().complete()
+        else privateChannel = user.privateChannel
 
-        user.privateChannel.sendMessage(
+        privateChannel.sendMessage(
                 EmbedBuilder().apply {
                     setAuthor(context.author.name, null, context.author.avatarUrl)
                     setColor(Color.RED)
@@ -49,6 +52,6 @@ class Kick @Inject constructor(val bot: Main) {
         ).queue()
 
         context.message.guild.publicChannel
-                .sendMessage("The user ${user.name} has been kicked for $description!").queue()
+                .sendMessage("The user ${user.name} has been kicked for \"$description\"!").queue()
     }
 }

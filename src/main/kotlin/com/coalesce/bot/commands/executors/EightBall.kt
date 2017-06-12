@@ -34,7 +34,8 @@ class EightBall : Embeddables {
                     setTitle("8-Ball", null)
                     setAuthor(context.author.name, null, context.author.avatarUrl)
                     setColor(Color.BLACK)
-                    setDescription(responses[ThreadLocalRandom.current().nextInt(responses.size)])
+                    addField("Question", context.args.joinToString(separator = " "), true)
+                    addField("Answer", responses[ThreadLocalRandom.current().nextInt(responses.size)], true)
                 }
         )
     }
