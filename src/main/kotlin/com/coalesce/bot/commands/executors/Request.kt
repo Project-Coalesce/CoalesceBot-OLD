@@ -94,7 +94,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
             bot.jda.getRoleById("275473304268177421"), //Java
             bot.jda.getRoleById("300377111728881664") //Project Coalesce
     )
-    private val tagRequests = bot.jda.getTextChannelById("311317585775951872")
+    private val requestsChannel = bot.jda.getTextChannelById("311317585775951872")!!
 
     /*
     THIS COMMAND SHOULDN'T BE USED BY PEOPLE, NO NEED TO MAKE ARGS CHECKS AND STUFF
@@ -132,11 +132,11 @@ class ValidateRequest @Inject constructor(val bot: Main) {
         //GitHub verification
         try {
             val htmlURL = verifyAuthenticationTokenGithub(code)
-            tagRequests.sendMessage(EmbedBuilder()
+            requestsChannel.sendMessage(EmbedBuilder()
                     .setAuthor(user.name, htmlURL, user.avatarUrl?: "https://cdn.discordapp.com/attachments/300377073678286848/313174922677452804/theme_image_22.png")
                     .setTitle("Requested " + role.name, null)
                     .setDescription("Click on the author for github URL.")
-                    .setFooter("${user.id} ${role.id}", null)
+                    .setFooter("role ${user.id} ${role.id}", null)
                     .build()).queue {
                 it.addReaction("✅").queue()
                 it.addReaction("❎").queue()
@@ -150,7 +150,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
 
     @JDAListener
     fun onReact(event: MessageReactionAddEvent) {
-        if (event.channel == tagRequests) {
+        if (event.channel == requestsChannel) {
             if (event.user.isBot) return
 
             val accepted : Boolean
@@ -160,8 +160,9 @@ class ValidateRequest @Inject constructor(val bot: Main) {
 
             event.channel.getMessageById(event.messageId).queue {
                 val footText = it.embeds.first().footer.text.split(" ")
-                val user = event.guild.getMember(event.jda.getUserById(footText[0]))
-                val role = event.jda.getRoleById(footText[1])
+                if (footText.first() != "role") return@queue
+                val user = event.guild.getMember(event.jda.getUserById(footText[1]))
+                val role = event.jda.getRoleById(footText[2])
 
                 if (accepted) {
                     event.guild.controller.addRolesToMember(user, role).queue {
