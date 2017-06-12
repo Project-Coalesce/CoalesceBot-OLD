@@ -136,7 +136,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
                     .setAuthor(user.name, htmlURL, user.avatarUrl?: "https://cdn.discordapp.com/attachments/300377073678286848/313174922677452804/theme_image_22.png")
                     .setTitle("Requested " + role.name, null)
                     .setDescription("Click on the author for GitHub URL.")
-                    .setFooter("${user.id} ${role.id}", null)
+                    .setFooter("role ${user.id} ${role.id}", null)
                     .build()).queue {
                 it.addReaction("✅").queue()
                 it.addReaction("❎").queue()
