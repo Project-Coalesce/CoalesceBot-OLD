@@ -141,7 +141,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             return
         }
 
-        targetValue.transaction(ReputationTransaction("${guild.getMember(from).effectiveName} down-rated you", -20.0),
+        targetValue.transaction(ReputationTransaction("${guild.getMember(from).effectiveName} down-rated you", -10.0),
                 channel, guild.getMember(to))
         reputation[to] = targetValue
     }
