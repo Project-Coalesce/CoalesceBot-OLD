@@ -12,6 +12,7 @@ import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
+import java.awt.Color
 
 class Reputation @Inject constructor(val bot: Main, val reputation: ReputationManager): Embeddables {
     private val messagesMap = mutableMapOf<User, Int>()
@@ -36,9 +37,13 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
                 rep.transactions.joinToString { "**${if (it.amount >= 0) "+" else ""}${it.amount.toInt()}**: ${it.message}\n" }
             }
 
-        context.send(embed()
-                .setTitle("${if (target == context.author) "You have" else "${target.name} has"} ${rep.total.toInt()} reputation.", null)
-                .addField("Recent", transactionsString, false)
+        context.send(
+            embed().apply {
+                setColor(Color(0x5ea81e))
+
+                setTitle("${if (target == context.author) "You have" else "${target.name} has"} ${rep.total.toInt()} reputation.", null)
+                addField("Recent", transactionsString, false)
+            }
         )
     }
 

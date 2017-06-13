@@ -20,11 +20,12 @@ class Broadcast: Embeddables {
             context(context.author, "Specify a message to broadcast!")
             return
         }
-        val message = embed().setTitle("Broadcast", null)
-                .setAuthor(context.message.author.name, null, context.message.author.avatarUrl)
-                .setDescription(context.args.joinToString(separator = " "))
-                .setColor(Color(0x5ea81e))
-                .setFooter("This is a global broadcast.", null)
+        val message = embed().apply {
+            setTitle("Broadcast", null)
+            setAuthor(context.message.author.name, null, context.message.author.avatarUrl)
+            setDescription(context.args.joinToString(separator = " "))
+            setColor(Color(0x5ea81e))
+        }
 
         context.jda.guilds.forEach {
             it.publicChannel.sendMessage(message.build()).queue()
