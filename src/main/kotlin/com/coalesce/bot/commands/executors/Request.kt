@@ -138,11 +138,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
                     .setTitle("Requested " + role.name, null)
                     .setDescription("Click on the author for GitHub URL.")
                     .setFooter("role ${user.id} ${role.id}", null)
-<<<<<<< HEAD
             .build()).queue {
-=======
-                    .build()).queue {
->>>>>>> 7eb38b7927d0f9c0726992df1fa3a4befb132295
                 it.addReaction("✅").queue()
                 it.addReaction("❎").queue()
                 user.privateChannel.sendMessage("Your application for the ${role.name} role on Coalesce Coding " +
