@@ -11,7 +11,7 @@ class Blacklist @Inject constructor(val bot: Main) {
     @RootCommand(
             name = "Blacklist",
             permission = "commands.blacklist",
-            type = CommandType.DEBUG,
+            type = CommandType.ADMINISTRATION,
             description = "Ban/Unban from bot",
             aliases = arrayOf("ban")
     )
