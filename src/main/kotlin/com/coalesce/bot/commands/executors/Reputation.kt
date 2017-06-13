@@ -35,7 +35,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             if (rep.transactions.isEmpty()) {
                 "None."
             } else {
-                rep.transactions.joinToString { "**${if (it.amount >= 0) "+" else ""}${it.amount.toInt()}**: ${it.message}\n" }
+                rep.transactions.joinToString(separator = "\n") { "**${if (it.amount >= 0) "+" else ""}${it.amount.toInt()}**: ${it.message}" }
             }
 
         context.send(
