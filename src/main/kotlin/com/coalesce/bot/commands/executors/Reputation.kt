@@ -31,9 +31,9 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             globalCooldown = 0.0
     )
     fun execute(context: RootCommandContext) {
-        var rep: ReputationValue // = reputation[context.message.author]
-        if (context.message.mentionedUsers.isEmpty()) {
-            rep = reputation[context.message.mentionedUsers[0]]
+        var rep: ReputationValue
+        if (!context.message.mentionedUsers.isEmpty()) {
+            rep = reputation[context.message.mentionedUsers.first()]
         } else rep = reputation[context.author]
 
 
