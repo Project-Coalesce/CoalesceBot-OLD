@@ -197,6 +197,7 @@ class EventContext(
         val command: RootCommand
 ) {
     fun runChecks(user: User, channel: MessageChannel, cooldown: Double = command.userCooldown, reactionString: String): Boolean {
+        if (user.isBot) return false
         val timeCooldown = TimeUnit.SECONDS.toMillis(cooldown.toLong())
 
         val userCooldowns = listener.userCooldowns

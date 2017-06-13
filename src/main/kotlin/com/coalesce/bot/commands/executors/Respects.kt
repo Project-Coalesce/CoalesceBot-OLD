@@ -31,7 +31,6 @@ enum class RespectReactions(val message: String,
 }
 
 class Respects @Inject constructor(val bot: Main) {
-
     @RootCommand(
             name = "Respects",
             aliases = arrayOf("f", "nahusdream"),
