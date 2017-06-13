@@ -1,5 +1,6 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.Main
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
@@ -20,12 +21,6 @@ class Mute @Inject constructor(val bot: Main, val manager: PunishmentManager) {
             description = "Issues a mute on said users record."
     )
     fun execute(context: RootCommandContext) {
-        // TODO: Support several guilds.
-        if (context.message.guild.idLong == 268187052753944576L &&
-                !context.message.guild.getMember(context.author).roles.contains(context.jda.getRoleById("268239031467376640"))) {
-            context(context.author, "You're not permitted to perform this command.")
-            return
-        }
         if (context.message.mentionedUsers.isEmpty()) {
             context("You need to mention a user to perform this command.")
             return

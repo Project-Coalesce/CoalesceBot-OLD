@@ -1,10 +1,7 @@
 package com.coalesce.bot.reputation
 
 import com.coalesce.bot.binary.ReputationSerializer
-import com.coalesce.bot.gson
 import com.coalesce.bot.reputationFile
-import com.coalesce.bot.reputationFileOld
-import com.google.gson.reflect.TypeToken
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
@@ -18,7 +15,7 @@ import java.io.DataOutputStream
 import java.io.File
 
 class ReputationManager {
-    private val reputationStorage: MutableMap<Long, ReputationValue>
+    private val cache = mutableMapOf<Long, ReputationValue>()
     private val serializer : ReputationSerializer
 
     init {
@@ -37,7 +34,6 @@ class ReputationManager {
         if (!file.exists())  generateFile(file)
 
         serializer = ReputationSerializer(file)
-        reputationStorage = serializer.read()
     }
 
     fun generateFile(file: File) {
@@ -47,18 +43,21 @@ class ReputationManager {
         }
     }
 
-    fun save() {
-        serializer.write(reputationStorage)
-    }
-
     operator fun set(user: User, value: ReputationValue) {
-        reputationStorage[user.idLong] = value
-        save()
+        val storage = serializer.read()
+        storage[user.idLong] = value
+        serializer.write(storage)
     }
 
     operator fun get(from: User): ReputationValue {
-        return reputationStorage[from.idLong] ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<String>())
+        return cache[from.idLong] ?: run {
+            val userData = serializer.read()[from.idLong]
+            if (userData != null) cache[from.idLong] = userData
+            userData
+        } ?: ReputationValue(0.0, mutableListOf<ReputationTransaction>(), mutableListOf<String>())
     }
+
+    fun clearCache() = cache.clear()
 }
 
 val milestoneList = mutableListOf<ReputationMilestone>()

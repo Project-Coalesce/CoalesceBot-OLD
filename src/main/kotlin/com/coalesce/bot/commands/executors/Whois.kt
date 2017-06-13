@@ -41,7 +41,7 @@ class Whois : Embeddables {
                 .field("Type", if (member.user.isBot) "Bot" else if (member.isOwner) "Guild Owner" else "User")
                 .field("Creation Time", member.user.creationTime.format(DateTimeFormatter.ofPattern("d MMM uuuu")), true)
         if (member.roles.size == 1 && member.roles[0].name == "Python") {
-            builder.addField("Has ugly yellow colour?", "Sadly, yes", true)
+            builder.addField("Has ugly yellow color?", "Sadly, yes", true)
         }
         context(builder) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
     }
