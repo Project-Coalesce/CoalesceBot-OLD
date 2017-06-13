@@ -15,6 +15,6 @@ class CoinFlip {
             aliases = arrayOf("flip", "coin")
     )
     fun execute(context: RootCommandContext) {
-        context(context.author, "You flipped: ${if (Math.random() < 0.5) "Heads!" else "Tails!"}")
+        context(context.author, "You flipped: ${if (Math.random() < 0.5) "Heads <:heads:324331949961248778>!" else "Tails <:tails:324331963072643073>!"}")
     }
 }
