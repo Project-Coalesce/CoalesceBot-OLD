@@ -31,11 +31,16 @@ class NameChangeRequest @Inject constructor(val bot: Main) {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context("* You must put in a name to request.")
+            context(context.author, "You must put in a name to request.")
             return
         }
 
         val name = context.args.joinToString(separator = " ")
+        if (name.length > 32) {
+            context(context.author, "The max length for a nickname is 32 characters!")
+            return
+        }
+
         val user = context.author
         requestsChannel.sendMessage(EmbedBuilder()
                 .setAuthor(user.name, null, user.avatarUrl?: "https://cdn.discordapp.com/attachments/300377073678286848/313174922677452804/theme_image_22.png")

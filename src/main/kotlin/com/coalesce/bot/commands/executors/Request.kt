@@ -95,7 +95,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
             bot.jda.getRoleById("275473304268177421"), //Java
             bot.jda.getRoleById("300377111728881664") //Project Coalesce
     )
-    private val requestsChannel = bot.jda.getTextChannelById("311317585775951872")!!
+    private val requestsChannel = bot.jda.getTextChannelById("311317585775951872")
 
     /*
     THIS COMMAND SHOULDN'T BE USED BY PEOPLE, NO NEED TO MAKE ARGS CHECKS AND STUFF
@@ -138,7 +138,11 @@ class ValidateRequest @Inject constructor(val bot: Main) {
                     .setTitle("Requested " + role.name, null)
                     .setDescription("Click on the author for GitHub URL.")
                     .setFooter("role ${user.id} ${role.id}", null)
+<<<<<<< HEAD
             .build()).queue {
+=======
+                    .build()).queue {
+>>>>>>> 7eb38b7927d0f9c0726992df1fa3a4befb132295
                 it.addReaction("✅").queue()
                 it.addReaction("❎").queue()
                 user.privateChannel.sendMessage("Your application for the ${role.name} role on Coalesce Coding " +
