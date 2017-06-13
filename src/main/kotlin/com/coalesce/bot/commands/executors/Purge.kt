@@ -13,7 +13,7 @@ class Purge {
     @RootCommand(
             name = "purge",
             permission = "commands.purge",
-            type = CommandType.DEBUG,
+            type = CommandType.ADMINISTRATION,
             description = "Purge messages in chat"
     )
     fun execute(context: RootCommandContext) {
