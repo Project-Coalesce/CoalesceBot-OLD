@@ -13,7 +13,7 @@ import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 
-class Reputation @Inject constructor(val bot: Main, val reputation: ReputationManager) {
+class Reputation @Inject constructor(val bot: Main, val reputation: ReputationManager): Embeddables {
     private val messagesMap = mutableMapOf<User, Int>()
 
     @RootCommand(
@@ -26,17 +26,20 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             globalCooldown = 0.0
     )
     fun execute(context: RootCommandContext) {
-        val rep = reputation[context.message.author]
+        val target = if (context.message.mentionedUsers.isEmpty()) context.author else context.message.mentionedUsers.first()
+        val rep = reputation[target]
 
-        val transactionsString = StringBuilder()
-        if (rep.transactions.isEmpty()) transactionsString.append("None.")
-        else rep.transactions.forEach {
-            transactionsString.append("**${if (it.amount >= 0) "+" else ""}${it.amount.toInt()}**: ${it.message}\n")
-        }
+        val transactionsString =
+            if (rep.transactions.isEmpty()) {
+                "None."
+            } else {
+                rep.transactions.joinToString { "**${if (it.amount >= 0) "+" else ""}${it.amount.toInt()}**: ${it.message}\n" }
+            }
 
-        context.send(EmbedBuilder()
-                .setTitle("You have ${rep.total.toInt()} reputation.", null)
-                .addField("Recent", transactionsString.toString(), false))
+        context.send(embed()
+                .setTitle("${if (target == context.author) "You have" else "${target.name} has"} ${rep.total.toInt()} reputation.", null)
+                .addField("Recent", transactionsString, false)
+        )
     }
 
     @JDAListener
