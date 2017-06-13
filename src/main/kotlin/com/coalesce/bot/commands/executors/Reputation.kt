@@ -5,6 +5,7 @@ import com.coalesce.bot.commands.*
 import com.coalesce.bot.reputation.DownvoteMilestone
 import com.coalesce.bot.reputation.ReputationManager
 import com.coalesce.bot.reputation.ReputationTransaction
+import com.coalesce.bot.reputation.ReputationValue
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
@@ -30,7 +31,11 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             globalCooldown = 0.0
     )
     fun execute(context: RootCommandContext) {
-        val rep = reputation[context.message.author]
+        var rep: ReputationValue // = reputation[context.message.author]
+        if (context.message.mentionedUsers.isEmpty()) {
+            rep = reputation[context.message.mentionedUsers[0]]
+        } else rep = reputation[context.author]
+
 
         val transactionsString = StringBuilder()
         if (rep.transactions.isEmpty()) transactionsString.append("None.")
