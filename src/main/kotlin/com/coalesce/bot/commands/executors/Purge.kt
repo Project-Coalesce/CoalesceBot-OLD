@@ -2,8 +2,7 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.commands.*
-import net.dv8tion.jda.core.entities.Message
-import net.dv8tion.jda.core.entities.TextChannel
+import net.dv8tion.jda.core.entities.*
 import java.time.OffsetDateTime
 import java.util.function.Predicate
 
@@ -20,7 +19,7 @@ class Purge {
         if (context.args.isEmpty()) {
             context(context.author, "\n**Usage:**\n" +
                     "`!purge msg <id>` Deletes message based on its id\n" +
-                    "`!purge user <user> <channel> [optional : amount]` Deletes amount messages from user specified\n" +
+                    "`!purge user <@user> [optional : amount]` Deletes amount messages from user specified\n" +
                     "`!purge search <search query>` Deletes the message with the search query specified (Based on search feature in discord)")
         }
     }
@@ -55,28 +54,27 @@ class Purge {
         }
 
         if (context.args.isEmpty()) {
-            mention("Usage: `!purge user <user> <channel> [optional amount]`")
+            mention("Usage: `!purge user <@user> [optional amount]`")
             return
         }
 
-        val guild = context.jda.getGuildById(COALESCE_GUILD)
+        val member: User
+        if (context.message.mentionedUsers.isEmpty()) {
+            mention("You have to specify an user!")
+            return
+        } else member = context.message.mentionedUsers.first()
 
-        val member = guild.getMembersByName(context.args[0], true)[0] ?:
-                guild.getMemberById(context.args[0]) ?:
-                run { mention("No user could be found with that name/id!"); return }
-        val channel = guild.getTextChannelsByName(context.args[0], true)[0] ?:
-                guild.getTextChannelById(context.args[0]) ?:
-                run { mention("No channel could be found with that name/id!"); return }
+        val channel = context.channel
 
         var amount = context.args[2].toIntOrNull() ?: 1
         amount = Math.min(MAX_BULK_SIZE, amount)
 
         val time = OffsetDateTime.now().minusWeeks(2) //We can't remove messages older than 2 weeks
 
-        purge({ it.author != null && it.author.idLong == member.user.idLong && !it.creationTime.isAfter(time) }, channel, amount)
+        purge({ it.author != null && it.author.idLong == member.idLong && !it.creationTime.isAfter(time) }, channel, amount)
     }
 
-    fun purge(check: (Message) -> Boolean, channel: TextChannel, amount: Int) {
+    fun purge(check: (Message) -> Boolean, channel: MessageChannel, amount: Int) {
         channel.history.retrievePast(MAX_BULK_SIZE).queue {
             if (it.isEmpty()) {
                 channel.sendMessage("* No history found!").queue()
