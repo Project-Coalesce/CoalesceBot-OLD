@@ -2,9 +2,10 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.commands.*
-import net.dv8tion.jda.core.entities.*
+import net.dv8tion.jda.core.entities.Message
+import net.dv8tion.jda.core.entities.MessageChannel
+import net.dv8tion.jda.core.entities.User
 import java.time.OffsetDateTime
-import java.util.function.Predicate
 
 class Purge {
     val MAX_BULK_SIZE = 100
@@ -64,14 +65,12 @@ class Purge {
             return
         } else member = context.message.mentionedUsers.first()
 
-        val channel = context.channel
-
-        var amount = context.args[2].toIntOrNull() ?: 1
+        var amount = context.args[1].toIntOrNull() ?: 1
         amount = Math.min(MAX_BULK_SIZE, amount)
 
         val time = OffsetDateTime.now().minusWeeks(2) //We can't remove messages older than 2 weeks
 
-        purge({ it.author != null && it.author.idLong == member.idLong && !it.creationTime.isAfter(time) }, channel, amount)
+        purge({ it.author != null && it.author.idLong == member.idLong && !it.creationTime.isAfter(time) }, context.channel, amount)
     }
 
     fun purge(check: (Message) -> Boolean, channel: MessageChannel, amount: Int) {
