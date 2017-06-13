@@ -4,6 +4,7 @@ import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.commands.*
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.TextChannel
+import java.time.OffsetDateTime
 import java.util.function.Predicate
 
 class Purge {
@@ -70,7 +71,11 @@ class Purge {
         var amount = context.args[2].toIntOrNull() ?: 1
         amount = Math.min(MAX_BULK_SIZE, amount)
 
-        purge(Predicate { it.author != null && it.author.idLong == member.user.idLong }, channel, amount)
+        val time = OffsetDateTime.now().minusWeeks(2) //We can't remove messages older than 2 weeks
+
+        purge(Predicate { it.author != null && it.author.idLong == member.user.idLong
+                && !it.creationTime.isAfter(time) }
+                , channel, amount)
     }
 
     fun purge(check: Predicate<Message>, channel: TextChannel, amount: Int) {
