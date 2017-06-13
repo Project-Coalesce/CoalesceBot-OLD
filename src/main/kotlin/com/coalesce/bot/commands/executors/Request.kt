@@ -94,7 +94,7 @@ class ValidateRequest @Inject constructor(val bot: Main) {
             bot.jda.getRoleById("275473304268177421"), //Java
             bot.jda.getRoleById("300377111728881664") //Project Coalesce
     )
-    private val requestsChannel = bot.jda.getTextChannelById("311317585775951872")!!
+    private val requestsChannel = bot.jda.getTextChannelById("311317585775951872")
 
     /*
     THIS COMMAND SHOULDN'T BE USED BY PEOPLE, NO NEED TO MAKE ARGS CHECKS AND STUFF
