@@ -96,11 +96,11 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     }
 
     override fun onGuildMemberJoin(event: GuildMemberJoinEvent) {
-        event.guild.publicChannel.sendMessage(String.format(welcomeMessage, event.member.asMention, "<#269178364483338250>"))
+        event.guild.publicChannel.sendMessage(String.format(welcomeMessage, event.member.asMention, "<#269178364483338250>")).queue()
     }
 
     override fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
-        event.guild.publicChannel.sendMessage("Today, we see ${event.member.effectiveName} leave us.")
+        event.guild.publicChannel.sendMessage("Today, we see ${event.member.effectiveName} leave us.").queue()
     }
 
     override fun onGenericEvent(event: Event) {
