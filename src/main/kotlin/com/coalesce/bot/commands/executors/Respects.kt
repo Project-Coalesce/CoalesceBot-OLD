@@ -73,12 +73,8 @@ class Respects @Inject constructor(val bot: Main) {
     }
 
     private fun dank(channel: MessageChannel, from: User, to: User, jda: JDA, reaction: RespectReactions) {
-        if (from == to) {
-            channel.sendMessage("* You see, doing that is what makes you not dank.").queue()
-            return
-        }
-        if (to == jda.selfUser) {
-            channel.sendMessage("* My shit's fucking lit ain't it").queue()
+        if (to == from || to == jda.selfUser) {
+            channel.sendMessage("* Invalid user").queue()
             return
         }
         transaction(to, reaction.amount)
@@ -120,18 +116,14 @@ class Respects @Inject constructor(val bot: Main) {
             }
         }
     }
-}
 
-class RespectsLeaderboard @Inject constructor(val jda: JDA) {
-    @RootCommand(
+    @SubCommand(
             name = "leaderboard",
-            aliases = arrayOf("fboard", "lboard", "board", "respectsboard", "rboard", "ftop"),
-            description = "Displays the leaders of Respects.",
+            aliases = arrayOf("fboard", "lboard", "board", "respectsboard", "rboard", "ftop", "top"),
             permission = "commands.leaderboard",
-            type = CommandType.FUN,
             globalCooldown = 30.0
     )
-    fun execute(context: RootCommandContext) {
+    fun fboard(context: SubCommandContext) {
         val file = respectsLeaderboardsFile
         synchronized(file) {
             if (!file.exists()) {
@@ -146,7 +138,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             val amountPositions = mutableListOf<Double>()
 
             map.forEach { key, value ->
-                val member = context.message.guild.getMember(jda.getUserById(key))
+                val member = context.message.guild.getMember(bot.jda.getUserById(key))
                 if (member != null &&
                         value is Double) {
                     respects.add(member)
