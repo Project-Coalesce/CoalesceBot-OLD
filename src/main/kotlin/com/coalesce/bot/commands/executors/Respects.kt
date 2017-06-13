@@ -89,20 +89,18 @@ class Respects @Inject constructor(val bot: Main) {
 
     private fun transaction(user: User, amount: Double) {
         val file = respectsLeaderboardsFile
-        synchronized(file) {
-            if (!file.exists()) generateFile(file)
+        if (!file.exists()) generateFile(file)
 
-            val serializer = RespectsLeaderboardSerializer(file)
-            val map = serializer.read()
+        val serializer = RespectsLeaderboardSerializer(file)
+        val map = serializer.read()
 
-            val id = user.id
-            map[id] = (map[id] as? Double ?: 0.0) + amount
-            if (file.exists()) {
-                file.delete()
-            }
-            file.createNewFile()
-            serializer.write(map)
+        val id = user.id
+        map[id] = (map[id] as? Double ?: 0.0) + amount
+        if (file.exists()) {
+            file.delete()
         }
+        file.createNewFile()
+        serializer.write(map)
     }
 
     fun generateFile(file: File) {
@@ -151,8 +149,7 @@ class RespectsLeaderboard @Inject constructor(val jda: JDA) {
             map.forEach { key, value ->
                 val member = context.message.guild.getMember(jda.getUserById(key))
                 if (member != null &&
-                        value is Double && // For safety with json, in case the host manages to edit it into something else
-                        value > 0) { // invalid/punished values shouldnt be accepted.
+                        value is Double) {
                     respects.add(member)
                     amountPositions.add(value)
                 }

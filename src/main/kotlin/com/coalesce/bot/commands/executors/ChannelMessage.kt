@@ -5,7 +5,6 @@ import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 
 class ChannelMessage {
-
     @RootCommand(
             name = "messagechannel",
             permission = "commands.messagechannel",

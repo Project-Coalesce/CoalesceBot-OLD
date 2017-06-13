@@ -1,7 +1,7 @@
 package com.coalesce.bot.commands
 
-import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.Colour
+import com.coalesce.bot.reputation.ReputationManager
 import com.coalesce.bot.utilities.formatTimeDiff
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
@@ -10,7 +10,36 @@ import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.awt.Color
 import java.lang.reflect.Method
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+
+class GC(val listener: Listener, val reputationManager: ReputationManager): Runnable {
+    init {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 5L, 5L, TimeUnit.MINUTES)
+    }
+
+    override fun run() {
+        val time = System.currentTimeMillis()
+
+        listener.userCooldowns.forEach { id, map ->
+            map.forEach { cmd, until ->
+                if (time > until) {
+                    map.remove(cmd)
+                }
+            }
+
+            if (map.isEmpty()) listener.userCooldowns.remove(id)
+        }
+
+        listener.cooldowns.forEach { cmd, until ->
+            if (time > until) {
+                listener.cooldowns.remove(cmd)
+            }
+        }
+
+        reputationManager.clearCache()
+    }
+}
 
 enum class CommandType(val hidden: Boolean) {
     FUN(false),
@@ -55,15 +84,15 @@ annotation class SubCommand(
 annotation class JDAListener
 
 abstract class CommandContext(
-        open val jda: JDA,
-        open val selfUser: SelfUser,
-        open val message: Message,
-        open val event: MessageReceivedEvent,
-        open val author: User,
-        open val channel: MessageChannel,
-        open val rootCommand: RootCommand,
-        open val subcommands: Map<String, Pair<Method, SubCommand>>, // There will be a resolve method.
-        open val args: Array<String>
+        val jda: JDA,
+        val selfUser: SelfUser,
+        val message: Message,
+        val event: MessageReceivedEvent,
+        val author: User,
+        val channel: MessageChannel,
+        val rootCommand: RootCommand,
+        val subcommands: Map<String, Pair<Method, SubCommand>>, // There will be a resolve method.
+        val args: Array<String>
 ) {
     inline operator fun invoke(text: String, crossinline after: Message.() -> Unit) {
         send(text) { after(this) }
@@ -202,27 +231,27 @@ class EventContext(
 }
 
 class RootCommandContext(
-        override val jda: JDA,
-        override val selfUser: SelfUser,
-        override val message: Message,
-        override val event: MessageReceivedEvent,
-        override val author: User,
-        override val channel: MessageChannel,
-        override val rootCommand: RootCommand,
-        override val subcommands: Map<String, Pair<Method, SubCommand>>,
-        override val args: Array<String>
+        jda: JDA,
+        selfUser: SelfUser,
+        message: Message,
+        event: MessageReceivedEvent,
+        author: User,
+        channel: MessageChannel,
+        rootCommand: RootCommand,
+        subcommands: Map<String, Pair<Method, SubCommand>>,
+        args: Array<String>
 ) : CommandContext(jda, selfUser, message, event, author, channel, rootCommand, subcommands, args)
 
 class SubCommandContext(
-        override val jda: JDA,
-        override val selfUser: SelfUser,
-        override val message: Message,
-        override val event: MessageReceivedEvent,
-        override val author: User,
-        override val channel: MessageChannel,
-        override val rootCommand: RootCommand,
-        override val subcommands: Map<String, Pair<Method, SubCommand>>,
-        override val args: Array<String>,
+        jda: JDA,
+        selfUser: SelfUser,
+        message: Message,
+        event: MessageReceivedEvent,
+        author: User,
+        channel: MessageChannel,
+        rootCommand: RootCommand,
+        subcommands: Map<String, Pair<Method, SubCommand>>,
+        args: Array<String>,
         val currentSubCommand: SubCommand
 ) : CommandContext(jda, selfUser, message, event, author, channel, rootCommand, subcommands, args)
 

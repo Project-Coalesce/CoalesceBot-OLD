@@ -25,7 +25,7 @@ import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable, Embeddables {
+class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddables {
     val registry = CommandRegistry()
     val checks = mutableSetOf<(CommandContext) -> Boolean>()
     val perms = RankManager(jda)
@@ -38,7 +38,6 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
             "Follow the rules at %s and enjoy your stay!"
 
     init {
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 5L, 5L, TimeUnit.MINUTES)
         if (blacklistFile.exists()) blacklist = gson.fromJson(blacklistFile.readText(), object: TypeToken<MutableMap<Long, String>>() {}.type)
         else blacklist = mutableMapOf()
     }
@@ -94,26 +93,6 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Runnable,
         if (!blacklistFile.parentFile.exists()) blacklistFile.parentFile.mkdirs()
         blacklistFile.createNewFile()
         blacklistFile.writeText(gson.toJson(blacklist))
-    }
-
-    override fun run() {
-        val time = System.currentTimeMillis()
-
-        userCooldowns.forEach { id, map ->
-            map.forEach { cmd, until ->
-                if (time > until) {
-                    map.remove(cmd)
-                }
-            }
-
-            if (map.isEmpty()) userCooldowns.remove(id)
-        }
-
-        cooldowns.forEach { cmd, until ->
-            if (time > until) {
-                cooldowns.remove(cmd)
-            }
-        }
     }
 
     override fun onGuildMemberJoin(event: GuildMemberJoinEvent) {

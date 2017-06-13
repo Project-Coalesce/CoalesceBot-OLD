@@ -1,6 +1,7 @@
 package com.coalesce.bot
 
 //import com.coalesce.bot.chatbot.ChatbotBrain
+import com.coalesce.bot.commands.GC
 import com.coalesce.bot.commands.Listener
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
@@ -13,6 +14,7 @@ import com.google.gson.GsonBuilder
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Injector
+import com.sun.scenario.Settings
 import net.dv8tion.jda.core.*
 import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Guild
@@ -24,17 +26,18 @@ import java.util.concurrent.ThreadLocalRandom
 import java.util.regex.Pattern
 
 /**
- * VERSION
+ *  VERSION
  *
- * First digit = number of release
- * Second  "   = number of the patch
+ *  First number - Major version
+ *  Second number - Minor version
+ *  Third number - Patch
  * */
-val VERSION = "1.4"
+val VERSION = "1.4.0"
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
     Preconditions.checkArgument(args.isNotEmpty(), "You need to specify a token.")
-    Main.instance.boot(args[0].replace("\"", ""), args[1])
+    Main.instance.boot(args[0].replace("\"", ""), args[1], args.size > 1 && args[2] == "consoleLogging")
 }
 
 class Main private constructor() {
@@ -44,9 +47,10 @@ class Main private constructor() {
     lateinit var listener: Listener
     lateinit var githubSecret: String
     lateinit var repManager: ReputationManager
+    lateinit var gc: GC
     val executor = Executors.newFixedThreadPool(6)!!
 
-    internal fun boot(token: String, secret: String) {
+    internal fun boot(token: String, secret: String, logOnConsole: Boolean) {
         if (!dataDirectory.exists()) {
                 dataDirectory.mkdirs()
             }
@@ -60,13 +64,24 @@ class Main private constructor() {
                 setStatus(OnlineStatus.DO_NOT_DISTURB)
         }.buildBlocking()
 
+        if (!logOnConsole) {
+            tryLog("Failed to load print streams") {
+                System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById("315934708879982592"))))
+                System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById("315934723354656768"))))
+            }
+        }
+
         tryLog("Failed to load Reputation Manager") { repManager = ReputationManager() }
         tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
 
-        injector = Guice.createInjector(Injects(this, punishments))
-        listener = Listener(jda)
-        listener.register()
-        jda.addEventListener(listener)
+        tryLog("Failed to load commands") {
+            injector = Guice.createInjector(Injects(this, punishments))
+            listener = Listener(jda)
+            listener.register()
+            jda.addEventListener(listener)
+        }
+
+        tryLog("Failed to load GC") { gc = GC(listener, repManager) }
 
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
@@ -75,14 +90,12 @@ class Main private constructor() {
 
         githubSecret = secret
 
-        System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById("315934708879982592"))))
-        System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById("315934723354656768"))))
         println("Outputting messages to this channel. Running CoalesceBot version $VERSION.")
     }
 
     companion object {
         val instance: Main = Main()
-            @Deprecated(message = "One should rather use dependency injection, though in some cases it isn't possible.") get
+            @Deprecated(message = "One should rather use dependency injection.") get
     }
 }
 
