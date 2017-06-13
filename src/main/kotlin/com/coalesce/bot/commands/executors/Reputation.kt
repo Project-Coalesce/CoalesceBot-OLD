@@ -4,6 +4,7 @@ import com.coalesce.bot.Main
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.reputation.ReputationManager
 import com.coalesce.bot.reputation.ReputationTransaction
+import com.coalesce.bot.reputation.ReputationValue
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
