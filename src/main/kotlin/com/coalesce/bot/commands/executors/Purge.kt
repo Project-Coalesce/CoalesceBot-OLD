@@ -73,12 +73,10 @@ class Purge {
 
         val time = OffsetDateTime.now().minusWeeks(2) //We can't remove messages older than 2 weeks
 
-        purge(Predicate { it.author != null && it.author.idLong == member.user.idLong
-                && !it.creationTime.isAfter(time) }
-                , channel, amount)
+        purge({ it.author != null && it.author.idLong == member.user.idLong && !it.creationTime.isAfter(time) }, channel, amount)
     }
 
-    fun purge(check: Predicate<Message>, channel: TextChannel, amount: Int) {
+    fun purge(check: (Message) -> Boolean, channel: TextChannel, amount: Int) {
         channel.history.retrievePast(MAX_BULK_SIZE).queue {
             if (it.isEmpty()) {
                 channel.sendMessage("* No history found!").queue()
@@ -87,7 +85,7 @@ class Purge {
             var removed = 0
 
             it.forEach {
-                if (!check.test(it) || removed >= amount) return@forEach
+                if (!check(it) || removed >= amount) return@forEach
                 it.delete().queue()
                 ++ removed
             }
