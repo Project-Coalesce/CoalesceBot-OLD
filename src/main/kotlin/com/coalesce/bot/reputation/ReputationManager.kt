@@ -23,7 +23,7 @@ class ReputationManager {
                 .setScanners(SubTypesScanner(false), ResourcesScanner())
                 .setUrls(ClasspathHelper.forJavaClassPath())
                 .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.reputation"))))
-                .getSubTypesOf(ReputationMilestone::class.java).filter { !it.name.contains('$') }
+                .getSubTypesOf(ReputationMilestone::class.java)
         classes.forEach {
             milestoneList.add(it.newInstance())
         }
