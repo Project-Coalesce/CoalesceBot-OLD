@@ -114,7 +114,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             return
         }
         val user = context.message.mentionedUsers.first()
-        reputation[user].transaction(ReputationTransaction("Edited by moderator.", (context.args[1].parseDouble() ?: run {
+        reputation[user].transaction(ReputationTransaction("Edited by moderator.", (reputation[user].total) + (context.args[1].parseDouble() ?: run {
             context("* Amount specified '${context.args[1]}' is not a valid value.")
             return
         }) - reputation[user].total), context.channel, context.message.guild.getMember(user))
@@ -132,7 +132,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             return
         }
         val user = context.message.mentionedUsers.first()
-        reputation[user].transaction(ReputationTransaction("Edited by moderator.", (reputation[user].total) - (context.args[1].parseDouble() ?: run {
+        reputation[user].transaction(ReputationTransaction("Edited by moderator.", (context.args[1].parseDouble() ?: run {
             context("* Amount specified '${context.args[1]}' is not a valid value.")
             return
         }) - reputation[user].total), context.channel, context.message.guild.getMember(user))
