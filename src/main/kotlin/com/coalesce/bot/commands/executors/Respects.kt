@@ -199,11 +199,12 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
             val amountPositions = mutableListOf<Double>()
 
             map.forEach { key, value ->
-                val member = context.message.guild.getMember(bot.jda.getUserById(key))
-                if (member != null &&
-                        value is Double) {
-                    top10.add(member)
-                    amountPositions.add(value)
+                quietly {
+                    val member = context.message.guild.getMember(bot.jda.getUserById(key)) ?: return@quietly
+                    if (value is Double) {
+                        top10.add(member)
+                        amountPositions.add(value)
+                    }
                 }
             }
 

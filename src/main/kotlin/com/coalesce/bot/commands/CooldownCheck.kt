@@ -30,12 +30,14 @@ class CooldownCheck(val listener: Listener): Embeddables {
         if (cooldown != 0.0) {
             val current = listener.cooldowns[identifier]
             if (current != null) {
-                if (current > System.currentTimeMillis() && System.currentTimeMillis() > cooldownForCooldown) {
-                    val remaining = (current.toLong() - System.currentTimeMillis())
-                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
-                            .setTitle("Global Cooldown for", null)
-                            .setDescription(remaining.formatTimeDiff()), { delete().queueAfter(10L, TimeUnit.SECONDS) })
-                    userCooldowns["cooldownMessage"] = System.currentTimeMillis() + 500
+                if (current > System.currentTimeMillis()) {
+                    if (System.currentTimeMillis() > cooldownForCooldown) {
+                        val remaining = (current.toLong() - System.currentTimeMillis())
+                        it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
+                                .setTitle("Global Cooldown for", null)
+                                .setDescription(remaining.formatTimeDiff()), { delete().queueAfter(10L, TimeUnit.SECONDS) })
+                        userCooldowns["cooldownMessage"] = System.currentTimeMillis() + 500
+                    }
                     return false
                 }
             }
@@ -60,12 +62,14 @@ class CooldownCheck(val listener: Listener): Embeddables {
         if (annoUser != 0.0) {
             val userCooldown = userCooldowns[identifier]
             if (userCooldown != null) {
-                if (userCooldown > System.currentTimeMillis() && System.currentTimeMillis() > cooldownForCooldown) {
-                    val remaining = (userCooldown.toLong() - System.currentTimeMillis())
-                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
-                            .setTitle("Cooldown for", null)
-                            .setDescription(remaining.formatTimeDiff()), { delete().queueAfter(10L, TimeUnit.SECONDS) })
-                    userCooldowns["cooldownMessage"] = System.currentTimeMillis() + 500
+                if (userCooldown > System.currentTimeMillis()) {
+                    if (System.currentTimeMillis() > cooldownForCooldown) {
+                        val remaining = (userCooldown.toLong() - System.currentTimeMillis())
+                        it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
+                                .setTitle("Cooldown for", null)
+                                .setDescription(remaining.formatTimeDiff()), { delete().queueAfter(10L, TimeUnit.SECONDS) })
+                        userCooldowns["cooldownMessage"] = System.currentTimeMillis() + 500
+                    }
                     return false
                 }
             }

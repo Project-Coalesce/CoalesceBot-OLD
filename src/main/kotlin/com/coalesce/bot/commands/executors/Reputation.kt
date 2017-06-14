@@ -6,6 +6,7 @@ import com.coalesce.bot.reputation.ReputationManager
 import com.coalesce.bot.reputation.ReputationTransaction
 import com.coalesce.bot.utilities.limit
 import com.coalesce.bot.utilities.parseDouble
+import com.coalesce.bot.utilities.quietly
 import com.google.inject.Inject
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Guild
@@ -151,8 +152,8 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         val amountPositions = mutableListOf<Double>()
 
         map.forEach { key, value ->
-            val member = context.message.guild.getMember(bot.jda.getUserById(key))
-            if (member != null) {
+            quietly {
+                val member = context.message.guild.getMember(bot.jda.getUserById(key)) ?: return@quietly
                 top10.add(member)
                 amountPositions.add(value.total)
             }
