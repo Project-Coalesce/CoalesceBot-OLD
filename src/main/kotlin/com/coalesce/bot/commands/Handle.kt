@@ -79,6 +79,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     }
 
     fun isBlacklisted(user: User): Boolean = blacklist.containsKey(user.idLong)
+    fun reason(user: User): String? = blacklist[user.idLong]
 
     fun blacklist(user: User, reason: String) {
         blacklist[user.idLong] = reason
