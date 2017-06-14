@@ -120,7 +120,7 @@ class Respects @Inject constructor(val bot: Main) {
     @SubCommand(
             name = "leaderboard",
             aliases = arrayOf("fboard", "lboard", "board", "respectsboard", "rboard", "ftop", "top"),
-            permission = "commands.leaderboard",
+            permission = "commands.respects.leaderboard",
             globalCooldown = 30.0
     )
     fun fboard(context: SubCommandContext) {
@@ -134,27 +134,27 @@ class Respects @Inject constructor(val bot: Main) {
             val serializer = RespectsLeaderboardSerializer(file)
             val map = serializer.read()
 
-            var respects = mutableListOf<Member>()
+            var top10 = mutableListOf<Member>()
             val amountPositions = mutableListOf<Double>()
 
             map.forEach { key, value ->
                 val member = context.message.guild.getMember(bot.jda.getUserById(key))
                 if (member != null &&
                         value is Double) {
-                    respects.add(member)
+                    top10.add(member)
                     amountPositions.add(value)
                 }
             }
 
             Collections.sort(amountPositions)
             Collections.reverse(amountPositions)
-            respects = respects.subList(0, Math.min(respects.size, 10))
-            Collections.sort(respects, { second, first -> (map[first.user.id] as Double).toInt() - (map[second.user.id] as Double).toInt() })
-            if (respects.size > 10) {
+            top10 = top10.subList(0, Math.min(top10.size, 10))
+            Collections.sort(top10, { second, first -> (map[first.user.id] as Double).toInt() - (map[second.user.id] as Double).toInt() })
+            if (top10.size > 10) {
                 val back = mutableListOf<Member>()
-                back.addAll(respects.subList(0, 10))
-                respects.clear()
-                respects.addAll(back)
+                back.addAll(top10.subList(0, 10))
+                top10.clear()
+                top10.addAll(back)
             }
 
             val builder = EmbedBuilder()
@@ -162,7 +162,7 @@ class Respects @Inject constructor(val bot: Main) {
             val nameStr = StringBuilder()
             val respectsPaidStr = StringBuilder()
 
-            respects.forEach {
+            top10.forEach {
                 val value = map[it.user.id] as Double
 
                 positionStr.append("#${amountPositions.indexOf(value) + 1}\n")
@@ -171,7 +171,7 @@ class Respects @Inject constructor(val bot: Main) {
             }
 
             val member = context.message.member
-            if(respects.contains(member) && respects.indexOf(member) > 10) {
+            if(map.containsKey(member.user.id) && !top10.contains(member)) {
                 val value = map[member.user.id] as Double
 
                 positionStr.append("...\n#${amountPositions.indexOf(value) + 1}")

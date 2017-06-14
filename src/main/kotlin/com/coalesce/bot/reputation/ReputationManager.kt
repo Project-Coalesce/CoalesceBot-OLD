@@ -16,7 +16,7 @@ import java.io.File
 
 class ReputationManager {
     private val cache = mutableMapOf<Long, ReputationValue>()
-    private val serializer : ReputationSerializer
+    private val serializer: ReputationSerializer
 
     init {
         val classes = Reflections(ConfigurationBuilder()
@@ -35,6 +35,8 @@ class ReputationManager {
 
         serializer = ReputationSerializer(file)
     }
+
+    fun readRawData(): Map<Long, ReputationValue> = serializer.read()
 
     fun generateFile(file: File) {
         file.createNewFile()

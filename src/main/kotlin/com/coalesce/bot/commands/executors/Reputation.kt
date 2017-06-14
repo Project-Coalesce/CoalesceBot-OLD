@@ -4,16 +4,18 @@ import com.coalesce.bot.Main
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.reputation.ReputationManager
 import com.coalesce.bot.reputation.ReputationTransaction
-import com.coalesce.bot.reputation.ReputationValue
+import com.coalesce.bot.utilities.limit
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Guild
+import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.awt.Color
+import java.util.*
 
 class Reputation @Inject constructor(val bot: Main, val reputation: ReputationManager): Embeddables {
     private val messagesMap = mutableMapOf<User, Int>()
@@ -46,6 +48,63 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
                 addField("Recent", transactionsString, false)
             }
         )
+    }
+
+    @SubCommand(
+            name = "leaderboard",
+            aliases = arrayOf("repboard", "lboard", "board", "reputationboard", "rtop", "top"),
+            permission = "commands.reputation.leaderboard",
+            globalCooldown = 30.0
+    )
+    fun repboard(context: SubCommandContext) {
+        val map = reputation.readRawData()
+        var top10 = mutableListOf<Member>()
+        val amountPositions = mutableListOf<Double>()
+
+        map.forEach { key, value ->
+            val member = context.message.guild.getMember(bot.jda.getUserById(key))
+            if (member != null) {
+                top10.add(member)
+                amountPositions.add(value.total)
+            }
+        }
+
+        Collections.sort(amountPositions)
+        Collections.reverse(amountPositions)
+        top10 = top10.subList(0, Math.min(top10.size, 10))
+        Collections.sort(top10, { second, first -> ((map[first.user.idLong]!!.total) - (map[second.user.idLong]!!.total)).toInt() })
+        if (top10.size > 10) {
+            val back = mutableListOf<Member>()
+            back.addAll(top10.subList(0, 10))
+            top10.clear()
+            top10.addAll(back)
+        }
+
+        val builder = EmbedBuilder()
+        val positionStr = StringBuilder()
+        val nameStr = StringBuilder()
+        val respectsPaidStr = StringBuilder()
+
+        top10.forEach {
+            val value = map[it.user.idLong]!!.total
+
+            positionStr.append("#${amountPositions.indexOf(value) + 1}\n")
+            nameStr.append("${(it.effectiveName).limit(16)}\n")
+            respectsPaidStr.append("${value.toInt()}\n")
+        }
+
+        val member = context.message.member
+        if(map.containsKey(member.user.idLong) && !top10.contains(member)) {
+            val value = map[member.user.idLong]!!.total
+
+            positionStr.append("...\n#${amountPositions.indexOf(value) + 1}")
+            nameStr.append("...\n${(member.effectiveName).limit(16)}")
+            respectsPaidStr.append("...\n${value.toInt()}")
+        }
+        builder.addField("Position", positionStr.toString(), true)
+                .addField("Name", nameStr.toString(), true)
+                .addField("Reputation", respectsPaidStr.toString(), true)
+        context(builder)
     }
 
     @JDAListener
