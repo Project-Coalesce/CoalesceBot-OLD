@@ -6,7 +6,6 @@ import com.coalesce.bot.reputation.ReputationManager
 import com.coalesce.bot.reputation.ReputationTransaction
 import com.coalesce.bot.utilities.limit
 import com.google.inject.Inject
-import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
@@ -80,17 +79,16 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             top10.addAll(back)
         }
 
-        val builder = EmbedBuilder()
         val positionStr = StringBuilder()
         val nameStr = StringBuilder()
-        val respectsPaidStr = StringBuilder()
+        val reputationStr = StringBuilder()
 
         top10.forEach {
             val value = map[it.user.idLong]!!.total
 
             positionStr.append("#${amountPositions.indexOf(value) + 1}\n")
             nameStr.append("${(it.effectiveName).limit(16)}\n")
-            respectsPaidStr.append("${value.toInt()}\n")
+            reputationStr.append("${value.toInt()}\n")
         }
 
         val member = context.message.member
@@ -99,12 +97,16 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
 
             positionStr.append("...\n#${amountPositions.indexOf(value) + 1}")
             nameStr.append("...\n${(member.effectiveName).limit(16)}")
-            respectsPaidStr.append("...\n${value.toInt()}")
+            reputationStr.append("...\n${value.toInt()}")
         }
-        builder.addField("Position", positionStr.toString(), true)
-                .addField("Name", nameStr.toString(), true)
-                .addField("Reputation", respectsPaidStr.toString(), true)
-        context(builder)
+
+        context(embed().apply {
+            setColor(Color(0x5ea81e))
+
+            addField("Position", positionStr.toString(), true)
+            addField("Name", nameStr.toString(), true)
+            addField("Reputation", reputationStr.toString(), true)
+        })
     }
 
     @JDAListener

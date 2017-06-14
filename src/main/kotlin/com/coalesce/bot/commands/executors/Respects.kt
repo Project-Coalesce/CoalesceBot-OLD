@@ -13,6 +13,7 @@ import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
+import java.awt.Color
 import java.io.DataOutputStream
 import java.io.File
 import java.util.*
@@ -30,7 +31,7 @@ enum class RespectReactions(val message: String,
     DANK("Dank", 3.0, 1260.0, "10/10", emoteId = Optional.of(318557118791680000L))
 }
 
-class Respects @Inject constructor(val bot: Main) {
+class Respects @Inject constructor(val bot: Main): Embeddables {
     @RootCommand(
             name = "Respects",
             aliases = arrayOf("f", "nahusdream"),
@@ -157,7 +158,6 @@ class Respects @Inject constructor(val bot: Main) {
                 top10.addAll(back)
             }
 
-            val builder = EmbedBuilder()
             val positionStr = StringBuilder()
             val nameStr = StringBuilder()
             val respectsPaidStr = StringBuilder()
@@ -178,10 +178,14 @@ class Respects @Inject constructor(val bot: Main) {
                 nameStr.append("...\n${(member.effectiveName).limit(16)}")
                 respectsPaidStr.append("...\n${value.toInt()}")
             }
-            builder.addField("Position", positionStr.toString(), true)
-                    .addField("Name", nameStr.toString(), true)
-                    .addField("Respects", respectsPaidStr.toString(), true)
-            context(builder)
+
+            context(embed().apply {
+                setColor(Color(0x5ea81e))
+
+                addField("Position", positionStr.toString(), true)
+                addField("Name", nameStr.toString(), true)
+                addField("Respects", respectsPaidStr.toString(), true)
+            })
         }
     }
 }
