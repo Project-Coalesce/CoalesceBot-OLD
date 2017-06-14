@@ -10,6 +10,7 @@ import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.awt.Color
 import java.lang.reflect.Method
+import java.nio.file.Files.delete
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -195,9 +196,17 @@ class EventContext(
         private val listener: Listener,
         val jda: JDA,
         val command: RootCommand
-) {
+): Embeddables {
     fun runChecks(user: User, channel: MessageChannel, cooldown: Double = command.userCooldown, reactionString: String): Boolean {
         if (user.isBot) return false
+        if (listener.isBlacklisted(user)) {
+            channel.sendMessage(embed().apply{
+                setColor(Color(204, 36, 24))
+                setAuthor(user.name, null, user.avatarUrl)
+                setTitle("You are blacklisted from using CoalesceBot.", null)
+                addField("Reason", listener.reason(user), false)
+            }.build()).queue { it.delete().queueAfter(10L, TimeUnit.SECONDS) }
+        }
         val timeCooldown = TimeUnit.SECONDS.toMillis(cooldown.toLong())
 
         val userCooldowns = listener.userCooldowns

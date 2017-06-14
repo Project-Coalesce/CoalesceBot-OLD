@@ -50,8 +50,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
 
     @JDAListener
     fun message(event: MessageReceivedEvent, context: EventContext) {
-        //308791021343473675L
-        if (!event.message.attachments.isEmpty() && event.channel.idLong == 315565346973024256L) {
+        if (!event.message.attachments.isEmpty() && event.channel.idLong == 308791021343473675L && !event.message.author.isBot) {
             RespectReactions.values().forEach {
                 if (it.emoteName.isPresent) {
                     event.message.addReaction(it.emoteName.get()).queue()
@@ -95,7 +94,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
             return
         }
         transaction(to, reaction.amount)
-        channel.sendMessage("${to.asMention}: Meme rating from ${from.name}: \"${reaction.message}\" - ${reaction.rating}" +
+        channel.sendMessage("${to.asMention}: Meme rating from ${from.name}: \"${reaction.message}\" - ${reaction.rating} " +
                 "**${if (reaction.amount > 0) "+" else ""}${reaction.amount.toInt()} respect**").queue()
     }
 
@@ -199,11 +198,12 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
             val amountPositions = mutableListOf<Double>()
 
             map.forEach { key, value ->
-                val member = context.message.guild.getMember(bot.jda.getUserById(key))
-                if (member != null &&
-                        value is Double) {
-                    top10.add(member)
-                    amountPositions.add(value)
+                quietly {
+                    val member = context.message.guild.getMember(bot.jda.getUserById(key)) ?: return@quietly
+                    if (value is Double) {
+                        top10.add(member)
+                        amountPositions.add(value)
+                    }
                 }
             }
 
