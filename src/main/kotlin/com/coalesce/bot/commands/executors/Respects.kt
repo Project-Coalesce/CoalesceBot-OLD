@@ -50,8 +50,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
 
     @JDAListener
     fun message(event: MessageReceivedEvent, context: EventContext) {
-        //308791021343473675L
-        if (!event.message.attachments.isEmpty() && event.channel.idLong == 315565346973024256L) {
+        if (!event.message.attachments.isEmpty() && event.channel.idLong == 308791021343473675L) {
             RespectReactions.values().forEach {
                 if (it.emoteName.isPresent) {
                     event.message.addReaction(it.emoteName.get()).queue()
