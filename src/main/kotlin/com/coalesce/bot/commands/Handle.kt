@@ -121,21 +121,14 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
-        if (event.message.isMentioned(jda.selfUser)) {
+        /*if (event.message.isMentioned(jda.selfUser)) {
             //if (chatbot.isDisabled) return
 
             //getChatbotMessage(event.message, jda).apply { event.channel.sendMessage("${event.message.author.asMention}: " +
-                    //if(this!!.isEmpty()) "* Failed to find message" else this).queue() }
-        }
-        else if (!event.message.attachments.isEmpty() && event.channel.idLong == 308791021343473675L) {
-            RespectReactions.values().forEach {
-                val emoji = it.emoteName.orElse(null) ?: it.emoteId.get().toString()
-                val emote = event.guild.getEmoteById(emoji.toLongOrNull() ?: 1L/* Holy shit this looks ugly */)
-                if (emote != null) event.message.addReaction(emote).queue()
-                else event.message.addReaction(emoji).queue()
-            }
-        }
-        else if (!event.message.rawContent.startsWith(commandPrefix)) {
+            //if(this!!.isEmpty()) "* Failed to find message" else this).queue() }
+
+        }*/
+        if (!event.message.rawContent.startsWith(commandPrefix)) {
             return
         }
         val command = event.message.rawContent.substring(commandPrefixLen)

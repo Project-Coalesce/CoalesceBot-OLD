@@ -12,6 +12,7 @@ import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.awt.Color
 import java.io.DataOutputStream
@@ -44,6 +45,19 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         context(context.author, "Respects have been paid! **+8 respect**") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
 
         transaction(context.author, 8.0)
+    }
+
+    @JDAListener
+    fun message(event: MessageReceivedEvent, context: EventContext) {
+        if (!event.message.attachments.isEmpty() && event.channel.idLong == 308791021343473675L) {
+            RespectReactions.values().forEach {
+                if (it.emoteName.isPresent) {
+                    event.message.addReaction(it.emoteName.get()).queue()
+                } else {
+                    event.message.addReaction(event.guild.getEmoteById(it.emoteId.get())).queue()
+                }
+            }
+        }
     }
 
     @JDAListener
