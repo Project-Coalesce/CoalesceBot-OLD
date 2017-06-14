@@ -52,10 +52,12 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
                 val isBlacklisted = isBlacklisted(it.author)
 
                 if (isBlacklisted) {
-                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
-                            .setTitle("You are blacklisted from using CoalesceBot.", null)
-                            .addField("Reason", blacklist[it.message.author.idLong], false),
-                            { delete().queueAfter(10L, TimeUnit.SECONDS) })
+                    it(embed().apply{
+                        setColor(Color(204, 36, 24))
+                        setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
+                        setTitle("You are blacklisted from using CoalesceBot.", null)
+                        addField("Reason", blacklist[it.message.author.idLong], false)
+                    }, { delete().queueAfter(10L, TimeUnit.SECONDS) })
                 }
 
                 !isBlacklisted
@@ -100,7 +102,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     }
 
     override fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
-        event.guild.publicChannel.sendMessage("Today, we see ${event.member.effectiveName} leave us.").queue()
+        event.guild.publicChannel.sendMessage("Today, we see ${event.member.effectiveName} leave us <:feelsbad:302954104718884875>").queue()
     }
 
     override fun onGenericEvent(event: Event) {

@@ -51,7 +51,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
 
     @JDAListener
     fun react(event: MessageReactionAddEvent, context: EventContext) {
-        if (event.user.isBot) return
+        if (event.user.isBot || bot.listener.isBlacklisted(event.user)) return //Bad boys can't do this
 
         if (event.channel.idLong == 308791021343473675L/* #memes */) {
             RespectReactions.values().forEach {

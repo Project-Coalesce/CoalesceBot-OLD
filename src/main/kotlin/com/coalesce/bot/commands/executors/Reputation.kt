@@ -201,6 +201,40 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         })
     }
 
+<<<<<<< HEAD
+=======
+    @JDAListener
+    fun messageReceived(event: MessageReceivedEvent, context: EventContext) {
+        messagesMap[event.author] = (messagesMap[event.author] ?: 0) + 1
+
+        if (messagesMap[event.author]!! >= 25 + Math.max((reputation[event.author].total / 5.0).toInt(), 700)) {
+            reputation[event.author].transaction(ReputationTransaction("Award for sending ${messagesMap[event.author]} messages", 10.0),
+                    event.channel, event.guild.getMember(event.author))
+            messagesMap[event.author] = 0
+        }
+    }
+
+    @JDAListener
+    fun react(event: MessageReactionAddEvent, context: EventContext) {
+        if (bot.listener.isBlacklisted(event.user)) return //Bad boys can't do this
+
+        if (event.reaction.emote.name.contains("✌")) {
+            if (context.runChecks(event.user, event.channel!!, 360.0, "thank")) {
+                event.channel.getMessageById(event.messageId).queue {
+                    transaction(event.guild, event.channel!!, event.user, it.author, event.jda, "thanked you",
+                            { origin, _ -> Math.min((origin / 80.0) + 20.0, 100.0) })
+                }
+            }
+        } else if (event.reaction.emote.name.contains("👎")) {
+            if (context.runChecks(event.user, event.channel!!, 720.0, "downrate")) {
+                event.channel.getMessageById(event.messageId).queue {
+                    transaction(event.guild, event.channel!!, event.user, it.author, event.jda, "down-rated you", { _, _ -> -10.0 })
+                }
+            }
+        }
+    }
+
+>>>>>>> 3cc01ae0ad61a29f91e12e5d105f899339f851ff
     fun transaction(guild: Guild, channel: MessageChannel, from: User, to: User, jda: JDA, message: String,
                     amount: (originTotal: Double, targetTotal: Double) -> Double) {
         if (to == from || to == jda.selfUser) {
