@@ -1,5 +1,6 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.VERSION
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.Embeddables
 import com.coalesce.bot.commands.RootCommand
@@ -16,12 +17,17 @@ class Info: Embeddables {
     )
     fun execute(context: RootCommandContext) {
         context(embed().apply {
-            setColor(Color(255, 159, 50))
+            setColor(Color(0xBE58B6))
 
-            setTitle("CoalesceBot", null)
-            setDescription("Developed by the Coalesce Team (Learn more: `!coalesce`). Source: https://github.com/Project-Coalesce/CoalesceBot\n" +
-                    "Any bugs should be reported to deprilula28#3609. Abusing commands may lead into a blacklist.\n" +
-                    "Type `!help` for a list of commands.")
+            setAuthor("CoalesceBot", "https://github.com/Project-Coalesce/CoalesceBot", "http://i.imgur.com/4j7oFYD.png")
+            setDescription(arrayOf(
+                    "Developed by the Coalesce Team (Learn more: `!coalesce`).",
+                    "If you find any bugs, please report them at https://goo.gl/5rGeFJ.",
+                    "Abusing the bot's features may lead into a blacklist.",
+                    "**Type `!help` for a list of commands.**")
+                .joinToString(separator = "\n"))
+
+            setFooter("Running CoalesceBot version $VERSION.", null)
         }.build())
     }
 }

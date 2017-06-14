@@ -52,10 +52,12 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
                 val isBlacklisted = isBlacklisted(it.author)
 
                 if (isBlacklisted) {
-                    it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
-                            .setTitle("You are blacklisted from using CoalesceBot.", null)
-                            .addField("Reason", blacklist[it.message.author.idLong], false),
-                            { delete().queueAfter(10L, TimeUnit.SECONDS) })
+                    it(embed().apply{
+                        setColor(Color(204, 36, 24))
+                        setAuthor(it.message.author.name, null, it.message.author.avatarUrl)
+                        setTitle("You are blacklisted from using CoalesceBot.", null)
+                        addField("Reason", blacklist[it.message.author.idLong], false)
+                    }, { delete().queueAfter(10L, TimeUnit.SECONDS) })
                 }
 
                 !isBlacklisted
@@ -96,11 +98,11 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     }
 
     override fun onGuildMemberJoin(event: GuildMemberJoinEvent) {
-        event.guild.publicChannel.sendMessage(String.format(welcomeMessage, event.member.asMention, "<#269178364483338250>"))
+        event.guild.publicChannel.sendMessage(String.format(welcomeMessage, event.member.asMention, "<#269178364483338250>")).queue()
     }
 
     override fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
-        event.guild.publicChannel.sendMessage("Today, we see ${event.member.effectiveName} leave us.")
+        event.guild.publicChannel.sendMessage("Today, we see ${event.member.effectiveName} leave us <:feelsbad:302954104718884875>").queue()
     }
 
     override fun onGenericEvent(event: Event) {
@@ -119,21 +121,14 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
-        if (event.message.isMentioned(jda.selfUser)) {
+        /*if (event.message.isMentioned(jda.selfUser)) {
             //if (chatbot.isDisabled) return
 
             //getChatbotMessage(event.message, jda).apply { event.channel.sendMessage("${event.message.author.asMention}: " +
-                    //if(this!!.isEmpty()) "* Failed to find message" else this).queue() }
-        }
-        else if (!event.message.attachments.isEmpty() && event.channel.idLong == 308791021343473675L) {
-            RespectReactions.values().forEach {
-                val emoji = it.emoteName.orElse(null) ?: it.emoteId.get().toString()
-                val emote = event.guild.getEmoteById(emoji.toLongOrNull() ?: 1L/* Holy shit this looks ugly */)
-                if (emote != null) event.message.addReaction(emote).queue()
-                else event.message.addReaction(emoji).queue()
-            }
-        }
-        else if (!event.message.rawContent.startsWith(commandPrefix)) {
+            //if(this!!.isEmpty()) "* Failed to find message" else this).queue() }
+
+        }*/
+        if (!event.message.rawContent.startsWith(commandPrefix)) {
             return
         }
         val command = event.message.rawContent.substring(commandPrefixLen)

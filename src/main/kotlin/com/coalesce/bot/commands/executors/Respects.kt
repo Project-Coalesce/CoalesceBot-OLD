@@ -5,14 +5,17 @@ import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
+import com.coalesce.bot.utilities.parseDouble
+import com.coalesce.bot.utilities.quietly
 import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
-import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.User
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
+import java.awt.Color
 import java.io.DataOutputStream
 import java.io.File
 import java.util.*
@@ -30,8 +33,7 @@ enum class RespectReactions(val message: String,
     DANK("Dank", 3.0, 1260.0, "10/10", emoteId = Optional.of(318557118791680000L))
 }
 
-class Respects @Inject constructor(val bot: Main) {
-
+class Respects @Inject constructor(val bot: Main): Embeddables {
     @RootCommand(
             name = "Respects",
             aliases = arrayOf("f", "nahusdream"),
@@ -47,8 +49,22 @@ class Respects @Inject constructor(val bot: Main) {
     }
 
     @JDAListener
+    fun message(event: MessageReceivedEvent, context: EventContext) {
+        //308791021343473675L
+        if (!event.message.attachments.isEmpty() && event.channel.idLong == 315565346973024256L) {
+            RespectReactions.values().forEach {
+                if (it.emoteName.isPresent) {
+                    event.message.addReaction(it.emoteName.get()).queue()
+                } else quietly {
+                    event.message.addReaction(event.guild.getEmoteById(it.emoteId.get())).queue()
+                }
+            }
+        }
+    }
+
+    @JDAListener
     fun react(event: MessageReactionAddEvent, context: EventContext) {
-        if (event.user.isBot) return
+        if (event.user.isBot || bot.listener.isBlacklisted(event.user)) return //Bad boys can't do this
 
         if (event.channel.idLong == 308791021343473675L/* #memes */) {
             RespectReactions.values().forEach {
@@ -74,17 +90,163 @@ class Respects @Inject constructor(val bot: Main) {
     }
 
     private fun dank(channel: MessageChannel, from: User, to: User, jda: JDA, reaction: RespectReactions) {
-        if (from == to) {
-            channel.sendMessage("* You see, doing that is what makes you not dank.").queue()
-            return
-        }
-        if (to == jda.selfUser) {
-            channel.sendMessage("* My shit's fucking lit ain't it").queue()
+        if (to == from || to == jda.selfUser) {
+            channel.sendMessage("* Invalid user").queue()
             return
         }
         transaction(to, reaction.amount)
-        channel.sendMessage("${to.asMention}: ${reaction.name} - ${reaction.rating} ${from.asMention}" +
-                " **${if (reaction.amount > 0) "+" else ""}${reaction.amount.toInt()} respect**").queue()
+        channel.sendMessage("${to.asMention}: Meme rating from ${from.name}: \"${reaction.message}\" - ${reaction.rating}" +
+                "**${if (reaction.amount > 0) "+" else ""}${reaction.amount.toInt()} respect**").queue()
+    }
+
+    @SubCommand(
+            name = "reset",
+            permission = "commands.respects.reset",
+            globalCooldown = 0.0
+    )
+    fun resetScore(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty()) {
+            context("* You need to mention someone to reset scores of.")
+            return
+        }
+        val user = context.message.mentionedUsers.first()
+        val file = respectsLeaderboardsFile
+        if (!file.exists()) generateFile(file)
+
+        val serializer = RespectsLeaderboardSerializer(file)
+        val map = serializer.read()
+
+        if (!map.containsKey(user.id)) {
+            context("* This user already is empty.")
+            return
+        }
+
+        map.remove(user.id)
+        serializer.write(map)
+        context(context.author, "Reset scores of ${user.asMention}.")
+    }
+
+    @SubCommand(
+            name = "edit",
+            permission = "commands.respects.edit",
+            globalCooldown = 0.0
+    )
+    fun scoreEdit(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
+            context("* Usage: !f edit <mention> <amount>")
+            return
+        }
+        val user = context.message.mentionedUsers.first()
+
+        val file = respectsLeaderboardsFile
+        if (!file.exists()) generateFile(file)
+
+        val serializer = RespectsLeaderboardSerializer(file)
+        val map = serializer.read()
+        map[user.id] = (map[user.id] ?: 0.0) + (context.args[1].parseDouble() ?: run {
+            context("* Amount specified '${context.args[1]}' is not a valid value.")
+            return
+        })
+
+        serializer.write(map)
+        context(context.author, "Set scores of ${user.asMention} to ${map[user.id]}.")
+    }
+
+    @SubCommand(
+            name = "set",
+            permission = "commands.respects.set",
+            globalCooldown = 0.0
+    )
+    fun scoreSet(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
+            context("* Usage: !f set <mention> <amount>")
+            return
+        }
+        val user = context.message.mentionedUsers.first()
+
+        val file = respectsLeaderboardsFile
+        if (!file.exists()) generateFile(file)
+
+        val serializer = RespectsLeaderboardSerializer(file)
+        val map = serializer.read()
+        map[user.id] = context.args[1].parseDouble() ?: run {
+            context("* Amount specified '${context.args[1]}' is not a valid value.")
+            return
+        }
+
+        serializer.write(map)
+        context(context.author, "Set scores of ${user.asMention} to ${map[user.id]}.")
+    }
+
+    @SubCommand(
+            name = "leaderboard",
+            aliases = arrayOf("fboard", "lboard", "board", "respectsboard", "rboard", "ftop", "top"),
+            permission = "commands.respects.leaderboard",
+            globalCooldown = 30.0
+    )
+    fun fboard(context: SubCommandContext) {
+        val file = respectsLeaderboardsFile
+        synchronized(file) {
+            if (!file.exists()) {
+                context("* Respects leaderboard is empty.")
+                return
+            }
+
+            val serializer = RespectsLeaderboardSerializer(file)
+            val map = serializer.read()
+
+            var top10 = mutableListOf<Member>()
+            val amountPositions = mutableListOf<Double>()
+
+            map.forEach { key, value ->
+                val member = context.message.guild.getMember(bot.jda.getUserById(key))
+                if (member != null &&
+                        value is Double) {
+                    top10.add(member)
+                    amountPositions.add(value)
+                }
+            }
+
+            Collections.sort(amountPositions)
+            Collections.reverse(amountPositions)
+            top10 = top10.subList(0, Math.min(top10.size, 10))
+            Collections.sort(top10, { second, first -> (map[first.user.id] as Double).toInt() - (map[second.user.id] as Double).toInt() })
+            if (top10.size > 10) {
+                val back = mutableListOf<Member>()
+                back.addAll(top10.subList(0, 10))
+                top10.clear()
+                top10.addAll(back)
+            }
+
+            val positionStr = StringBuilder()
+            val nameStr = StringBuilder()
+            val respectsPaidStr = StringBuilder()
+
+            top10.forEach {
+                val value = map[it.user.id] as Double
+
+                positionStr.append("#${amountPositions.indexOf(value) + 1}\n")
+                nameStr.append("${(it.effectiveName).limit(16)}\n")
+                respectsPaidStr.append("${value.toInt()}\n")
+            }
+
+            val member = context.message.member
+            if(map.containsKey(member.user.id) && !top10.contains(member)) {
+                val value = map[member.user.id] as Double
+
+                positionStr.append("...\n#${amountPositions.indexOf(value) + 1}")
+                nameStr.append("...\n${(member.effectiveName).limit(16)}")
+                respectsPaidStr.append("...\n${value.toInt()}")
+            }
+
+            context(embed().apply {
+                setColor(Color(0x5ea81e))
+
+                addField("Position", positionStr.toString(), true)
+                addField("Name", nameStr.toString(), true)
+                addField("Respects", respectsPaidStr.toString(), true)
+            })
+        }
     }
 
     private fun transaction(user: User, amount: Double) {
@@ -103,11 +265,10 @@ class Respects @Inject constructor(val bot: Main) {
         serializer.write(map)
     }
 
-    fun generateFile(file: File) {
+    private fun generateFile(file: File) {
         file.createNewFile()
         if (respectsLeaderboardsFileOld.exists()) {
-            val type = object: TypeToken<HashMap<String, Any?>>() {}
-            val oldMap = gson.fromJson<MutableMap<String, Any?>>(respectsLeaderboardsFileOld.readText(), type.type)
+            val oldMap = gson.fromJson<MutableMap<String, Double>>(respectsLeaderboardsFileOld.readText(), object: TypeToken<HashMap<String, Double>>() {}.type)
 
             val repSerializer = RespectsLeaderboardSerializer(file)
             repSerializer.write(oldMap)
@@ -119,78 +280,6 @@ class Respects @Inject constructor(val bot: Main) {
             file.outputStream().use {
                 DataOutputStream(it).writeLong(-1L)
             }
-        }
-    }
-}
-
-class RespectsLeaderboard @Inject constructor(val jda: JDA) {
-    @RootCommand(
-            name = "leaderboard",
-            aliases = arrayOf("fboard", "lboard", "board", "respectsboard", "rboard", "ftop"),
-            description = "Displays the leaders of Respects.",
-            permission = "commands.leaderboard",
-            type = CommandType.FUN,
-            globalCooldown = 30.0
-    )
-    fun execute(context: RootCommandContext) {
-        val file = respectsLeaderboardsFile
-        synchronized(file) {
-            if (!file.exists()) {
-                context("Sadly nobody has paid respects yet.")
-                return
-            }
-
-            val serializer = RespectsLeaderboardSerializer(file)
-            val map = serializer.read()
-
-            var respects = mutableListOf<Member>()
-            val amountPositions = mutableListOf<Double>()
-
-            map.forEach { key, value ->
-                val member = context.message.guild.getMember(jda.getUserById(key))
-                if (member != null &&
-                        value is Double) {
-                    respects.add(member)
-                    amountPositions.add(value)
-                }
-            }
-
-            Collections.sort(amountPositions)
-            Collections.reverse(amountPositions)
-            respects = respects.subList(0, Math.min(respects.size, 10))
-            Collections.sort(respects, { second, first -> (map[first.user.id] as Double).toInt() - (map[second.user.id] as Double).toInt() })
-            if (respects.size > 10) {
-                val back = mutableListOf<Member>()
-                back.addAll(respects.subList(0, 10))
-                respects.clear()
-                respects.addAll(back)
-            }
-
-            val builder = EmbedBuilder()
-            val positionStr = StringBuilder()
-            val nameStr = StringBuilder()
-            val respectsPaidStr = StringBuilder()
-
-            respects.forEach {
-                val value = map[it.user.id] as Double
-
-                positionStr.append("#${amountPositions.indexOf(value) + 1}\n")
-                nameStr.append("${(it.effectiveName).limit(16)}\n")
-                respectsPaidStr.append("${value.toInt()}\n")
-            }
-
-            val member = context.message.member
-            if(respects.contains(member) && respects.indexOf(member) > 10) {
-                val value = map[member.user.id] as Double
-
-                positionStr.append("...\n#${amountPositions.indexOf(value) + 1}")
-                nameStr.append("...\n${(member.effectiveName).limit(16)}")
-                respectsPaidStr.append("...\n${value.toInt()}")
-            }
-            builder.addField("Position", positionStr.toString(), true)
-                    .addField("Name", nameStr.toString(), true)
-                    .addField("Respects", respectsPaidStr.toString(), true)
-            context(builder)
         }
     }
 }

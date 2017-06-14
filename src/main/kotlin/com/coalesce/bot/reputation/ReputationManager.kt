@@ -16,14 +16,14 @@ import java.io.File
 
 class ReputationManager {
     private val cache = mutableMapOf<Long, ReputationValue>()
-    private val serializer : ReputationSerializer
+    private val serializer: ReputationSerializer
 
     init {
         val classes = Reflections(ConfigurationBuilder()
                 .setScanners(SubTypesScanner(false), ResourcesScanner())
                 .setUrls(ClasspathHelper.forJavaClassPath())
                 .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.reputation"))))
-                .getSubTypesOf(ReputationMilestone::class.java).filter { !it.name.contains('$') }
+                .getSubTypesOf(ReputationMilestone::class.java)
         classes.forEach {
             milestoneList.add(it.newInstance())
         }
@@ -35,6 +35,9 @@ class ReputationManager {
 
         serializer = ReputationSerializer(file)
     }
+
+    fun readRawData(): MutableMap<Long, ReputationValue> = serializer.read()
+    fun writeRawData(map: MutableMap<Long, ReputationValue>) = serializer.write(map)
 
     fun generateFile(file: File) {
         file.createNewFile()
