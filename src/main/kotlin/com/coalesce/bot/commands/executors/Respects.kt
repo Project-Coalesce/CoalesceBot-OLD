@@ -6,6 +6,7 @@ import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
 import com.coalesce.bot.utilities.parseDouble
+import com.coalesce.bot.utilities.quietly
 import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.JDA
@@ -49,11 +50,12 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
 
     @JDAListener
     fun message(event: MessageReceivedEvent, context: EventContext) {
-        if (!event.message.attachments.isEmpty() && event.channel.idLong == 308791021343473675L) {
+        //308791021343473675L
+        if (!event.message.attachments.isEmpty() && event.channel.idLong == 315565346973024256L) {
             RespectReactions.values().forEach {
                 if (it.emoteName.isPresent) {
                     event.message.addReaction(it.emoteName.get()).queue()
-                } else {
+                } else quietly {
                     event.message.addReaction(event.guild.getEmoteById(it.emoteId.get())).queue()
                 }
             }
