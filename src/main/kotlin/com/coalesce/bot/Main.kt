@@ -36,7 +36,7 @@ val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my component
 
 fun main(args: Array<String>) {
     Preconditions.checkArgument(args.isNotEmpty(), "You need to specify a token.")
-    Main.instance.boot(args[0].replace("\"", ""), args[1], args.size > 1 && args[2] == "consoleLogging")
+    Main.instance.boot(args[0].replace("\"", ""), args[1], args.size > 2 && args[2] == "consoleLogging")
 }
 
 class Main private constructor() {
