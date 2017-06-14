@@ -9,10 +9,7 @@ import com.coalesce.bot.utilities.parseDouble
 import com.coalesce.bot.utilities.quietly
 import com.google.inject.Inject
 import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.entities.Guild
-import net.dv8tion.jda.core.entities.Member
-import net.dv8tion.jda.core.entities.MessageChannel
-import net.dv8tion.jda.core.entities.User
+import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.awt.Color
@@ -53,13 +50,18 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
 
     @JDAListener
     fun messageReceived(event: MessageReceivedEvent, context: EventContext) {
-        messagesMap[event.author] = (messagesMap[event.author] ?: 0) + 1
+        val user = event.author
+        if (user.isBot || event.channel !is MessageChannel) return
+        var messageCount = (messagesMap[user] ?: 0) + 1
+        val nextAchievement = 25 + Math.min((reputation[user].total * 1.5).toInt(), 1000)
 
-        if (messagesMap[event.author]!! >= 25 + Math.max((reputation[event.author].total / 5.0).toInt(), 700)) {
-            reputation[event.author].transaction(ReputationTransaction("Award for sending ${messagesMap[event.author]} messages", 10.0),
-                    event.channel, event.guild.getMember(event.author))
-            messagesMap[event.author] = 0
+        if (messageCount >= nextAchievement) {
+            reputation[user].transaction(ReputationTransaction("Award for sending $nextAchievement messages", 10.0),
+                    event.channel as TextChannel, user)
+            messageCount = 0
         }
+
+        messagesMap[user] = messageCount
     }
 
     @JDAListener
@@ -118,7 +120,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         reputation[user].transaction(ReputationTransaction("Edited by moderator.", (reputation[user].total) + (context.args[1].parseDouble() ?: run {
             context("* Amount specified '${context.args[1]}' is not a valid value.")
             return
-        }) - reputation[user].total), context.channel, context.message.guild.getMember(user))
+        }) - reputation[user].total), context.channel as TextChannel, user)
         context(context.author, "Set scores of ${user.asMention} to ${reputation[user].total}.")
     }
 
@@ -136,7 +138,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         reputation[user].transaction(ReputationTransaction("Edited by moderator.", (context.args[1].parseDouble() ?: run {
             context("* Amount specified '${context.args[1]}' is not a valid value.")
             return
-        }) - reputation[user].total), context.channel, context.message.guild.getMember(user))
+        }) - reputation[user].total), context.channel as TextChannel, user)
         context(context.author, "Set scores of ${user.asMention} to ${reputation[user].total}.")
     }
 
@@ -211,7 +213,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
 
         val transactionAmount = amount(reputation[from].total, targetValue.total)
         targetValue.transaction(ReputationTransaction("${guild.getMember(from).effectiveName} $message", transactionAmount),
-                channel, guild.getMember(to))
+                channel as TextChannel, to)
         reputation[to] = targetValue
     }
 }

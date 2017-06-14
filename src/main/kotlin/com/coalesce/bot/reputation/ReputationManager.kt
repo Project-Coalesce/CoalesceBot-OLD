@@ -4,6 +4,7 @@ import com.coalesce.bot.binary.ReputationSerializer
 import com.coalesce.bot.reputationFile
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
+import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import org.reflections.Reflections
 import org.reflections.scanners.ResourcesScanner
@@ -66,7 +67,8 @@ class ReputationManager {
 val milestoneList = mutableListOf<ReputationMilestone>()
 
 class ReputationValue(var total: Double, var transactions: MutableList<ReputationTransaction>, val milestones: MutableList<String>) {
-    fun transaction(transaction: ReputationTransaction, channel: MessageChannel, member: Member) {
+    fun transaction(transaction: ReputationTransaction, channel: TextChannel, user: User) {
+        val member = channel.guild.getMember(user)
         transactions.add(0, transaction)
         if (transactions.size > 10) transactions = transactions.subList(0, 10)
 
