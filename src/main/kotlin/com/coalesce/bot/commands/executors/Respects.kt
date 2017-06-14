@@ -4,7 +4,9 @@ import com.coalesce.bot.*
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
+import com.coalesce.bot.utilities.isInteger
 import com.coalesce.bot.utilities.limit
+import com.coalesce.bot.utilities.parseDouble
 import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
@@ -18,6 +20,7 @@ import java.io.DataOutputStream
 import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 enum class RespectReactions(val message: String,
                             val amount: Double,
@@ -79,43 +82,87 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
             return
         }
         transaction(to, reaction.amount)
-        channel.sendMessage("${to.asMention}: ${reaction.name} - ${reaction.rating} ${from.asMention}" +
-                " **${if (reaction.amount > 0) "+" else ""}${reaction.amount.toInt()} respect**").queue()
+        channel.sendMessage("${to.asMention}: Meme rating from ${from.name}: \"${reaction.message}\" - ${reaction.rating}" +
+                "**${if (reaction.amount > 0) "+" else ""}${reaction.amount.toInt()} respect**").queue()
     }
 
-    private fun transaction(user: User, amount: Double) {
+    @SubCommand(
+            name = "reset",
+            permission = "commands.respects.reset",
+            globalCooldown = 0.0
+    )
+    fun resetScore(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty()) {
+            context("* You need to mention someone to reset scores of.")
+            return
+        }
+        val user = context.message.mentionedUsers.first()
         val file = respectsLeaderboardsFile
         if (!file.exists()) generateFile(file)
 
         val serializer = RespectsLeaderboardSerializer(file)
         val map = serializer.read()
 
-        val id = user.id
-        map[id] = (map[id] as? Double ?: 0.0) + amount
-        if (file.exists()) {
-            file.delete()
+        if (!map.containsKey(user.id)) {
+            context("* This user already is empty.")
+            return
         }
-        file.createNewFile()
+
+        map.remove(user.id)
         serializer.write(map)
+        context(context.author, "Reset scores of ${user.asMention}.")
     }
 
-    fun generateFile(file: File) {
-        file.createNewFile()
-        if (respectsLeaderboardsFileOld.exists()) {
-            val type = object: TypeToken<HashMap<String, Any?>>() {}
-            val oldMap = gson.fromJson<MutableMap<String, Any?>>(respectsLeaderboardsFileOld.readText(), type.type)
-
-            val repSerializer = RespectsLeaderboardSerializer(file)
-            repSerializer.write(oldMap)
-
-            val oldSize = respectsLeaderboardsFileOld.length()
-            respectsLeaderboardsFileOld.delete()
-            println("Updated reputation file to binary, removing ${oldSize - file.length()} bytes.")
-        } else {
-            file.outputStream().use {
-                DataOutputStream(it).writeLong(-1L)
-            }
+    @SubCommand(
+            name = "edit",
+            permission = "commands.respects.edit",
+            globalCooldown = 0.0
+    )
+    fun scoreEdit(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
+            context("* Usage: !f edit <mention> <amount>")
+            return
         }
+        val user = context.message.mentionedUsers.first()
+
+        val file = respectsLeaderboardsFile
+        if (!file.exists()) generateFile(file)
+
+        val serializer = RespectsLeaderboardSerializer(file)
+        val map = serializer.read()
+        map[user.id] = (map[user.id] ?: 0.0) + (context.args[1].parseDouble() ?: run {
+            context("* Amount specified '${context.args[1]}' is not a valid value.")
+            return
+        })
+
+        serializer.write(map)
+        context(context.author, "Set scores of ${user.asMention} to ${map[user.id]}.")
+    }
+
+    @SubCommand(
+            name = "set",
+            permission = "commands.respects.set",
+            globalCooldown = 0.0
+    )
+    fun scoreSet(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
+            context("* Usage: !f set <mention> <amount>")
+            return
+        }
+        val user = context.message.mentionedUsers.first()
+
+        val file = respectsLeaderboardsFile
+        if (!file.exists()) generateFile(file)
+
+        val serializer = RespectsLeaderboardSerializer(file)
+        val map = serializer.read()
+        map[user.id] = context.args[1].parseDouble() ?: run {
+            context("* Amount specified '${context.args[1]}' is not a valid value.")
+            return
+        }
+
+        serializer.write(map)
+        context(context.author, "Set scores of ${user.asMention} to ${map[user.id]}.")
     }
 
     @SubCommand(
@@ -128,7 +175,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         val file = respectsLeaderboardsFile
         synchronized(file) {
             if (!file.exists()) {
-                context("Sadly nobody has paid respects yet.")
+                context("* Respects leaderboard is empty.")
                 return
             }
 
@@ -186,6 +233,40 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
                 addField("Name", nameStr.toString(), true)
                 addField("Respects", respectsPaidStr.toString(), true)
             })
+        }
+    }
+
+    private fun transaction(user: User, amount: Double) {
+        val file = respectsLeaderboardsFile
+        if (!file.exists()) generateFile(file)
+
+        val serializer = RespectsLeaderboardSerializer(file)
+        val map = serializer.read()
+
+        val id = user.id
+        map[id] = (map[id] as? Double ?: 0.0) + amount
+        if (file.exists()) {
+            file.delete()
+        }
+        file.createNewFile()
+        serializer.write(map)
+    }
+
+    private fun generateFile(file: File) {
+        file.createNewFile()
+        if (respectsLeaderboardsFileOld.exists()) {
+            val oldMap = gson.fromJson<MutableMap<String, Double>>(respectsLeaderboardsFileOld.readText(), object: TypeToken<HashMap<String, Double>>() {}.type)
+
+            val repSerializer = RespectsLeaderboardSerializer(file)
+            repSerializer.write(oldMap)
+
+            val oldSize = respectsLeaderboardsFileOld.length()
+            respectsLeaderboardsFileOld.delete()
+            println("Updated reputation file to binary, removing ${oldSize - file.length()} bytes.")
+        } else {
+            file.outputStream().use {
+                DataOutputStream(it).writeLong(-1L)
+            }
         }
     }
 }

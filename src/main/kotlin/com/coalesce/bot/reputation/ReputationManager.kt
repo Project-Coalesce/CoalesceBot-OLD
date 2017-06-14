@@ -36,7 +36,8 @@ class ReputationManager {
         serializer = ReputationSerializer(file)
     }
 
-    fun readRawData(): Map<Long, ReputationValue> = serializer.read()
+    fun readRawData(): MutableMap<Long, ReputationValue> = serializer.read()
+    fun writeRawData(map: MutableMap<Long, ReputationValue>) = serializer.write(map)
 
     fun generateFile(file: File) {
         file.createNewFile()

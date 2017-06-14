@@ -1,10 +1,13 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Main
+import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.reputation.ReputationManager
 import com.coalesce.bot.reputation.ReputationTransaction
+import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.limit
+import com.coalesce.bot.utilities.parseDouble
 import com.google.inject.Inject
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Guild
@@ -47,6 +50,95 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
                 addField("Recent", transactionsString, false)
             }
         )
+    }
+
+    @JDAListener
+    fun messageReceived(event: MessageReceivedEvent, context: EventContext) {
+        messagesMap[event.author] = (messagesMap[event.author] ?: 0) + 1
+
+        if (messagesMap[event.author]!! >= 25 + Math.max((reputation[event.author].total / 5.0).toInt(), 700)) {
+            reputation[event.author].transaction(ReputationTransaction("Award for sending ${messagesMap[event.author]} messages", 10.0),
+                    event.channel, event.guild.getMember(event.author))
+            messagesMap[event.author] = 0
+        }
+    }
+
+    @JDAListener
+    fun react(event: MessageReactionAddEvent, context: EventContext) {
+        if (event.reaction.emote.name.contains("✌")) {
+            if (context.runChecks(event.user, event.channel!!, 360.0, "thank")) {
+                event.channel.getMessageById(event.messageId).queue {
+                    transaction(event.guild, event.channel!!, event.user, it.author, event.jda, "thanked you",
+                            { origin, _ -> Math.min((origin / 80.0) + 20.0, 100.0) })
+                }
+            }
+        } else if (event.reaction.emote.name.contains("👎")) {
+            if (context.runChecks(event.user, event.channel!!, 720.0, "downrate")) {
+                event.channel.getMessageById(event.messageId).queue {
+                    transaction(event.guild, event.channel!!, event.user, it.author, event.jda, "down-rated you", { _, _ -> -10.0 })
+                }
+            }
+        }
+    }
+
+    @SubCommand(
+            name = "reset",
+            permission = "commands.respects.reset",
+            globalCooldown = 0.0
+    )
+    fun resetScore(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty()) {
+            context("* You need to mention someone to reset scores of.")
+            return
+        }
+
+        val user = context.message.mentionedUsers.first()
+        val map = reputation.readRawData()
+        if (map.containsKey(user.idLong)) {
+            context("* This user already is empty.")
+            return
+        }
+        map.remove(user.idLong)
+        reputation.clearCache() // Prevent cached data to override saved data.
+        reputation.writeRawData(map)
+
+        context(context.author, "Reset scores of ${user.asMention}.")
+    }
+
+    @SubCommand(
+            name = "edit",
+            permission = "commands.respects.edit",
+            globalCooldown = 0.0
+    )
+    fun scoreEdit(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
+            context("* Usage: !rep edit <mention> <amount>")
+            return
+        }
+        val user = context.message.mentionedUsers.first()
+        reputation[user].transaction(ReputationTransaction("Edited by moderator.", (context.args[1].parseDouble() ?: run {
+            context("* Amount specified '${context.args[1]}' is not a valid value.")
+            return
+        }) - reputation[user].total), context.channel, context.message.guild.getMember(user))
+        context(context.author, "Set scores of ${user.asMention} to ${reputation[user].total}.")
+    }
+
+    @SubCommand(
+            name = "set",
+            permission = "commands.respects.set",
+            globalCooldown = 0.0
+    )
+    fun scoreSet(context: SubCommandContext) {
+        if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
+            context("* Usage: !rep set <mention> <amount>")
+            return
+        }
+        val user = context.message.mentionedUsers.first()
+        reputation[user].transaction(ReputationTransaction("Edited by moderator.", (reputation[user].total) - (context.args[1].parseDouble() ?: run {
+            context("* Amount specified '${context.args[1]}' is not a valid value.")
+            return
+        }) - reputation[user].total), context.channel, context.message.guild.getMember(user))
+        context(context.author, "Set scores of ${user.asMention} to ${reputation[user].total}.")
     }
 
     @SubCommand(
@@ -107,35 +199,6 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             addField("Name", nameStr.toString(), true)
             addField("Reputation", reputationStr.toString(), true)
         })
-    }
-
-    @JDAListener
-    fun messageReceived(event: MessageReceivedEvent, context: EventContext) {
-        messagesMap[event.author] = (messagesMap[event.author] ?: 0) + 1
-
-        if (messagesMap[event.author]!! >= 25 + Math.max((reputation[event.author].total / 5.0).toInt(), 700)) {
-            reputation[event.author].transaction(ReputationTransaction("Award for sending ${messagesMap[event.author]} messages", 10.0),
-                    event.channel, event.guild.getMember(event.author))
-            messagesMap[event.author] = 0
-        }
-    }
-
-    @JDAListener
-    fun react(event: MessageReactionAddEvent, context: EventContext) {
-        if (event.reaction.emote.name.contains("✌")) {
-            if (context.runChecks(event.user, event.channel!!, 360.0, "thank")) {
-                event.channel.getMessageById(event.messageId).queue {
-                    transaction(event.guild, event.channel!!, event.user, it.author, event.jda, "thanked you",
-                            { origin, _ -> Math.min((origin / 80.0) + 20.0, 100.0) })
-                }
-            }
-        } else if (event.reaction.emote.name.contains("👎")) {
-            if (context.runChecks(event.user, event.channel!!, 720.0, "downrate")) {
-                event.channel.getMessageById(event.messageId).queue {
-                    transaction(event.guild, event.channel!!, event.user, it.author, event.jda, "down-rated you", { _, _ -> -10.0 })
-                }
-            }
-        }
     }
 
     fun transaction(guild: Guild, channel: MessageChannel, from: User, to: User, jda: JDA, message: String,
