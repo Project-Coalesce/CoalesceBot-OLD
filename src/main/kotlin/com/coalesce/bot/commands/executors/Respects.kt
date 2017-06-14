@@ -4,12 +4,10 @@ import com.coalesce.bot.*
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
-import com.coalesce.bot.utilities.isInteger
 import com.coalesce.bot.utilities.limit
 import com.coalesce.bot.utilities.parseDouble
 import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
-import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
@@ -20,7 +18,6 @@ import java.io.DataOutputStream
 import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 enum class RespectReactions(val message: String,
                             val amount: Double,
