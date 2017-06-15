@@ -33,8 +33,8 @@ class Poll : Embeddables {
 
         val name = context.args[0]
 
-        val time = context.args[1].toIntOrNull() ?: run { mention("Time must be a number!"); return }
-        val timeUnit = context.args[2].parseTimeUnit() ?: run { mention("Invalid unit!"); return }
+        val time = context.args[1].toIntOrNull() ?: run { context("* Time must be a number!"); return }
+        val timeUnit = context.args[2].parseTimeUnit() ?: run { context("* Invalid unit!"); return }
 
         val options = context.args.copyOfRange(3, context.args.size).joinToString(separator = " ").split("|").map(String::trim)
 
