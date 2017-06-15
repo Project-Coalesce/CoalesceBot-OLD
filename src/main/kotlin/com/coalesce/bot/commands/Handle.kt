@@ -169,7 +169,7 @@ class CommandRegistry internal constructor() {
                 .setScanners(SubTypesScanner(false), ResourcesScanner())
                 .setUrls(ClasspathHelper.forJavaClassPath())
                 .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.commands.executors"))))
-                .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') }
+                .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') && !it.name.endsWith("Kt") }
         for (clazz in classes) {
             tryLog("Failed to process ${clazz.name}") { process(clazz) }
         }

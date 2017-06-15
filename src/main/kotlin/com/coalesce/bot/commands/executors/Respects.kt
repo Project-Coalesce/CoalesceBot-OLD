@@ -12,7 +12,6 @@ import com.google.inject.Inject
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
-import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
@@ -146,7 +145,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
             return
         }
 
-        setAmount(user, context.channel, {
+        setRespects(user, context.channel, {
             val result = it + amount
             context(context.author, "Set scores of ${user.asMention} to $result.")
             result
@@ -172,7 +171,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
             context("* Amount specified '${context.args[1]}' is not a valid value.")
             return
         }
-        setAmount(user, context.channel, { amount })
+        setRespects(user, context.channel, { amount })
         context(context.author, "Set scores of ${user.asMention} to $amount.")
     }
 
@@ -251,20 +250,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     private fun transaction(user: User, amount: Double, channel: MessageChannel) {
         val file = respectsLeaderboardsFile
         if (!file.exists()) generateFile(file)
-        setAmount(user, channel, { it + amount })
-    }
-
-    private fun setAmount(user: User, channel: MessageChannel, processAmount: (Double) -> Double) {
-        val serializer = RespectsLeaderboardSerializer(respectsLeaderboardsFile)
-        val map = serializer.read()
-        val old = map[user.id] ?: 0.0
-        val value = processAmount(old)
-        map[user.id] = value
-        serializer.write(map)
-
-        if (map.none { it.value > value } && map.any { it.value >= old }) {
-            channel.sendMessage("${user.asMention} has reached first place in the respects leaderboard!").queue()
-        }
+        setRespects(user, channel, { it + amount })
     }
 
     private fun generateFile(file: File) {
@@ -283,5 +269,18 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
                 DataOutputStream(it).writeLong(-1L)
             }
         }
+    }
+}
+
+fun setRespects(user: User, channel: MessageChannel, processAmount: (Double) -> Double,
+                serializer: RespectsLeaderboardSerializer = RespectsLeaderboardSerializer(respectsLeaderboardsFile),
+                map: MutableMap<String, Double> = serializer.read()) {
+    val old = map[user.id] ?: 0.0
+    val value = processAmount(old)
+    map[user.id] = value
+    serializer.write(map)
+
+    if (map.none { it.value > value } && map.any { it.value >= old }) {
+        channel.sendMessage("${user.asMention} has reached first place in the respects leaderboard!").queue()
     }
 }

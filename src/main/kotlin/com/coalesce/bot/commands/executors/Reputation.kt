@@ -20,7 +20,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
 
     @RootCommand(
             name = "reputation",
-            type = CommandType.INFORMATION,
+            type = CommandType.MISCELLANEOUS,
             permission = "commands.reputation",
             aliases = arrayOf("rep", "reput"),
             description = "View your reputation.",
