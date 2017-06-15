@@ -62,20 +62,8 @@ class Cassino {
             board.add(curList)
         }
 
-        val message = StringBuilder("${context.author.asMention}: You bet ${bid.toInt()}.\n")
-        val appendMessage: String
-        val amount: Double
-
-        if (middleRowCount.any { it.value == 2 }) {
-            amount = bid / 2
-            appendMessage = "**Match!** +50% of bid"
-        } else if (middleRowCount.all { it.value == 3 }) {
-            amount = bid * 1.25
-            appendMessage = "🍀 **Lucky!** 🍀 +125% of bid"
-        } else {
-            amount = -bid
-            appendMessage = "Nothing! -100% of bid"
-        }
+        val message = StringBuilder("${context.author.asMention}: You bid **${bid.toInt()} respects**.\n")
+        val (amount, appendMessage) = findMatches(middleRowCount, bid)
 
         message.append(appendMessage + " ($respects -> ${respects + amount})\n")
         board.forEachIndexed { y, it ->
@@ -85,4 +73,9 @@ class Cassino {
         setRespects(context.author, context.channel, { it + amount }, serializer, map)
         context(message.toString())
     }
+
+    private fun findMatches(middleRow: Map<String, Int>, bid: Double): Pair<Double, String> =
+        if (middleRow.any { it.value == 2 }) bid / 2 to "**Match!** +50% of bid"
+        else if (middleRow.all { it.value == 3 }) bid * 1.25 to "🍀 **Lucky!** 🍀 +125% of bid"
+        else -bid to "Nothing! -100% of bid"
 }

@@ -9,7 +9,6 @@ import net.dv8tion.jda.core.EmbedBuilder
 import java.awt.Color
 
 class Poll : Embeddables {
-
     /**
      * TARGETED TO USER POLLS, NOT ADMINISTRATION ONES
      */

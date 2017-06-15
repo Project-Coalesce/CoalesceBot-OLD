@@ -43,6 +43,8 @@ fun Long.formatTimeDiff(): String {
     return timeDiff.toString() + "ms"
 }
 
+fun String.truncate(from: Int, to: Int): String = if (this.length >= to) substring(from, to) + "..." else this
+
 fun String.parseTimeUnit(): TimeUnit? {
     try {
         return TimeUnit.valueOf(this.toUpperCase())

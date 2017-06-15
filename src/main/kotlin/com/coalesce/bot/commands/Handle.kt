@@ -1,8 +1,8 @@
 package com.coalesce.bot.commands
 
 import com.coalesce.bot.*
-import com.coalesce.bot.commands.executors.RespectReactions
 import com.coalesce.bot.permissions.RankManager
+import com.coalesce.bot.utilities.truncate
 import com.coalesce.bot.utilities.tryLog
 import com.google.gson.reflect.TypeToken
 import net.dv8tion.jda.core.JDA
@@ -19,10 +19,9 @@ import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
 import java.awt.Color
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
-import java.nio.file.Files.delete
 import java.util.*
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddables {
@@ -151,9 +150,14 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
 
             method.invoke(clazz, context)
         } catch (ex: Exception) {
-            event.channel.sendMessage(embed().setColor(Color(232, 46, 0)).setTitle("Error", null)
-                    .setDescription("An error occurred with that command:\n${ex.javaClass.name}: ${ex.message}\n" +
-                    "Please report this to project coalesce developers.").build())
+            val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
+            event.channel.sendMessage(embed().apply {
+                setColor(Color(232, 46, 0))
+                setTitle("Error", null)
+                setDescription("An error occurred with that command:\n${thrw.javaClass.name}: ${thrw.message}\n" +
+                            "Please report this to project coalesce developers.")
+            }.build()).queue()
+            System.err.println("An error occured while attempting to handle command '${command.truncate(0, 100)}' from ${event.author.name}")
             ex.printStackTrace()
         }
     }
