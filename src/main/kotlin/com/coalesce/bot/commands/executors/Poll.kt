@@ -39,7 +39,7 @@ class Poll : Embeddables {
 
         val options = context.args.copyOfRange(3, context.args.size).joinToString(separator = " ").split("|").map(String::trim)
         if (options.size < 1 || options.size > 10) {
-            mention("The size of options must be greater than 2, and shouldn't exceed 10!")
+            mention("The size of options must be greater than 1, and shouldn't exceed 10!")
             return
         }
 
