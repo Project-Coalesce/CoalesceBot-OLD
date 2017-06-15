@@ -4,10 +4,7 @@ import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
 import com.coalesce.bot.utilities.parseTimeUnit
-import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.PrivateChannel
-import java.awt.Color
-import java.util.concurrent.TimeUnit
 
 class RemindMe {
 
@@ -44,7 +41,7 @@ class RemindMe {
         else privateChannel = context.author.privateChannel
 
         context(context.author, "I'll be reminding you in $time ${timeUnit.toString().toLowerCase()}")
-        privateChannel.sendMessage("${context.author.asMention}: Reminder from $time ${timeUnit.toString().toLowerCase()} ago\n$message", null)
+        privateChannel.sendMessage("${context.author.asMention}: Reminder from $time ${timeUnit.toString().toLowerCase()} ago: \"$message\"", null)
                 .queueAfter(time.toLong(), timeUnit)
     }
 }

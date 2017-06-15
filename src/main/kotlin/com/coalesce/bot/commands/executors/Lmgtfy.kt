@@ -6,7 +6,6 @@ import com.coalesce.bot.commands.RootCommandContext
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.User
 import java.awt.Color
-import java.util.concurrent.TimeUnit
 
 class Lmgtfy {
     @RootCommand(
@@ -30,6 +29,10 @@ class Lmgtfy {
             arguments = context.args
         } else {
             arguments = context.args.copyOfRange(1, context.args.size)
+            if (arguments.size <= 0) {
+                context(context.author, "Please specify a phrase!")
+                return
+            }
         }
 
         val phrase = arguments.joinToString(separator = "+")
@@ -39,6 +42,6 @@ class Lmgtfy {
                     setTitle("Have you tried Googling it?", "http://lmgtfy.com/?q=$phrase")
                     setDescription("Click the title for more details")
                 }.setAuthor(user.name, null, user.avatarUrl).build()
-        ).queue{ it.delete().queueAfter(25, TimeUnit.SECONDS) }
+        ).queue()
     }
 }
