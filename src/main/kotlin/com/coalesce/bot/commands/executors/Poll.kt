@@ -68,29 +68,28 @@ class Poll : Embeddables {
                             setColor(Color.YELLOW)
                             setAuthor(context.author.name, null, context.author.avatarUrl)
                             setTitle("Results for: $name", null)
-                            setDescription("Final results!")
 
                             var votes = 0
                             val winner = mutableListOf<Int>()
 
-                            val builder = StringBuilder()
-                            it.reactions.forEach { reaction ->
-                                val value = reaction.emote.name[0] - '\u0030'
-                                if (value !in 0..options.size - 1) return@forEach
+                            setDescription(StringBuilder().apply {
+                                it.reactions.forEach { reaction ->
+                                    val value = reaction.emote.name[0] - '\u0030'
+                                    if (value !in 0 .. options.size - 1) return@forEach
 
-                                options[value].let {
-                                    builder.append("${reaction.emote.name} **$it** _${reaction.count - 1} votes_").append("\n")
+                                    options[value].let {
+                                        append("${reaction.emote.name} **$it** ${reaction.count - 1} votes\n")
 
-                                    if (reaction.count - 1 > votes) {
-                                        winner.clear()
-                                        votes = reaction.count - 1
-                                        winner += value
-                                    } else if (reaction.count - 1 == votes) {
-                                        winner += value
+                                        if (reaction.count - 1 > votes) {
+                                            winner.clear()
+                                            votes = reaction.count - 1
+                                            winner += value
+                                        } else if (reaction.count - 1 == votes) {
+                                            winner += value
+                                        }
                                     }
                                 }
-                            }
-                            addField("Results", builder.toString(), true)
+                            }.toString())
 
                             it.clearReactions().queue()
                             addField("Winner", winner.joinToString(prefix = "**", postfix = "**") {options[it]}, true)
