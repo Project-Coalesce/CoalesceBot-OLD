@@ -12,6 +12,7 @@ import com.google.inject.Inject
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.MessageChannel
+import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
@@ -45,7 +46,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     fun execute(context: RootCommandContext) {
         context(context.author, "Respects have been paid! **+8 respect**") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
 
-        transaction(context.author, 8.0)
+        transaction(context.author, 8.0, context.channel)
     }
 
     @JDAListener
@@ -93,7 +94,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
             channel.sendMessage("* Invalid user").queue()
             return
         }
-        transaction(to, reaction.amount)
+        transaction(to, reaction.amount, channel)
         channel.sendMessage("${to.asMention}: Meme rating from ${from.name}: \"${reaction.message}\" - ${reaction.rating} " +
                 "**${if (reaction.amount > 0) "+" else ""}${reaction.amount.toInt()} respect**").queue()
     }
@@ -140,15 +141,16 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         val file = respectsLeaderboardsFile
         if (!file.exists()) generateFile(file)
 
-        val serializer = RespectsLeaderboardSerializer(file)
-        val map = serializer.read()
-        map[user.id] = (map[user.id] ?: 0.0) + (context.args[1].parseDouble() ?: run {
+        val amount = context.args[1].parseDouble() ?: run {
             context("* Amount specified '${context.args[1]}' is not a valid value.")
             return
-        })
+        }
 
-        serializer.write(map)
-        context(context.author, "Set scores of ${user.asMention} to ${map[user.id]}.")
+        setAmount(user, context.channel, {
+            val result = it + amount
+            context(context.author, "Set scores of ${user.asMention} to $result.")
+            result
+        })
     }
 
     @SubCommand(
@@ -166,15 +168,12 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         val file = respectsLeaderboardsFile
         if (!file.exists()) generateFile(file)
 
-        val serializer = RespectsLeaderboardSerializer(file)
-        val map = serializer.read()
-        map[user.id] = context.args[1].parseDouble() ?: run {
+        val amount = context.args[1].parseDouble() ?: run {
             context("* Amount specified '${context.args[1]}' is not a valid value.")
             return
         }
-
-        serializer.write(map)
-        context(context.author, "Set scores of ${user.asMention} to ${map[user.id]}.")
+        setAmount(user, context.channel, { amount })
+        context(context.author, "Set scores of ${user.asMention} to $amount.")
     }
 
     @SubCommand(
@@ -249,20 +248,23 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         }
     }
 
-    private fun transaction(user: User, amount: Double) {
+    private fun transaction(user: User, amount: Double, channel: MessageChannel) {
         val file = respectsLeaderboardsFile
         if (!file.exists()) generateFile(file)
+        setAmount(user, channel, { it + amount })
+    }
 
-        val serializer = RespectsLeaderboardSerializer(file)
+    private fun setAmount(user: User, channel: MessageChannel, processAmount: (Double) -> Double) {
+        val serializer = RespectsLeaderboardSerializer(respectsLeaderboardsFile)
         val map = serializer.read()
-
-        val id = user.id
-        map[id] = (map[id] as? Double ?: 0.0) + amount
-        if (file.exists()) {
-            file.delete()
-        }
-        file.createNewFile()
+        val old = map[user.id] ?: 0.0
+        val value = processAmount(old)
+        map[user.id] = value
         serializer.write(map)
+
+        if (map.none { it.value > value } && map.any { it.value >= old }) {
+            channel.sendMessage("${user.asMention} has reached first place in the respects leaderboard!").queue()
+        }
     }
 
     private fun generateFile(file: File) {
