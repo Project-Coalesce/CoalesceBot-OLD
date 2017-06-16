@@ -1,8 +1,6 @@
 # CoalesceBot
-The Coalesce bot designed by Lyxnx and Proximyst to be used mainly on Coalesce Coding.
-[![Build Status](http:/proximyst.com:8080/jenkins/buildStatus/icon?job=CoalesceBot)](http:/proximyst.com:8080/jenkins/job/CoalesceBot)
+Source code for the CoalesceBot, designed to be used on the [Coalesce Coding Guild](https://discord.gg/bRZwvCC) originally by Lyxnx and Proximyst and mantained by NahuLD and deprilula28.
 
 # Standards
-The usual standards are:
-- https://google.github.io/styleguide/javaguide.html
-- Language: EN_GB ("British" English)
+- Code: https://google.github.io/styleguide/javaguide.html
+- Language: EN_US ("American" English)
