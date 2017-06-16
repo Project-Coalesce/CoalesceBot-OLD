@@ -139,6 +139,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
                 return
             }
 
+            event.channel.sendTyping().queue()
             event.message.delete().queue()
             if (checks.any { !it(context) }) {
                 return
@@ -158,7 +159,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
                             "Please report this to project coalesce developers.")
             }.build()).queue()
             System.err.println("An error occured while attempting to handle command '${command.truncate(0, 100)}' from ${event.author.name}")
-            ex.printStackTrace()
+            thrw.printStackTrace()
         }
     }
 }
