@@ -12,8 +12,8 @@ private val checks = arrayOf<(match: MatchLooking, user: User) -> Pair<Boolean, 
         { match, user -> (match.targets != null && !match.targets.contains(user)) to "You cannot join this private match." },
         { match, user ->
             (match.bidding != 0.0 && match.bidding > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[user.id] ?: 0.0) to
-                    "You don't have enough respects to afford this bid!" }//,
-        /*{ match, user -> (user == match.looker) to "You can't join your own match." }*/
+                    "You don't have enough respects to afford this bid!" },
+        { match, user -> (user == match.looker) to "You can't join your own match." }
 )
 
 abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlayers: Int): Embeddables {
@@ -79,7 +79,6 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
     fun handleReaction(event: MessageReactionAddEvent) {
         if (matchfinding.containsKey(event.messageIdLong)) {
             val match = matchfinding[event.messageIdLong]!!
-            /*
             checks.forEach {
                 val (fail, message) = it(match, event.user)
                 if (fail) {
@@ -87,7 +86,6 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
                     return@handleReaction
                 }
             }
-            */
 
             match.entered.add(event.user)
             event.channel.sendMessage("${event.user.asMention}: Joined queue for $name match! (${match.entered.size}/${match.amount})").queue()
