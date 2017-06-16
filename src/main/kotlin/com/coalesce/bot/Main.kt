@@ -31,7 +31,7 @@ import java.util.regex.Pattern
  *  Second number - Minor version
  *  Third number - Patch
  * */
-val VERSION = "1.5.0"
+val VERSION = "1.5.1"
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -116,7 +116,8 @@ val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.dat")
 val respectsLeaderboardsFileOld = File(dataDirectory, "leaderboard.json")
 val reputationFile = File(dataDirectory, "reputation.dat")
 val blacklistFile = File(dataDirectory, "blacklist.json")
-val respectsResetFile = File(dataDirectory, "respectsReset.json")
+val respectsResetFile = File(dataDirectory, "respectsReset.dat")
+val rulesMessageFile = File(dataDirectory, "rulesMessage.dat")
 val gson: Gson = GsonBuilder().apply {
     enableComplexMapKeySerialization()
     setPrettyPrinting()

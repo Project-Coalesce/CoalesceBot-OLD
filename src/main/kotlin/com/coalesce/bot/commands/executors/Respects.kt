@@ -2,7 +2,7 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.*
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
-import com.coalesce.bot.binary.RespectsResetSerializer
+import com.coalesce.bot.binary.LongSerializer
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
@@ -40,8 +40,8 @@ class Respects @Inject constructor(val bot: Main): Embeddables, Runnable {
     private val resetTimeMillis = TimeUnit.MILLISECONDS.convert(resetTime.first, resetTime.second)
 
     init {
-        val time = if (respectsResetFile.exists()) System.currentTimeMillis() - RespectsResetSerializer(respectsResetFile).read() else run {
-            RespectsResetSerializer(respectsResetFile).write(System.currentTimeMillis() + resetTimeMillis)
+        val time = if (respectsResetFile.exists()) System.currentTimeMillis() - LongSerializer(respectsResetFile).read() else run {
+            LongSerializer(respectsResetFile).write(System.currentTimeMillis() + resetTimeMillis)
             resetTimeMillis
         }
         if (time < 0) {
