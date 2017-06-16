@@ -4,9 +4,20 @@ import com.coalesce.bot.Main
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.subList
 import com.google.inject.Inject
-import net.dv8tion.jda.core.entities.*
+import net.dv8tion.jda.core.entities.Message
+import net.dv8tion.jda.core.entities.MessageChannel
+import net.dv8tion.jda.core.entities.MessageReaction
+import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
+import java.io.IOException
+
+private val allEmotes = arrayOf("❌", "⭕", "❗", "❓")
+private val playerCountForSize = mapOf(
+        2 to 3,
+        3 to 4,
+        4 to 6
+)
 
 class TicTacToe @Inject constructor(val bot: Main) {
     private val game = TicTacToeGame()
@@ -14,7 +25,7 @@ class TicTacToe @Inject constructor(val bot: Main) {
     @RootCommand(
             name = "TicTacToe",
             type = CommandType.FUN,
-            permission = "commands.tictaetoe",
+            permission = "commands.tictactoe",
             description = "Play a tic tae toe game!",
             aliases = arrayOf("ttt"),
             globalCooldown = 30.0
@@ -33,7 +44,7 @@ class TicTacToe @Inject constructor(val bot: Main) {
     }
 }
 
-class TicTacToeGame: ChatGame("TicTacToe", 5.0) {
+class TicTacToeGame: ChatGame("TicTacToe", 5.0, allEmotes.size - 1) {
     override fun generateMatch(channel: MessageChannel, players: Array<User>, resultHandler: (Map<User, Int>) -> Unit): ChatMatch = TicTacToeMatch(channel, this, players, resultHandler)
 }
 
@@ -43,40 +54,54 @@ class TicTacToeMatch(
         players: Array<User>,
         resultHandler: (positions: Map<User, Int>) -> Unit
 ): ChatMatch(channel, chatGame, players, resultHandler) {
-    /*
-    0 1 2
-    3 4 5
-    6 7 8
-     */
-    private val emotes = mutableMapOf<User, String>().apply {
-        val allEmotes = arrayOf("❌", "⭕")
-        players.forEachIndexed { i, it -> this[it] = allEmotes[i] }
-    }
-    private val winConditions = mutableListOf<Array<Int>>().apply {
-        // Diagonals (Hardcoded because cba)
-        add(arrayOf(0, 4, 8))
-        add(arrayOf(2, 4, 6))
-        /* Vertical */ for (x in 0 .. 2) add(arrayOf(x, x + 3, x + 6))
-        /* Horizontal */ arrayOf(0, 3, 6).forEach { add(arrayOf(it, it + 1, it + 2)) }
-    }
+    private val size = (playerCountForSize[players.size] ?: throw IOException("Illegal amount of players!"))
+    private val indexTransformAmount = arrayOf(1, size, size + 1, size - 1)
+    private val matchers = arrayOf<(Int, Int) -> Array<Int>>(
+            { a, b -> arrayOf(a + b, a - b) },
+            { a, b -> arrayOf(a + b, a + b * 2) },
+            { a, b -> arrayOf(a - b, a - b * 2) }
+    )
+    private val tileCount = size * size
+    private val emotes = mutableMapOf<User, String>().apply { players.forEachIndexed { i, it -> this[it] = allEmotes[i] } }
     private var turnQueue = mutableListOf<User>().apply { addAll(players) }
-    private val board = mutableListOf<Piece>().apply { for (i in 0..8) add(Piece(null)) }
+    private val board = mutableListOf<Piece>().apply { for (i in 0..tileCount - 1) add(Piece(null)) }
 
     init {
         print(turnQueue[0])
+    }
+
+    private fun detectVictory(insertedIndex: Int, user: User, piece: String): Boolean {
+        indexTransformAmount.forEach { numb ->
+            if (matchers.any { it(insertedIndex, numb).all { it in 0..tileCount - 1 && board[it].emote == piece } }) {
+                // Victory to user!
+                val map = mutableMapOf<User, Int>()
+                players.forEach { map[it] = if (user == it) 1 else 0 }
+                invoke(map)
+                return@detectVictory true
+            }
+        }
+
+        if (board.all { it.emote != null }) {
+            val map = mutableMapOf<User, Int>()
+            players.forEach { map[it] = 0 }
+            invoke(map)
+            return true
+        }
+        return false
     }
 
     override fun messaged(from: User, content: String): Boolean {
         keepAlive()
         if (turnQueue.first() != from) return false
         val numb = content.toIntOrNull() ?: return false
-        if (numb > 9) return false
+        if (numb > tileCount - 1) return false
 
         val piece = board[numb]
         if (piece.emote != null) return true
-        piece.emote = emotes[from]
+        val emote = emotes[from]!!
+        piece.emote = emote
 
-        if (detectVictory()) {
+        if (detectVictory(numb, from, emote)) {
             print(null)
         } else {
             turnQueue = turnQueue.subList(1).toMutableList()
@@ -88,27 +113,15 @@ class TicTacToeMatch(
 
     private fun print(turn: User?) {
         channel.sendMessage(StringBuilder().apply {
+            append("```")
             board.forEachIndexed { index, piece ->
                 if (index % 3 == 0) append("\n")
-                append(piece.emote ?: "${'\u0030' + index}\u20E3")
+                val character = (piece.emote ?: index.toString())
+                append((if (character == "⭕" || character == "❓" || character == "❌") " " else "  ") + character)
             }
-
+            append("\n```")
             if (turn != null) append("\n**${turn.asMention}'s turn!**")
         }.toString()).queue()
-    }
-
-    private fun detectVictory(): Boolean {
-        winConditions.forEach { winCondition ->
-            emotes.forEach { entry ->
-                if (winCondition.all { board[it].emote == entry.value }) {
-                    val map = mutableMapOf<User, Int>()
-                    players.forEach { map[it] = if (entry.key == it) 1 else 0 }
-                    invoke(map)
-                    return@detectVictory true
-                }
-            }
-        }
-        return false
     }
 
     override fun reaction(from: User, emote: MessageReaction.ReactionEmote, message: Message) { }

@@ -37,7 +37,7 @@ class Request @Inject constructor(val bot: Main) {
     )
     fun execute(context: RootCommandContext) {
         val member = context.message.guild.getMember(context.author)
-        fun roleMessage() = acceptableRoles.filter { member.roles.contains(it) }.joinToString(separator = ", ") { it.name }
+        fun roleMessage() = acceptableRoles.filter { !member.roles.contains(it) }.joinToString(separator = ", ") { it.name }
 
         if (context.args.isEmpty()) {
             throw ArgsException("You must provide one role within: ${roleMessage()}")

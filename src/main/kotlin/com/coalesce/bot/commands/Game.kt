@@ -8,96 +8,159 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.util.concurrent.TimeUnit
 
-abstract class ChatGame(val name: String, val defaultAward: Double): Embeddables {
-    val game = mutableMapOf<User, ChatMatch>()
-    val reactionPossible = mutableListOf<Long>()
-    val matchfinding = mutableMapOf<Long, Triple<User, User?, Double>>() // Matchfinder message (Reaction), Pair where <Attempting to find, Specific target if present>
+private val checks = arrayOf<(match: MatchLooking, user: User) -> Pair<Boolean, String>>(
+        { match, user -> match.game.game.containsKey(user) to "Already on a game." },
+        { match, user -> match.game.inMatchfinding.contains(user) to "Already on a matchfinding queue." },
+        { match, user -> (match.targets != null && !match.targets.contains(user)) to "You cannot join this private match." },
+        { match, user ->
+            (match.bidding != 0.0 && match.bidding > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[user.id] ?: 0.0) to
+                    "You don't have enough respects to afford this bid!" },
+        { match, user -> (user == match.looker) to "You can't join your own match." }
+)
 
+abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlayers: Int): Embeddables {
+    val game = mutableMapOf<User, ChatMatch>()
+    val inMatchfinding = mutableMapOf<User, MatchLooking>()
+    val reactionPossible = mutableListOf<Long>()
+    val matchfinding = mutableMapOf<Long, MatchLooking>()
+
+    // Syntax:
+    // !<game> - Finds match without bet for 1 player or leave current queue
+    // !<game> <amount> - Finds match without bet for <amount> players
+    // !<game> bet <betamount> - Finds match betting <betamount> for 1 player
+    // !<game> bet <betamount> <amount> - Finds match betting <betamount> for <amount> players
+    // !<game> <players> - Challenges <players> into a match
+    // !<game> bet <betamount> <players> - Challenges <players> into a match betting <betamount>
     fun handleCommand(context: CommandContext) {
-        fun matchfinding(targeting: User?, bid: Double, earnAmount: Double) {
+        fun matchfinding(targeting: List<User>?, bid: Double, earnAmount: Double, amount: Int) {
+            if (game.containsKey(context.author) || inMatchfinding.containsKey(context.author)) throw ArgsException("Already on a game or matchfinding queue.")
+
             context(embed().apply {
                 setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
-                setTitle(if (targeting != null) "Challenged ${targeting.asMention} to a $name match!" else "Looking for a $name match", null)
+                setTitle(if (targeting != null) "Challenged ${targeting.joinToString(separator = ", ") { it.name }} to a $name match!" else "Looking for a $name match", null)
                 setDescription(StringBuilder().apply {
                     if (bid > 0.0) append("Must use $bid respects to join.\n")
                     append("React with 🚪 to ${if (targeting != null) "accept" else "join"}!\nWinner gets **$earnAmount respects**")
                 }.toString())
             }.build()) {
-                matchfinding[idLong] = Triple(context.author, targeting, bid)
+                matchfinding[idLong] = MatchLooking(this@ChatGame, context.channel, context.author, targeting, bid, mutableListOf(), this, amount)
                 addReaction("🚪").queue()
             }
         }
+        if (game.containsKey(context.author)) throw ArgsException("You are already on a match!")
 
         if (context.args.isEmpty()) {
-            if (game.containsKey(context.author)) throw ArgsException("You are already on a match!")
-            matchfinding(null, 0.0, defaultAward)
+            if (inMatchfinding.containsKey(context.author)) {
+                val matchfinding = inMatchfinding[context.author]!!
+                inMatchfinding.remove(context.author)
+                matchfinding.entered.remove(context.author)
+                matchfinding.channel.sendMessage("${context.author.asMention}: Left the queue! (${matchfinding.entered.size}/${matchfinding.amount})").queue()
+                return
+            }
+            matchfinding(null, 0.0, defaultAward, 1)
         } else if (context.message.mentionedUsers.isNotEmpty()) {
-            val target = context.message.mentionedUsers.first()
+            val target = context.message.mentionedUsers
 
-            if (context.args.size == 2) {
-                val bid = context.args[0].toDoubleOrNull() ?: throw ArgsException("The provided bid is an invalid number!")
+            if (context.args.size > 2 && context.args[0] == "bet") {
+                val bid = context.args[1].toDoubleOrNull() ?: throw ArgsException("The provided bid is an invalid number!")
                 if (bid > 30.0) throw ArgsException("Only bids up to 30 respects are allowed.")
                 if (game.containsKey(context.author)) throw ArgsException("You are already on a match!")
                 if (bid > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[context.author.id] ?: 0.0)
                     throw ArgsException("You can't afford that bid!")
 
-                matchfinding(target, bid, bid)
+                matchfinding(target, bid, bid, target.size)
             } else {
-                matchfinding(target, 0.0, defaultAward)
+                matchfinding(target, 0.0, defaultAward, target.size)
             }
-        } else {
+        } else if (context.args[0] == "bet" && context.args.size > 1){
             val bid = context.args[0].toDoubleOrNull() ?: throw ArgsException("The provided bid is an invalid number!")
+            val amount = if (context.args.size > 2) context.args[2].toIntOrNull() ?: throw ArgsException("The provided amount of players is not a valid number!") else 0
+            if (amount !in 1..maxPlayers) throw ArgsException("Amount of players must be within 1 and $maxPlayers.")
             if (bid > 30.0) throw ArgsException("Only bids up to 30 respects are allowed.")
             if (game.containsKey(context.author)) throw ArgsException("You are already on a match!")
             if (bid > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[context.author.id] ?: 0.0)
                 throw ArgsException("You can't afford that bid!")
 
-            matchfinding(null, bid, bid)
+            matchfinding(null, bid, bid, amount)
+        } else {
+            val amount = context.args[0].toIntOrNull() ?: throw ArgsException("The provided amount of players is not a valid number!")
+            matchfinding(null, 0.0, defaultAward, amount)
         }
     }
 
     fun handleReaction(event: MessageReactionAddEvent) {
         if (matchfinding.containsKey(event.messageIdLong)) {
             val match = matchfinding[event.messageIdLong]!!
-            if (event.reactionEmote.name != "🚪" || (match.second != null && event.user != match.second) ||
-                    (match.third != 0.0 && match.third > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[event.user.id] ?: 0.0)) return
-            matchfinding.remove(event.messageIdLong)
-
-            val players = arrayOf(event.user, match.first)
-            val worth = if (match.third > 0.0) match.third else defaultAward
-            event.channel.getMessageById(event.messageId).queue { it.delete().queue() }
-            event.channel.sendMessage("**${name.toLowerCase().capitalize()} Match ready!**\n${players.joinToString(separator = " vs ") { it.name }}" +
-                    "\nWinner will get **$worth respects**.\n**Good luck!**").queue()
-
-            val gameMatch = generateMatch(event.channel, players) { results ->
-                event.channel.sendMessage(StringBuilder("**The match has ended!**\nResults:").apply {
-                    val map = RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()
-                    players.forEach {
-                        val pos = results[it] ?: 0
-                        if (pos == 1) {
-                            map[it.id] = (map[it.id] ?: 0.0) + worth
-                            append("\n${it.asMention}: Congratulations, you won! **+$worth respects**")
-                        } else if (match.third > 0.0) {
-                            map[it.id] = (map[it.id] ?: 0.0) - match.third
-                            append("\n${it.asMention}: You lost the bet! **-${match.third} respects**")
-                        }
-                        else append("\n${it.asMention}: You didn't get anything. Maybe next time!")
-                    }
-
-                    RespectsLeaderboardSerializer(respectsLeaderboardsFile).write(map)
-                }.toString()).queue()
+            checks.forEach {
+                val (fail, message) = it(match, event.user)
+                if (fail) {
+                    event.channel.sendMessage("${event.user.asMention} ❌: $message").queue()
+                    return@handleReaction
+                }
             }
 
-            players.forEach { game[it] = gameMatch }
+            inMatchfinding[event.user] = match
+            match.entered.add(event.user)
+            event.channel.sendMessage("${event.user.asMention}: Joined queue for $name match! (${match.entered.size}/${match.amount})").queue()
+            if (match.entered.size == match.amount) {
+                match.entered.forEach { inMatchfinding.remove(it) }
+                inMatchfinding.remove(match.looker)
+
+                val players = mutableListOf(match.looker).apply { addAll(match.entered) }
+                val worth = if (match.bidding > 0.0) match.bidding else defaultAward
+                event.channel.getMessageById(event.messageId).queue { it.delete().queue() }
+                event.channel.sendMessage("**$name Match Created!**\n${players.joinToString(separator = " vs ") { it.name }}" +
+                        "\nWinner will get **$worth respects**.\n**Good luck!**").queue()
+
+                val gameMatch = generateMatch(event.channel, players.toTypedArray()) { results ->
+                    event.channel.sendMessage(StringBuilder("**The match has ended!**\nResults:").apply {
+                        val map = RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()
+                        players.forEach {
+                            val pos = results[it] ?: 0
+                            if (pos == 1) {
+                                map[it.id] = (map[it.id] ?: 0.0) + worth
+                                append("\n${it.asMention}: Congratulations, you won! **+$worth respects**")
+                            } else if (match.bidding > 0.0) {
+                                map[it.id] = (map[it.id] ?: 0.0) - match.bidding
+                                append("\n${it.asMention}: You lost the bet! **-${match.bidding} respects**")
+                            }
+                            else append("\n${it.asMention}: You didn't get anything. Maybe next time!")
+                        }
+
+                        RespectsLeaderboardSerializer(respectsLeaderboardsFile).write(map)
+                    }.toString()).queue()
+                }
+
+                players.forEach { game[it] = gameMatch }
+            }
         }else if (game.containsKey(event.user) && reactionPossible.contains(event.messageIdLong)) event.channel.getMessageById(event.messageId).queue {
             game[event.user]!!.reaction(event.user, event.reactionEmote, it)
         }
     }
+
     fun handleMessage(event: MessageReceivedEvent) {
         if (game.containsKey(event.author)) if (game[event.author]!!.messaged(event.author, event.message.rawContent)) event.message.delete().queue()
     }
 
     abstract fun generateMatch(channel: MessageChannel, players: Array<User>, resultHandler: (Map<User, Int>) -> Unit): ChatMatch
+}
+
+class MatchLooking(
+        val game: ChatGame,
+        val channel: MessageChannel,
+        val looker: User,
+        val targets: List<User>?,
+        val bidding: Double,
+        val entered: MutableList<User>,
+        val message: Message,
+        val amount: Int): Timeout(3L, TimeUnit.MINUTES) {
+    override fun timeout() {
+        channel.sendMessage(entered.joinToString(separator = ", ") { it.asMention } + ": The ${game.name} matchfinder has timed out due to taking too long. Try again later.").queue()
+        message.delete().queue()
+        game.matchfinding.remove(message.idLong)
+        entered.forEach { game.inMatchfinding.remove(it) }
+        game.inMatchfinding.remove(looker)
+    }
 }
 
 abstract class ChatMatch(
@@ -108,8 +171,9 @@ abstract class ChatMatch(
 ): Timeout(2L, TimeUnit.MINUTES) {
     private val addedReactionsOf = mutableListOf<Long>()
 
-    init {
-        timeout = { invoke(mapOf()) }
+    override fun timeout() {
+        channel.sendMessage("Nothing happened for the last 2 minutes, so the match will be tied.")
+        invoke(mapOf())
     }
 
     abstract fun reaction(from: User, emote: MessageReaction.ReactionEmote, message: Message)
