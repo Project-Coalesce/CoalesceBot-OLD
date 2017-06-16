@@ -99,11 +99,11 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
                 }
             }
 
-            inMatchfinding.add(event.user)
+            inMatchfinding[event.user] = match
             match.entered.add(event.user)
             event.channel.sendMessage("${event.user.asMention}: Joined queue for $name match! (${match.entered.size}/${match.amount})").queue()
             if (match.entered.size == match.amount) {
-                inMatchfinding.removeAll(match.entered)
+                match.entered.forEach { inMatchfinding.remove(it) }
                 inMatchfinding.remove(match.looker)
 
                 val players = mutableListOf(match.looker).apply { addAll(match.entered) }
@@ -158,7 +158,7 @@ class MatchLooking(
         channel.sendMessage(entered.joinToString(separator = ", ") { it.asMention } + ": The ${game.name} matchfinder has timed out due to taking too long. Try again later.").queue()
         message.delete().queue()
         game.matchfinding.remove(message.idLong)
-        game.inMatchfinding.removeAll(entered)
+        entered.forEach { game.inMatchfinding.remove(it) }
         game.inMatchfinding.remove(looker)
     }
 }
