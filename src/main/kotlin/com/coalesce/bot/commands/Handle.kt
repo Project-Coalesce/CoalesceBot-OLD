@@ -188,7 +188,7 @@ class CommandRegistry internal constructor() {
         for (clazz in classes) {
             tryLog("Failed to process ${clazz.name}") { cmds.add(process(clazz)) }
         }
-        println("Loaded ${cmds.size} commands")
+        println("Loaded ${cmds.size} commands: " + cmds.joinToString(separator = ", ") { it.rootAnnotation.name })
     }
 
     private fun process(clazz: Class<*>): CommandEntry {

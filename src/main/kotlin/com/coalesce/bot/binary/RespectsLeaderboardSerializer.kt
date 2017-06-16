@@ -2,7 +2,7 @@ package com.coalesce.bot.binary
 
 import java.io.File
 
-class RespectsLeaderboardSerializer(file: File): BinarySerializer<MutableMap<String, Double>>(file) {
+class RespectsLeaderboardSerializer(file: File): BinarySerializer<MutableMap<String, Double>>(file, { mutableMapOf() }) {
     override fun serializeIn(): MutableMap<String, Double> {
         val map = mutableMapOf<String, Double>()
 

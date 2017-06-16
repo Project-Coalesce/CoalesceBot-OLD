@@ -2,12 +2,14 @@ package com.coalesce.bot.binary
 
 import java.io.*
 
-abstract class BinarySerializer<T>(val file: File) {
+abstract class BinarySerializer<T>(val file: File, val fallback: () -> T) {
     private val baos = ByteArrayOutputStream()
     lateinit var outputStream: DataOutputStream
     lateinit var inputStream: DataInputStream
 
     fun read(): T {
+        if (!file.exists()) return fallback()
+
         var byteArray: ByteArray = ByteArray(0)
         file.inputStream().use {
             try {

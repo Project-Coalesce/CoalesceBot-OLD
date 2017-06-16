@@ -3,9 +3,7 @@ package com.coalesce.bot.commands
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.Timeout
-import net.dv8tion.jda.core.entities.Message
-import net.dv8tion.jda.core.entities.MessageReaction
-import net.dv8tion.jda.core.entities.User
+import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.util.concurrent.TimeUnit
@@ -58,7 +56,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double): Embeddables
         }
     }
 
-    fun react(event: MessageReactionAddEvent) {
+    fun handleReaction(event: MessageReactionAddEvent) {
         if (matchfinding.containsKey(event.messageIdLong)) {
             val match = matchfinding[event.messageIdLong]!!
             if (event.reactionEmote.name != "🚪" || (match.second != null && event.user != match.second) ||
@@ -68,10 +66,10 @@ abstract class ChatGame(val name: String, val defaultAward: Double): Embeddables
             val players = arrayOf(event.user, match.first)
             val worth = if (match.third > 0.0) match.third else defaultAward
             event.channel.getMessageById(event.messageId).queue { it.delete().queue() }
-            event.channel.sendMessage("**${name.toLowerCase().capitalize()} Match ready!**\n${players.joinToString(separator = "vs") { it.name }}" +
-                    "\nWinner will get $worth").queue()
+            event.channel.sendMessage("**${name.toLowerCase().capitalize()} Match ready!**\n${players.joinToString(separator = " vs ") { it.name }}" +
+                    "\nWinner will get **$worth respects**.\n**Good luck!**").queue()
 
-            val gameMatch = generateMatch(players) { results ->
+            val gameMatch = generateMatch(event.channel, players) { results ->
                 event.channel.sendMessage(StringBuilder("**The match has ended!**\nResults:").apply {
                     val map = RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()
                     players.forEach {
@@ -85,6 +83,8 @@ abstract class ChatGame(val name: String, val defaultAward: Double): Embeddables
                         }
                         else append("\n${it.asMention}: You didn't get anything. Maybe next time!")
                     }
+
+                    RespectsLeaderboardSerializer(respectsLeaderboardsFile).write(map)
                 }.toString()).queue()
             }
 
@@ -97,10 +97,11 @@ abstract class ChatGame(val name: String, val defaultAward: Double): Embeddables
         if (game.containsKey(event.author)) if (game[event.author]!!.messaged(event.author, event.message.rawContent)) event.message.delete().queue()
     }
 
-    abstract fun generateMatch(players: Array<User>, resultHandler: (Map<User, Int>) -> Unit): ChatMatch
+    abstract fun generateMatch(channel: MessageChannel, players: Array<User>, resultHandler: (Map<User, Int>) -> Unit): ChatMatch
 }
 
 abstract class ChatMatch(
+        val channel: MessageChannel,
         val chatGame: ChatGame,
         val players: Array<User>,
         val resultHandler: (positions: Map<User, Int>) -> Unit
@@ -119,5 +120,6 @@ abstract class ChatMatch(
     operator fun invoke(positions: Map<User, Int>) {
         chatGame.reactionPossible.removeAll(addedReactionsOf)
         players.forEach { chatGame.game.remove(it) }
+        resultHandler(positions)
     }
 }

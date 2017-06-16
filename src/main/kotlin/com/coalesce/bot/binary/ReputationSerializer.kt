@@ -4,7 +4,7 @@ import com.coalesce.bot.reputation.ReputationTransaction
 import com.coalesce.bot.reputation.ReputationValue
 import java.io.File
 
-class ReputationSerializer(file: File): BinarySerializer<MutableMap<Long, ReputationValue>>(file) {
+class ReputationSerializer(file: File): BinarySerializer<MutableMap<Long, ReputationValue>>(file, { mutableMapOf() }) {
     override fun serializeIn(): MutableMap<Long, ReputationValue> {
         val map = mutableMapOf<Long, ReputationValue>()
 
