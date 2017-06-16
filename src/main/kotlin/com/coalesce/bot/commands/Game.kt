@@ -66,7 +66,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double): Embeddables
             matchfinding.remove(event.messageIdLong)
 
             val players = arrayOf(event.user, match.first)
-            val worth = if (match.third > 0.0) match.third else 10.0
+            val worth = if (match.third > 0.0) match.third else defaultAward
             event.channel.getMessageById(event.messageId).queue { it.delete().queue() }
             event.channel.sendMessage("**${name.toLowerCase().capitalize()} Match ready!**\n${players.joinToString(separator = "vs") { it.name }}" +
                     "\nWinner will get $worth").queue()
@@ -94,7 +94,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double): Embeddables
         }
     }
     fun handleMessage(event: MessageReceivedEvent) {
-        if (game.containsKey(event.author)) game[event.author]!!.messaged(event.author, event.message.rawContent)
+        if (game.containsKey(event.author)) if (game[event.author]!!.messaged(event.author, event.message.rawContent)) event.message.delete().queue()
     }
 
     abstract fun generateMatch(players: Array<User>, resultHandler: (Map<User, Int>) -> Unit): ChatMatch
@@ -112,11 +112,9 @@ abstract class ChatMatch(
     }
 
     abstract fun reaction(from: User, emote: MessageReaction.ReactionEmote, message: Message)
-    abstract fun messaged(from: User, content: String)
+    abstract fun messaged(from: User, content: String): Boolean
 
-    fun registerMessageReactions(message: Message) {
-        chatGame.reactionPossible.add(message.idLong)
-    }
+    fun registerMessageReactions(message: Message) = chatGame.reactionPossible.add(message.idLong)
 
     operator fun invoke(positions: Map<User, Int>) {
         chatGame.reactionPossible.removeAll(addedReactionsOf)
