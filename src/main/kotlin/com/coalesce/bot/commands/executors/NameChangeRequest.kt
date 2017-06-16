@@ -2,43 +2,31 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Main
 import com.coalesce.bot.commands.*
-import com.coalesce.bot.gson
-import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.utilities.subList
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
-import net.dv8tion.jda.core.entities.MessageChannel
-import net.dv8tion.jda.core.entities.PrivateChannel
-import net.dv8tion.jda.core.entities.Role
-import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
-import java.io.IOException
-import java.io.OutputStreamWriter
-import java.net.URL
-import java.util.*
 
 class NameChangeRequest @Inject constructor(val bot: Main) {
     private val requestsChannel = bot.jda.getTextChannelById("311317585775951872")
 
     @RootCommand(
             name = "namechange",
-            aliases = arrayOf("namechangerequest", "requestname"),
+            aliases = arrayOf("nickname", "namechangerequest", "requestname", "changename", "nick", "name"),
             globalCooldown = 0.0,
-            userCooldown = 720.0,
+            userCooldown = 180.0,
             type = CommandType.INFORMATION,
             permission = "commands.namechange",
             description = "Request for a name change."
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "You must put in a name to request.")
-            return
+            throw ArgsException("You must specify a name to request changed in to.")
         }
 
         val name = context.args.joinToString(separator = " ")
         if (name.length > 32) {
-            context(context.author, "The max length for a nickname is 32 characters!")
-            return
+            throw ArgsException("You must specify a name below 32 characters of length.")
         }
 
         val user = context.author
@@ -69,15 +57,20 @@ class NameChangeRequest @Inject constructor(val bot: Main) {
                 val user = event.guild.getMember(event.jda.getUserById(footText[1]))
                 val name = footText.subList(2).joinToString(separator = " ")
 
+                val message: String
                 if (accepted) {
                     event.guild.controller.setNickname(user, name).queue {
                         event.channel.sendMessage("Nickname changed to $name.").queue()
-                        event.guild.publicChannel.sendMessage("${user.asMention}: Your nickname was changed to $name!").queue()
                     }
+                    message = "Your nickname was changed to $name!"
                 } else {
                     event.channel.sendMessage("The $name nickname was rejected for ${user.effectiveName}.").queue()
-                    event.guild.publicChannel.sendMessage("${user.asMention}: Your nickname change to $name was rejected.").queue()
+                    message = "Your nickname change to $name was rejected."
                 }
+
+                val privateChannel = if (!user.user.hasPrivateChannel()) user.user.openPrivateChannel().complete() else user.user.privateChannel
+                privateChannel.sendMessage(message).queue()
+
                 it.delete().queue()
             }
         }

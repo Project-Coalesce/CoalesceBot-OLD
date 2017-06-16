@@ -18,10 +18,11 @@ class Purge {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "\n**Usage:**\n" +
-                    "`!purge msg <id>` Deletes message based on its id\n" +
-                    "`!purge user <@user> [optional : amount]` Deletes amount messages from user specified\n" +
-                    "`!purge search <search query>` Deletes the message with the search query specified (Based on search feature in discord)")
+            throw ArgsException(arrayOf(
+                    "**Usage:**",
+                    "`!purge msg <id>` Deletes message based on its id",
+                    "`!purge user <@user> [optional : amount]` Deletes amount messages from user specified"
+            ).joinToString(separator = "\n"))
         }
     }
 

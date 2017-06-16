@@ -1,9 +1,6 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.commands.CommandType
-import com.coalesce.bot.commands.Embeddables
-import com.coalesce.bot.commands.RootCommand
-import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.commands.*
 import java.awt.Color
 
 class Broadcast: Embeddables {
@@ -17,8 +14,7 @@ class Broadcast: Embeddables {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "Specify a message to broadcast!")
-            return
+            throw ArgsException("Specify a message to broadcast!")
         }
         val message = embed().apply {
             setTitle("Broadcast", null)

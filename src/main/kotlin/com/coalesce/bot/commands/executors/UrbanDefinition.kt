@@ -25,9 +25,9 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService) 
         fun mention(text: String) {
             context(context.author, text)
         }
+
         if (context.args.isEmpty()) {
-            mention("Please specify a word to check the definition of.")
-            return
+            throw ArgsException("Please specify a word to check the definition of.")
         }
         val phrase = context.args.joinToString(separator = "+")
 

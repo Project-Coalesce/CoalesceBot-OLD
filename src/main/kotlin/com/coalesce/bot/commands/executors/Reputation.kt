@@ -20,7 +20,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
 
     @RootCommand(
             name = "reputation",
-            type = CommandType.INFORMATION,
+            type = CommandType.MISCELLANEOUS,
             permission = "commands.reputation",
             aliases = arrayOf("rep", "reput"),
             description = "View your reputation.",
@@ -89,15 +89,13 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
     )
     fun resetScore(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty()) {
-            context("* You need to mention someone to reset scores of.")
-            return
+            throw ArgsException("You must mention an user to reset scores of.")
         }
 
         val user = context.message.mentionedUsers.first()
         val map = reputation.readRawData()
         if (map.containsKey(user.idLong)) {
-            context("* This user already is empty.")
-            return
+            throw ArgsException("This user is already empty.")
         }
         map.remove(user.idLong)
         reputation.clearCache() // Prevent cached data to override saved data.
@@ -113,13 +111,11 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
     )
     fun scoreEdit(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
-            context("* Usage: !rep edit <mention> <amount>")
-            return
+            throw ArgsException("Usage: !rep edit <mention> <amount>")
         }
         val user = context.message.mentionedUsers.first()
         reputation[user].transaction(ReputationTransaction("Edited by moderator.", (reputation[user].total) + (context.args[1].parseDouble() ?: run {
-            context("* Amount specified '${context.args[1]}' is not a valid value.")
-            return
+            throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")
         }) - reputation[user].total), context.channel as TextChannel, user)
         context(context.author, "Set scores of ${user.asMention} to ${reputation[user].total}.")
     }
@@ -131,13 +127,11 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
     )
     fun scoreSet(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
-            context("* Usage: !rep set <mention> <amount>")
-            return
+            throw ArgsException("* Usage: !rep set <mention> <amount>")
         }
         val user = context.message.mentionedUsers.first()
         reputation[user].transaction(ReputationTransaction("Edited by moderator.", (context.args[1].parseDouble() ?: run {
-            context("* Amount specified '${context.args[1]}' is not a valid value.")
-            return
+            throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")
         }) - reputation[user].total), context.channel as TextChannel, user)
         context(context.author, "Set scores of ${user.asMention} to ${reputation[user].total}.")
     }

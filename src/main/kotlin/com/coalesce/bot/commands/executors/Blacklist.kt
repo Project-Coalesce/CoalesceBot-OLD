@@ -1,6 +1,7 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Main
+import com.coalesce.bot.commands.ArgsException
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
@@ -17,8 +18,7 @@ class Blacklist @Inject constructor(val bot: Main) {
     )
     fun execute(context: RootCommandContext) {
         if (context.message.mentionedUsers.size < 1) {
-            context("* You must tag someone.")
-            return
+            throw ArgsException("You must tag someone.")
         }
         val user = context.message.mentionedUsers.first()
         if (bot.listener.isBlacklisted(user)) {

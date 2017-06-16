@@ -1,6 +1,7 @@
 package com.coalesce.bot.commands
 
 import com.coalesce.bot.utilities.formatTimeDiff
+import net.dv8tion.jda.core.entities.User
 import java.awt.Color
 import java.nio.file.Files.delete
 import java.util.concurrent.TimeUnit
@@ -26,7 +27,7 @@ class CooldownCheck(val listener: Listener): Embeddables {
         val cooldownForCooldown = userCooldowns["cooldownMessage"] ?: 0L
         val identifier = if (it is SubCommandContext) "${it.rootCommand.name} ${it.currentSubCommand.name}" else it.rootCommand.name
 
-        var setGlobal: Boolean = false
+        val setGlobal = cooldown != 0.0
         if (cooldown != 0.0) {
             val current = listener.cooldowns[identifier]
             if (current != null) {
@@ -41,7 +42,6 @@ class CooldownCheck(val listener: Listener): Embeddables {
                     return false
                 }
             }
-            setGlobal = true
         }
 
         // Global cooldown passed.
@@ -73,13 +73,30 @@ class CooldownCheck(val listener: Listener): Embeddables {
                     return false
                 }
             }
+            /*
             userCooldowns[identifier] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(annoUser.toLong())
             listener.userCooldowns[it.author.idLong] = userCooldowns
+            */
         }
+        /*
         if (setGlobal) {
             listener.cooldowns[identifier] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(cooldown.toLong())
         }
+        */
 
         return true
+    }
+
+    fun setCooldown(context: CommandContext, user: User) {
+        listener.apply {
+            val name = if (context is SubCommandContext) "${context.rootCommand.name} ${context.currentSubCommand.name}" else context.rootCommand.name
+
+            (userCooldowns[user.idLong] ?: run {
+                userCooldowns[user.idLong] = mutableMapOf()
+                userCooldowns[user.idLong]!!
+            })[name] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis((if (context is SubCommandContext) context.currentSubCommand.userCooldown else context.rootCommand.userCooldown).toLong())
+            cooldowns[name] = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis((if (context is SubCommandContext) context.currentSubCommand.globalCooldown else context.rootCommand.globalCooldown).toLong())
+
+        }
     }
 }

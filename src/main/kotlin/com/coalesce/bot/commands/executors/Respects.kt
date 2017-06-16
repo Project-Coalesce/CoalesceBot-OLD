@@ -2,6 +2,7 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.*
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
+import com.coalesce.bot.binary.RespectsResetSerializer
 import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
 import com.coalesce.bot.utilities.limit
@@ -19,6 +20,7 @@ import java.awt.Color
 import java.io.DataOutputStream
 import java.io.File
 import java.util.*
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 enum class RespectReactions(val message: String,
@@ -33,7 +35,77 @@ enum class RespectReactions(val message: String,
     DANK("Dank", 3.0, 1260.0, "10/10", emoteId = Optional.of(318557118791680000L))
 }
 
-class Respects @Inject constructor(val bot: Main): Embeddables {
+class Respects @Inject constructor(val bot: Main): Embeddables, Runnable {
+    private val resetTime = 14L to TimeUnit.DAYS
+    private val resetTimeMillis = TimeUnit.MILLISECONDS.convert(resetTime.first, resetTime.second)
+
+    init {
+        val time = if (respectsResetFile.exists()) System.currentTimeMillis() - RespectsResetSerializer(respectsResetFile).read() else run {
+            RespectsResetSerializer(respectsResetFile).write(System.currentTimeMillis() + resetTimeMillis)
+            resetTimeMillis
+        }
+        if (time < 0) {
+            this.run()
+            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, resetTimeMillis, resetTimeMillis,
+                    TimeUnit.MILLISECONDS)
+        } else {
+
+            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, time, resetTimeMillis,
+                    TimeUnit.MILLISECONDS)
+        }
+    }
+
+    // Used to give the memelord role every respects reset time.
+    override fun run() {
+        val guild = bot.jda.getGuildById(268187052753944576L)
+
+        respectsResetFile.delete()
+        val map = RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()
+        val newMap = mutableMapOf<String, Double>()
+        respectsLeaderboardsFile.delete()
+
+        var top3 = mutableListOf<Member>()
+        val amountPositions = mutableListOf<Double>()
+
+        map.forEach { key, value ->
+            quietly {
+                val member = guild.getMember(bot.jda.getUserById(key)) ?: return@quietly
+                if (value is Double) {
+                    top3.add(member)
+                    amountPositions.add(value)
+                }
+            }
+        }
+
+        Collections.sort(amountPositions)
+        Collections.reverse(amountPositions)
+        top3 = top3.subList(0, Math.min(top3.size, 3))
+        Collections.sort(top3, { second, first -> (map[first.user.id] as Double).toInt() - (map[second.user.id] as Double).toInt() })
+        if (top3.size > 3) {
+            val back = mutableListOf<Member>()
+            back.addAll(top3.subList(0, 3))
+            top3.clear()
+            top3.addAll(back)
+        }
+
+        guild.publicChannel.sendMessage(StringBuilder("**The respects reset period was reached!**\nResults:\n").apply {
+            top3.forEach {
+                val pos = amountPositions.indexOf(map[it.user.id] as Double)
+                if (pos == 1) {
+                    append("**Congratulations, ${it.user.asMention}! You reached the first place!** " +
+                            "As a reward, you will be given the **MemeLord** role and a 4 respects on the new leaderboard.\n")
+                    newMap[it.user.id] = 4.0
+                    guild.controller.addRolesToMember(guild.getMember(it.user), guild.getRoleById(325006830332018688L)).queue()
+                } else {
+                    append("${it.user}: You'll get $pos respects on the new leaderboard for being in the Top 3.")
+                    newMap[it.user.id] = pos.toDouble()
+                }
+            }
+        }.toString())
+
+        RespectsLeaderboardSerializer(respectsLeaderboardsFile).write(newMap)
+    }
+
     @RootCommand(
             name = "Respects",
             aliases = arrayOf("f", "nahusdream"),
@@ -43,9 +115,9 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
             globalCooldown = 6.0 * 3600.0
     )
     fun execute(context: RootCommandContext) {
-        context(context.author, "Respects have been paid! **+8 respect**") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
+        context(context.author, "Respects have been paid! **+5 respect**") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
 
-        transaction(context.author, 8.0)
+        transaction(context.author, 5.0, context.channel)
     }
 
     @JDAListener
@@ -90,10 +162,10 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
 
     private fun dank(channel: MessageChannel, from: User, to: User, jda: JDA, reaction: RespectReactions) {
         if (to == from || to == jda.selfUser) {
-            channel.sendMessage("* Invalid user").queue()
+            channel.sendMessage("Invalid user").queue()
             return
         }
-        transaction(to, reaction.amount)
+        transaction(to, reaction.amount, channel)
         channel.sendMessage("${to.asMention}: Meme rating from ${from.name}: \"${reaction.message}\" - ${reaction.rating} " +
                 "**${if (reaction.amount > 0) "+" else ""}${reaction.amount.toInt()} respect**").queue()
     }
@@ -105,8 +177,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     )
     fun resetScore(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty()) {
-            context("* You need to mention someone to reset scores of.")
-            return
+            throw ArgsException("You need to mention someone to reset scores of.")
         }
         val user = context.message.mentionedUsers.first()
         val file = respectsLeaderboardsFile
@@ -116,8 +187,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         val map = serializer.read()
 
         if (!map.containsKey(user.id)) {
-            context("* This user already is empty.")
-            return
+            throw ArgsException("This user already is empty.")
         }
 
         map.remove(user.id)
@@ -132,23 +202,22 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     )
     fun scoreEdit(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
-            context("* Usage: !f edit <mention> <amount>")
-            return
+            throw ArgsException("Usage: `!f edit <mention> <amount>`")
         }
         val user = context.message.mentionedUsers.first()
 
         val file = respectsLeaderboardsFile
         if (!file.exists()) generateFile(file)
 
-        val serializer = RespectsLeaderboardSerializer(file)
-        val map = serializer.read()
-        map[user.id] = (map[user.id] ?: 0.0) + (context.args[1].parseDouble() ?: run {
-            context("* Amount specified '${context.args[1]}' is not a valid value.")
-            return
-        })
+        val amount = context.args[1].parseDouble() ?: run {
+            throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")
+        }
 
-        serializer.write(map)
-        context(context.author, "Set scores of ${user.asMention} to ${map[user.id]}.")
+        setRespects(user, context.channel, {
+            val result = it + amount
+            context(context.author, "Set scores of ${user.asMention} to $result.")
+            result
+        })
     }
 
     @SubCommand(
@@ -158,23 +227,18 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     )
     fun scoreSet(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
-            context("* Usage: !f set <mention> <amount>")
-            return
+            throw ArgsException("Usage: `!f set <mention> <amount>`")
         }
         val user = context.message.mentionedUsers.first()
 
         val file = respectsLeaderboardsFile
         if (!file.exists()) generateFile(file)
 
-        val serializer = RespectsLeaderboardSerializer(file)
-        val map = serializer.read()
-        map[user.id] = context.args[1].parseDouble() ?: run {
-            context("* Amount specified '${context.args[1]}' is not a valid value.")
-            return
+        val amount = context.args[1].parseDouble() ?: run {
+            throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")
         }
-
-        serializer.write(map)
-        context(context.author, "Set scores of ${user.asMention} to ${map[user.id]}.")
+        setRespects(user, context.channel, { amount })
+        context(context.author, "Set scores of ${user.asMention} to $amount.")
     }
 
     @SubCommand(
@@ -186,11 +250,6 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     fun fboard(context: SubCommandContext) {
         val file = respectsLeaderboardsFile
         synchronized(file) {
-            if (!file.exists()) {
-                context("* Respects leaderboard is empty.")
-                return
-            }
-
             val serializer = RespectsLeaderboardSerializer(file)
             val map = serializer.read()
 
@@ -249,20 +308,10 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         }
     }
 
-    private fun transaction(user: User, amount: Double) {
+    private fun transaction(user: User, amount: Double, channel: MessageChannel) {
         val file = respectsLeaderboardsFile
         if (!file.exists()) generateFile(file)
-
-        val serializer = RespectsLeaderboardSerializer(file)
-        val map = serializer.read()
-
-        val id = user.id
-        map[id] = (map[id] as? Double ?: 0.0) + amount
-        if (file.exists()) {
-            file.delete()
-        }
-        file.createNewFile()
-        serializer.write(map)
+        setRespects(user, channel, { it + amount })
     }
 
     private fun generateFile(file: File) {
@@ -281,5 +330,18 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
                 DataOutputStream(it).writeLong(-1L)
             }
         }
+    }
+}
+
+fun setRespects(user: User, channel: MessageChannel, processAmount: (Double) -> Double,
+                serializer: RespectsLeaderboardSerializer = RespectsLeaderboardSerializer(respectsLeaderboardsFile),
+                map: MutableMap<String, Double> = serializer.read()) {
+    val old = map[user.id] ?: 0.0
+    val value = processAmount(old)
+    map[user.id] = value
+    serializer.write(map)
+
+    if (map.none { it.value > value } && map.any { it.value >= old }) {
+        channel.sendMessage("${user.asMention} has reached first place in the respects leaderboard!").queue()
     }
 }

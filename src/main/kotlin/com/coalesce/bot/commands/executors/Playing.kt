@@ -1,5 +1,6 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.commands.ArgsException
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
@@ -16,8 +17,7 @@ class Playing {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "Usage: `!playing <text>`")
-            return
+            throw ArgsException("You must specify a game.")
         }
         val status = context.args.joinToString(separator = " ")
         context("Now Playing **$status**")

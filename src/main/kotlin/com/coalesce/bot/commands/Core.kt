@@ -14,6 +14,8 @@ import java.nio.file.Files.delete
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+class ArgsException(message: String): Exception(message)
+
 class GC(val listener: Listener, val reputationManager: ReputationManager): Runnable {
     init {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 5L, 5L, TimeUnit.MINUTES)
@@ -95,6 +97,7 @@ abstract class CommandContext(
         val subcommands: Map<String, Pair<Method, SubCommand>>, // There will be a resolve method.
         val args: Array<String>
 ) {
+
     inline operator fun invoke(text: String, crossinline after: Message.() -> Unit) {
         send(text) { after(this) }
     }

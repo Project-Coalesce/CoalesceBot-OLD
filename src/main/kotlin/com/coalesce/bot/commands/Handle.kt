@@ -1,8 +1,8 @@
 package com.coalesce.bot.commands
 
 import com.coalesce.bot.*
-import com.coalesce.bot.commands.executors.RespectReactions
 import com.coalesce.bot.permissions.RankManager
+import com.coalesce.bot.utilities.truncate
 import com.coalesce.bot.utilities.tryLog
 import com.google.gson.reflect.TypeToken
 import net.dv8tion.jda.core.JDA
@@ -19,10 +19,9 @@ import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
 import java.awt.Color
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
-import java.nio.file.Files.delete
 import java.util.*
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddables {
@@ -31,6 +30,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     val perms = RankManager(jda)
     val cooldowns = mutableMapOf<String, Long>() // <command identifier, until in millis>
     val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
+    val cooldown = CooldownCheck(this)
     private val blacklist: MutableMap<Long, String>
     private val welcomeMessage = "Welcome, %s, to the Coalesce Coding Discord server!\n" +
             "If you are able to code in an language and would like to have a fancy color for it, use !request <rank>.\n" +
@@ -62,7 +62,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
 
                 !isBlacklisted
             })
-            checks.add(CooldownCheck(this)::cooldownCheck)
+            checks.add(cooldown::cooldownCheck)
             checks.add({
                 val permissable = it.channel.idLong == 315934590109745154 || perms.hasPermission(it.message.guild.getMember(it.message.author), it.rootCommand.permission)
 
@@ -140,6 +140,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
                 return
             }
 
+            event.channel.sendTyping().queue()
             event.message.delete().queue()
             if (checks.any { !it(context) }) {
                 return
@@ -150,11 +151,23 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
             }
 
             method.invoke(clazz, context)
+            cooldown.setCooldown(context, event.author)
         } catch (ex: Exception) {
-            event.channel.sendMessage(embed().setColor(Color(232, 46, 0)).setTitle("Error", null)
-                    .setDescription("An error occurred with that command:\n${ex.javaClass.name}: ${ex.message}\n" +
-                    "Please report this to project coalesce developers.").build())
-            ex.printStackTrace()
+            val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
+
+            if (thrw is ArgsException) {
+                event.channel.sendMessage("${event.author.asMention} ❌: ${thrw.message}").queue()
+                return
+            }
+
+            event.channel.sendMessage(embed().apply {
+                setColor(Color(232, 46, 0))
+                setTitle("Error", null)
+                setDescription("An error occurred with that command:\n${thrw.javaClass.name}: ${thrw.message}\n" +
+                            "Please report this to project coalesce developers.")
+            }.build()).queue()
+            System.err.println("An error occured while attempting to handle command '${command.truncate(0, 100)}' from ${event.author.name}")
+            thrw.printStackTrace()
         }
     }
 }
@@ -169,7 +182,7 @@ class CommandRegistry internal constructor() {
                 .setScanners(SubTypesScanner(false), ResourcesScanner())
                 .setUrls(ClasspathHelper.forJavaClassPath())
                 .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.commands.executors"))))
-                .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') }
+                .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') && !it.name.endsWith("Kt") }
         for (clazz in classes) {
             tryLog("Failed to process ${clazz.name}") { process(clazz) }
         }

@@ -1,15 +1,11 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.commands.CommandType
-import com.coalesce.bot.commands.Embeddables
-import com.coalesce.bot.commands.RootCommand
-import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.parseTimeUnit
 import net.dv8tion.jda.core.EmbedBuilder
 import java.awt.Color
 
 class Poll : Embeddables {
-
     /**
      * TARGETED TO USER POLLS, NOT ADMINISTRATION ONES
      */
@@ -28,16 +24,18 @@ class Poll : Embeddables {
         }
 
         if (context.args.isEmpty() || context.args.size < 3) {
-            mention("Usage: `!poll <name> <time> <unit> (option)|(option)|(etc)`")
-            return
+            throw ArgsException("Usage: `!poll <name> <time> <unit> (option)|(option)|(etc)`")
         }
 
         val name = context.args[0]
 
-        val time = context.args[1].toIntOrNull() ?: run { mention("Time must be a number!"); return }
-        val timeUnit = context.args[2].parseTimeUnit() ?: run { mention("Invalid unit!"); return }
+        val time = context.args[1].toIntOrNull() ?: run { context("* Time must be a number!"); return }
+        val timeUnit = context.args[2].parseTimeUnit() ?: run { context("* Invalid unit!"); return }
 
         val options = context.args.copyOfRange(3, context.args.size).joinToString(separator = " ").split("|").map(String::trim)
+        if (options.size in 0..10) {
+            throw ArgsException("The size of options must be greater than 1, and shouldn't exceed 10!")
+        }
 
         val channel = context.channel
         channel.sendMessage(
@@ -69,29 +67,28 @@ class Poll : Embeddables {
                             setColor(Color.YELLOW)
                             setAuthor(context.author.name, null, context.author.avatarUrl)
                             setTitle("Results for: $name", null)
-                            setDescription("Final results!")
 
                             var votes = 0
                             val winner = mutableListOf<Int>()
 
-                            val builder = StringBuilder()
-                            it.reactions.forEach { reaction ->
-                                val value = reaction.emote.name[0] - '\u0030'
-                                if (value !in 0..options.size - 1) return@forEach
+                            setDescription(StringBuilder().apply {
+                                it.reactions.forEach { reaction ->
+                                    val value = reaction.emote.name[0] - '\u0030'
+                                    if (value !in 0 .. options.size - 1) return@forEach
 
-                                options[value].let {
-                                    builder.append("${reaction.emote.name} **$it** _${reaction.count - 1} votes_").append("\n")
+                                    options[value].let {
+                                        append("${reaction.emote.name} **$it** ${reaction.count - 1} votes\n")
 
-                                    if (reaction.count - 1 > votes) {
-                                        winner.clear()
-                                        votes = reaction.count - 1
-                                        winner += value
-                                    } else if (reaction.count - 1 == votes) {
-                                        winner += value
+                                        if (reaction.count - 1 > votes) {
+                                            winner.clear()
+                                            votes = reaction.count - 1
+                                            winner += value
+                                        } else if (reaction.count - 1 == votes) {
+                                            winner += value
+                                        }
                                     }
                                 }
-                            }
-                            addField("Results", builder.toString(), true)
+                            }.toString())
 
                             it.clearReactions().queue()
                             addField("Winner", winner.joinToString(prefix = "**", postfix = "**") {options[it]}, true)
