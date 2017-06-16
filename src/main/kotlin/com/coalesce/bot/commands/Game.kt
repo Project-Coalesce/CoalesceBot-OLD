@@ -9,6 +9,8 @@ import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.util.concurrent.TimeUnit
 
 private val checks = arrayOf<(match: MatchLooking, user: User) -> Pair<Boolean, String>>(
+        { match, user -> match.game.game.containsKey(user) to "Already on a game." },
+        { match, user -> match.game.inMatchfinding.contains(user) to "Already on a matchfinding queue." },
         { match, user -> (match.targets != null && !match.targets.contains(user)) to "You cannot join this private match." },
         { match, user ->
             (match.bidding != 0.0 && match.bidding > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[user.id] ?: 0.0) to
@@ -18,11 +20,12 @@ private val checks = arrayOf<(match: MatchLooking, user: User) -> Pair<Boolean, 
 
 abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlayers: Int): Embeddables {
     val game = mutableMapOf<User, ChatMatch>()
+    val inMatchfinding = mutableMapOf<User, MatchLooking>()
     val reactionPossible = mutableListOf<Long>()
-    val matchfinding = mutableMapOf<Long, MatchLooking>() // Matchfinder message (Reaction), Pair where <Attempting to find, Specific target if present>
+    val matchfinding = mutableMapOf<Long, MatchLooking>()
 
     // Syntax:
-    // !<game> - Finds match without bet for 1 player
+    // !<game> - Finds match without bet for 1 player or leave current queue
     // !<game> <amount> - Finds match without bet for <amount> players
     // !<game> bet <betamount> - Finds match betting <betamount> for 1 player
     // !<game> bet <betamount> <amount> - Finds match betting <betamount> for <amount> players
@@ -30,6 +33,8 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
     // !<game> bet <betamount> <players> - Challenges <players> into a match betting <betamount>
     fun handleCommand(context: CommandContext) {
         fun matchfinding(targeting: List<User>?, bid: Double, earnAmount: Double, amount: Int) {
+            if (game.containsKey(context.author) || inMatchfinding.containsKey(context.author)) throw ArgsException("Already on a game or matchfinding queue.")
+
             context(embed().apply {
                 setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
                 setTitle(if (targeting != null) "Challenged ${targeting.joinToString(separator = ", ") { it.name }} to a $name match!" else "Looking for a $name match", null)
@@ -38,13 +43,20 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
                     append("React with 🚪 to ${if (targeting != null) "accept" else "join"}!\nWinner gets **$earnAmount respects**")
                 }.toString())
             }.build()) {
-                matchfinding[idLong] = MatchLooking(context.author, targeting, bid, mutableListOf(), amount, System.currentTimeMillis())
+                matchfinding[idLong] = MatchLooking(this@ChatGame, context.channel, context.author, targeting, bid, mutableListOf(), this, amount)
                 addReaction("🚪").queue()
             }
         }
         if (game.containsKey(context.author)) throw ArgsException("You are already on a match!")
 
         if (context.args.isEmpty()) {
+            if (inMatchfinding.containsKey(context.author)) {
+                val matchfinding = inMatchfinding[context.author]!!
+                inMatchfinding.remove(context.author)
+                matchfinding.entered.remove(context.author)
+                matchfinding.channel.sendMessage("${context.author.asMention}: Left the queue! (${matchfinding.entered.size}/${matchfinding.amount})").queue()
+                return
+            }
             matchfinding(null, 0.0, defaultAward, 1)
         } else if (context.message.mentionedUsers.isNotEmpty()) {
             val target = context.message.mentionedUsers
@@ -87,10 +99,14 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
                 }
             }
 
+            inMatchfinding.add(event.user)
             match.entered.add(event.user)
             event.channel.sendMessage("${event.user.asMention}: Joined queue for $name match! (${match.entered.size}/${match.amount})").queue()
             if (match.entered.size == match.amount) {
-                val players = mutableListOf(event.user).apply { addAll(match.entered) }
+                inMatchfinding.removeAll(match.entered)
+                inMatchfinding.remove(match.looker)
+
+                val players = mutableListOf(match.looker).apply { addAll(match.entered) }
                 val worth = if (match.bidding > 0.0) match.bidding else defaultAward
                 event.channel.getMessageById(event.messageId).queue { it.delete().queue() }
                 event.channel.sendMessage("**$name Match Created!**\n${players.joinToString(separator = " vs ") { it.name }}" +
@@ -129,12 +145,23 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
     abstract fun generateMatch(channel: MessageChannel, players: Array<User>, resultHandler: (Map<User, Int>) -> Unit): ChatMatch
 }
 
-data class MatchLooking(val looker: User,
-                        val targets: List<User>?,
-                        val bidding: Double,
-                        val entered: MutableList<User>,
-                        val amount: Int,
-                        val begin: Long)
+class MatchLooking(
+        val game: ChatGame,
+        val channel: MessageChannel,
+        val looker: User,
+        val targets: List<User>?,
+        val bidding: Double,
+        val entered: MutableList<User>,
+        val message: Message,
+        val amount: Int): Timeout(3L, TimeUnit.MINUTES) {
+    override fun timeout() {
+        channel.sendMessage(entered.joinToString(separator = ", ") { it.asMention } + ": The ${game.name} matchfinder has timed out due to taking too long. Try again later.").queue()
+        message.delete().queue()
+        game.matchfinding.remove(message.idLong)
+        game.inMatchfinding.removeAll(entered)
+        game.inMatchfinding.remove(looker)
+    }
+}
 
 abstract class ChatMatch(
         val channel: MessageChannel,
@@ -144,8 +171,9 @@ abstract class ChatMatch(
 ): Timeout(2L, TimeUnit.MINUTES) {
     private val addedReactionsOf = mutableListOf<Long>()
 
-    init {
-        timeout = { invoke(mapOf()) }
+    override fun timeout() {
+        channel.sendMessage("Nothing happened for the last 2 minutes, so the match will be tied.")
+        invoke(mapOf())
     }
 
     abstract fun reaction(from: User, emote: MessageReaction.ReactionEmote, message: Message)
