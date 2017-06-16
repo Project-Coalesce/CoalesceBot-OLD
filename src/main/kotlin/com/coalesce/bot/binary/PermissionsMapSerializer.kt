@@ -2,7 +2,7 @@ package com.coalesce.bot.binary
 
 import java.io.File
 
-class PermissionsMapSerializer(file: File): BinarySerializer<MutableMap<String, Boolean>>(file) {
+class PermissionsMapSerializer(file: File): BinarySerializer<MutableMap<String, Boolean>>(file, { mutableMapOf() }) {
     override fun serializeIn(): MutableMap<String, Boolean> {
         val map = mutableMapOf<String, Boolean>()
 

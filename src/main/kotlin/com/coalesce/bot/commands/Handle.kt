@@ -183,12 +183,15 @@ class CommandRegistry internal constructor() {
                 .setUrls(ClasspathHelper.forJavaClassPath())
                 .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix("com.coalesce.bot.commands.executors"))))
                 .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') && !it.name.endsWith("Kt") }
+        val cmds = mutableListOf<CommandEntry>()
+
         for (clazz in classes) {
-            tryLog("Failed to process ${clazz.name}") { process(clazz) }
+            tryLog("Failed to process ${clazz.name}") { cmds.add(process(clazz)) }
         }
+        println("Loaded ${cmds.size} commands: " + cmds.joinToString(separator = ", ") { it.rootAnnotation.name })
     }
 
-    private fun process(clazz: Class<*>) {
+    private fun process(clazz: Class<*>): CommandEntry {
         val commandEntry = CommandEntry(clazz)
         subcommands[commandEntry] = mutableListOf()
 
@@ -207,6 +210,8 @@ class CommandRegistry internal constructor() {
                if(!jdalisteners.containsKey(entry.key)) jdalisteners.put(entry.key, mutableMapOf<Method, CommandEntry>())
             jdalisteners[entry.key]!!.putAll(map)
         }
+
+        return commandEntry
     }
 
     operator fun get(
