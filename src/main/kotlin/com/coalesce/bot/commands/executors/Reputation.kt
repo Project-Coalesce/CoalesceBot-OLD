@@ -56,8 +56,11 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         val nextAchievement = 25 + Math.min((reputation[user].total * 1.5).toInt(), 1000)
 
         if (messageCount >= nextAchievement) {
-            reputation[user].transaction(ReputationTransaction("Award for sending $nextAchievement messages", 10.0),
+            val targetValue = reputation[user]
+            targetValue.transaction(ReputationTransaction("Award for sending $nextAchievement messages", 10.0),
                     event.channel as TextChannel, user)
+            reputation[user] = targetValue
+
             messageCount = 0
         }
 
@@ -114,9 +117,12 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             throw ArgsException("Usage: !rep edit <mention> <amount>")
         }
         val user = context.message.mentionedUsers.first()
-        reputation[user].transaction(ReputationTransaction("Edited by moderator.", (reputation[user].total) + (context.args[1].parseDouble() ?: run {
-            throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")
-        }) - reputation[user].total), context.channel as TextChannel, user)
+
+        val targetValue = reputation[user]
+        targetValue.transaction(ReputationTransaction("Edited by moderator.", (reputation[user].total) + (context.args[1].toDoubleOrNull() ?:
+            throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")) - reputation[user].total), context.channel as TextChannel, user)
+        reputation[user] = targetValue
+
         context(context.author, "Set scores of ${user.asMention} to ${reputation[user].total}.")
     }
 
@@ -130,9 +136,12 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
             throw ArgsException("* Usage: !rep set <mention> <amount>")
         }
         val user = context.message.mentionedUsers.first()
-        reputation[user].transaction(ReputationTransaction("Edited by moderator.", (context.args[1].parseDouble() ?: run {
-            throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")
-        }) - reputation[user].total), context.channel as TextChannel, user)
+
+        val targetValue = reputation[user]
+        targetValue.transaction(ReputationTransaction("Edited by moderator.", (context.args[1].toDoubleOrNull() ?:
+                throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")) - reputation[user].total), context.channel as TextChannel, user)
+        reputation[user] = targetValue
+
         context(context.author, "Set scores of ${user.asMention} to ${reputation[user].total}.")
     }
 
