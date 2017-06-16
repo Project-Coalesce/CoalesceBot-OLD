@@ -153,12 +153,13 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
             method.invoke(clazz, context)
             cooldown.setCooldown(context, event.author)
         } catch (ex: Exception) {
-            if (ex is ArgsException) {
-                event.channel.sendMessage("${event.author.asMention} ❌: ${ex.message}").queue()
+            val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
+
+            if (thrw is ArgsException) {
+                event.channel.sendMessage("${event.author.asMention} ❌: ${thrw.message}").queue()
                 return
             }
 
-            val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
             event.channel.sendMessage(embed().apply {
                 setColor(Color(232, 46, 0))
                 setTitle("Error", null)
