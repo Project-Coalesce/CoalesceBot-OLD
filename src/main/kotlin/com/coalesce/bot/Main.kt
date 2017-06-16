@@ -1,6 +1,7 @@
 package com.coalesce.bot
 
 //import com.coalesce.bot.chatbot.ChatbotBrain
+import com.coalesce.bot.commands.AdaptationArgsChecker
 import com.coalesce.bot.commands.GC
 import com.coalesce.bot.commands.Listener
 import com.coalesce.bot.punishmentals.Punishment
@@ -31,7 +32,7 @@ import java.util.regex.Pattern
  *  Second number - Minor version
  *  Third number - Patch
  * */
-val VERSION = "1.5.1"
+val VERSION = "1.5.2"
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -47,6 +48,7 @@ class Main private constructor() {
     lateinit var githubSecret: String
     lateinit var repManager: ReputationManager
     lateinit var gc: GC
+    lateinit var commandTypeAdapter: AdaptationArgsChecker
     val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String, logOnConsole: Boolean) {

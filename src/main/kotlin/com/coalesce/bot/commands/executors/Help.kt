@@ -41,7 +41,7 @@ class Help @Inject constructor(val bot: Main) : Embeddables {
             permission = "commands.help",
             description = "Displays all the available commands.",
             aliases = arrayOf("?", "h"),
-            globalCooldown = 35.0
+            userCooldown = 35.0
     )
     fun execute(context: RootCommandContext) {
         fun send(pm: PrivateChannel) {
