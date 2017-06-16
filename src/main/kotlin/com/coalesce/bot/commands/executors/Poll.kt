@@ -1,9 +1,6 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.commands.CommandType
-import com.coalesce.bot.commands.Embeddables
-import com.coalesce.bot.commands.RootCommand
-import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.parseTimeUnit
 import net.dv8tion.jda.core.EmbedBuilder
 import java.awt.Color
@@ -27,8 +24,7 @@ class Poll : Embeddables {
         }
 
         if (context.args.isEmpty() || context.args.size < 3) {
-            mention("Usage: `!poll <name> <time> <unit> (option)|(option)|(etc)`")
-            return
+            throw ArgsException("Usage: `!poll <name> <time> <unit> (option)|(option)|(etc)`")
         }
 
         val name = context.args[0]

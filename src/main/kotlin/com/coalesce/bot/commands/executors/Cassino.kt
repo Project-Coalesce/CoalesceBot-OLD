@@ -1,6 +1,7 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
+import com.coalesce.bot.commands.ArgsException
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
@@ -24,23 +25,19 @@ class Cassino {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context("* Usage: !bid <respects>")
-            return
+            throw ArgsException("Usage: !bid <amount>")
         }
         val serializer = RespectsLeaderboardSerializer(respectsLeaderboardsFile)
         val map = serializer.read()
         val respects = map[context.author.id] ?: 0.0
         val bid = context.args[0].parseDouble() ?: run {
-            context("* Invalid respects inserted.")
-            return@execute
+            throw ArgsException("Invalid respect amount inserted.")
         }
         if (bid > 15) {
-            context("* Only bids up to **15 respect** are allowed.")
-            return
+            throw ArgsException("Only bids up to 15 respects are allowed.")
         }
         if (respects < bid) {
-            context("* You cannot afford to bid that much.")
-            return
+            throw ArgsException("Cannot afford to bid $bid.")
         }
 
         val emoteSize = emotes.size.toDouble()

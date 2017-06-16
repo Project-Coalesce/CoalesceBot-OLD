@@ -1,5 +1,6 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.commands.ArgsException
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
@@ -19,8 +20,7 @@ class Lmgtfy {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "Please specify a phrase to print!")
-            return
+            throw ArgsException("You must specify a query.")
         }
         val arguments: Array<String>
         var user: User? = context.message.mentionedUsers.firstOrNull()

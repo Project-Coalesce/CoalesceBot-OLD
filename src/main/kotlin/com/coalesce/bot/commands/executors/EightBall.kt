@@ -1,9 +1,6 @@
 package com.coalesce.bot.commands.executors
 
-import com.coalesce.bot.commands.CommandType
-import com.coalesce.bot.commands.Embeddables
-import com.coalesce.bot.commands.RootCommand
-import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.commands.*
 import java.awt.Color
 import java.util.concurrent.ThreadLocalRandom
 
@@ -25,8 +22,7 @@ class EightBall : Embeddables {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "You have to ask something!")
-            return
+            throw ArgsException("You have to ask something!")
         }
 
         context(

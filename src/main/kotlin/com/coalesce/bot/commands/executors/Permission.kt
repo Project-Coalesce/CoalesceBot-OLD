@@ -1,6 +1,7 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Main
+import com.coalesce.bot.commands.ArgsException
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
@@ -19,8 +20,7 @@ class Permission @Inject constructor(val bot: Main) {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context("* Invalid Syntax.")
-            return
+            throw ArgsException("Invalid usage.")
         }
 
         if (context.args.size == 1) {

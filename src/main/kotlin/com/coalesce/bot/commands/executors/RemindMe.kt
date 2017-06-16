@@ -1,5 +1,6 @@
 package com.coalesce.bot.commands.executors
 
+import com.coalesce.bot.commands.ArgsException
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
@@ -22,8 +23,7 @@ class RemindMe {
         }
 
         if (context.args.isEmpty() || context.args.size < 3) {
-            mention("Usage: `!remindme <time> <unit> (message)`")
-            return
+            throw ArgsException("Usage: `!remindme <time> <unit> (message)`")
         }
 
         val time = context.args[0].toIntOrNull() ?: run { mention("The time must be a number!"); return }
@@ -32,16 +32,17 @@ class RemindMe {
         val message = context.args.copyOfRange(2, context.args.size).joinToString(separator = " ")
 
         if (time < 0) {
-            mention("Time must be greater than zero!")
-            return
+            throw ArgsException("Time must be greater than zero!")
         }
 
-        var privateChannel: PrivateChannel
-        if (!context.author.hasPrivateChannel()) privateChannel = context.author.openPrivateChannel().complete()
-        else privateChannel = context.author.privateChannel
+        fun reminder(pm: PrivateChannel) {
+            pm.sendMessage("${context.author.asMention}: Reminder from $time ${timeUnit.toString().toLowerCase()} ago: \"$message\"", null)
+                    .queueAfter(time.toLong(), timeUnit)
+        }
+
+        if (!context.author.hasPrivateChannel()) context.author.openPrivateChannel().queue(::reminder)
+        else reminder(context.author.privateChannel)
 
         context(context.author, "I'll be reminding you in $time ${timeUnit.toString().toLowerCase()}")
-        privateChannel.sendMessage("${context.author.asMention}: Reminder from $time ${timeUnit.toString().toLowerCase()} ago: \"$message\"", null)
-                .queueAfter(time.toLong(), timeUnit)
     }
 }

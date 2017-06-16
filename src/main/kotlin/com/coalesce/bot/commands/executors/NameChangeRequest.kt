@@ -1,10 +1,7 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Main
-import com.coalesce.bot.commands.CommandType
-import com.coalesce.bot.commands.JDAListener
-import com.coalesce.bot.commands.RootCommand
-import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.subList
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
@@ -24,14 +21,12 @@ class NameChangeRequest @Inject constructor(val bot: Main) {
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "You must put in a name to request.")
-            return
+            throw ArgsException("You must specify a name to request changed in to.")
         }
 
         val name = context.args.joinToString(separator = " ")
         if (name.length > 32) {
-            context(context.author, "The max length for a nickname is 32 characters!")
-            return
+            throw ArgsException("You must specify a name below 32 characters of length.")
         }
 
         val user = context.author

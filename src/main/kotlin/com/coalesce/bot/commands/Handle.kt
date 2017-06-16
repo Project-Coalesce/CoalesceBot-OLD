@@ -30,6 +30,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
     val perms = RankManager(jda)
     val cooldowns = mutableMapOf<String, Long>() // <command identifier, until in millis>
     val userCooldowns = mutableMapOf<Long, MutableMap<String, Long>>() // <user id, map<command identifier, until in millis>>
+    val cooldown = CooldownCheck(this)
     private val blacklist: MutableMap<Long, String>
     private val welcomeMessage = "Welcome, %s, to the Coalesce Coding Discord server!\n" +
             "If you are able to code in an language and would like to have a fancy color for it, use !request <rank>.\n" +
@@ -61,7 +62,7 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
 
                 !isBlacklisted
             })
-            checks.add(CooldownCheck(this)::cooldownCheck)
+            checks.add(cooldown::cooldownCheck)
             checks.add({
                 val permissable = it.channel.idLong == 315934590109745154 || perms.hasPermission(it.message.guild.getMember(it.message.author), it.rootCommand.permission)
 
@@ -150,7 +151,13 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
             }
 
             method.invoke(clazz, context)
+            cooldown.setCooldown(context, event.author)
         } catch (ex: Exception) {
+            if (ex is ArgsException) {
+                event.channel.sendMessage("${event.author.asMention} ❌: ${ex.message}").queue()
+                return
+            }
+
             val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
             event.channel.sendMessage(embed().apply {
                 setColor(Color(232, 46, 0))

@@ -36,9 +36,11 @@ class Request @Inject constructor(val bot: Main) {
             description = "Request for a developer role."
     )
     fun execute(context: RootCommandContext) {
+        val member = context.message.guild.getMember(context.author)
+        fun roleMessage() = acceptableRoles.filter { member.roles.contains(it) }.joinToString(separator = ", ") { it.name }
+
         if (context.args.isEmpty()) {
-            context("* You need to provide a role!")
-            return
+            throw ArgsException("You must provide one role within: ${roleMessage()}")
         }
 
         val role : Role
@@ -49,21 +51,18 @@ class Request @Inject constructor(val bot: Main) {
             val roles = bot.jda.getRolesByName(context.args.first(), true)
 
             if (roles.isEmpty()) {
-                context("* Invalid role.")
-                return
+                throw ArgsException("Invalid role. You need to provide one of: ${roleMessage()}")
             }
 
             role = roles.first()
         }
 
         if (!acceptableRoles.contains(role)) {
-            context("* Invalid role.")
-            return
+            throw ArgsException("Invalid role. You need to provide one of: ${roleMessage()}")
         }
 
         if (context.message.guild.getMember(context.message.author).roles.contains(role)) {
-            context("* You already have that role.")
-            return
+            throw ArgsException("Invalid role. You need to provide one of: ${roleMessage()}")
         }
 
         if (context.message.author.hasPrivateChannel()) sendMessage(context.message.author.privateChannel, context.channel, role, context.message.author)

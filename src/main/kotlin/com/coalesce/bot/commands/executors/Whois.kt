@@ -2,10 +2,7 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Colour
 import com.coalesce.bot.canDelete
-import com.coalesce.bot.commands.CommandType
-import com.coalesce.bot.commands.Embeddables
-import com.coalesce.bot.commands.RootCommand
-import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
 import net.dv8tion.jda.core.entities.Member
 import java.time.format.DateTimeFormatter
@@ -28,8 +25,7 @@ class Whois : Embeddables {
             member = context.message.guild.getMember(context.message.mentionedUsers.firstOrNull())
         }
         if (member == null) {
-            context(context.author, "You need to specify a user to check.") { delete().queueAfter(20, TimeUnit.SECONDS) }
-            return
+            throw ArgsException("You must mention an user to view information of.")
         }
         val builder = embed()
                 .data(null, colour = Colour.GREEN, author = member.user.name, avatar = member.user.avatarUrl)

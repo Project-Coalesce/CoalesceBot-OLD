@@ -2,6 +2,7 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.COALESCE_GUILD
 import com.coalesce.bot.Main
+import com.coalesce.bot.commands.ArgsException
 import com.coalesce.bot.commands.CommandType
 import com.coalesce.bot.commands.RootCommand
 import com.coalesce.bot.commands.RootCommandContext
@@ -22,13 +23,11 @@ class Mute @Inject constructor(val bot: Main, val manager: PunishmentManager) {
     )
     fun execute(context: RootCommandContext) {
         if (context.message.mentionedUsers.isEmpty()) {
-            context("You need to mention a user to perform this command.")
-            return
+            throw ArgsException("You must mention an user to perform this punishment.")
         }
         val user = context.message.mentionedUsers.first()
         if (context.args.size < 2) {
-            context("You need to specify a time period for the mute to last.")
-            return
+            throw ArgsException("You must specify the length of the mute.")
         }
 
         var description: String? = null

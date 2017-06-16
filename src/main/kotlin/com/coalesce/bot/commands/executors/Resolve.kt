@@ -1,14 +1,12 @@
 package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.canDelete
-import com.coalesce.bot.commands.CommandType
-import com.coalesce.bot.commands.Embeddables
-import com.coalesce.bot.commands.RootCommand
-import com.coalesce.bot.commands.RootCommandContext
+import com.coalesce.bot.commands.*
 import com.coalesce.bot.utilities.ifwithDo
 import com.google.inject.Inject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.nio.file.Files.delete
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -23,22 +21,20 @@ class Resolve @Inject constructor(private val executor: ExecutorService) : Embed
     )
     fun execute(context: RootCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "You need to specify a URL to resolve.")
-            return
+            throw ArgsException("You need to specify a URL to resolve.")
         }
         val url = context.args.joinToString(separator = "%20")
         executor.submit {
             try {
                 context.channel.sendTyping()
                 val resolved = getFinalUrl(url)
-                context(embed().field("Receiver", context.author, true).field("Resolved", resolved, true)) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
+                context("Resolved URL: $resolved")
             } catch (ex: Exception) {
-                context(embed().field("Receiver", context.author, true).field("Error", "Couldn't resolve the URL.", true)) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(35, TimeUnit.SECONDS) } }
+                throw ArgsException("Couldn't resolve the URL.")
             }
         }
     }
 
-    @Throws(Exception::class)
     private fun getFinalUrl(url: String): String {
         @Suppress("NAME_SHADOWING")
         var url = url

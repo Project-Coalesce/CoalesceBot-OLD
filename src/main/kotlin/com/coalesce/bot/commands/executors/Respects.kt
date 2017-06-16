@@ -90,7 +90,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
 
     private fun dank(channel: MessageChannel, from: User, to: User, jda: JDA, reaction: RespectReactions) {
         if (to == from || to == jda.selfUser) {
-            channel.sendMessage("* Invalid user").queue()
+            channel.sendMessage("Invalid user").queue()
             return
         }
         transaction(to, reaction.amount, channel)
@@ -105,8 +105,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     )
     fun resetScore(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty()) {
-            context("* You need to mention someone to reset scores of.")
-            return
+            throw ArgsException("You need to mention someone to reset scores of.")
         }
         val user = context.message.mentionedUsers.first()
         val file = respectsLeaderboardsFile
@@ -116,8 +115,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         val map = serializer.read()
 
         if (!map.containsKey(user.id)) {
-            context("* This user already is empty.")
-            return
+            throw ArgsException("This user already is empty.")
         }
 
         map.remove(user.id)
@@ -132,8 +130,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     )
     fun scoreEdit(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
-            context("* Usage: !f edit <mention> <amount>")
-            return
+            throw ArgsException("Usage: `!f edit <mention> <amount>`")
         }
         val user = context.message.mentionedUsers.first()
 
@@ -141,8 +138,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         if (!file.exists()) generateFile(file)
 
         val amount = context.args[1].parseDouble() ?: run {
-            context("* Amount specified '${context.args[1]}' is not a valid value.")
-            return
+            throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")
         }
 
         setRespects(user, context.channel, {
@@ -159,7 +155,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     )
     fun scoreSet(context: SubCommandContext) {
         if (context.message.mentionedUsers.isEmpty() || context.args.size < 2) {
-            context("* Usage: !f set <mention> <amount>")
+            throw ArgsException("Usage: `!f set <mention> <amount>`")
             return
         }
         val user = context.message.mentionedUsers.first()
@@ -168,7 +164,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
         if (!file.exists()) generateFile(file)
 
         val amount = context.args[1].parseDouble() ?: run {
-            context("* Amount specified '${context.args[1]}' is not a valid value.")
+            throw ArgsException("Amount specified '${context.args[1]}' is not a valid value.")
             return
         }
         setRespects(user, context.channel, { amount })
@@ -184,11 +180,6 @@ class Respects @Inject constructor(val bot: Main): Embeddables {
     fun fboard(context: SubCommandContext) {
         val file = respectsLeaderboardsFile
         synchronized(file) {
-            if (!file.exists()) {
-                context("* Respects leaderboard is empty.")
-                return
-            }
-
             val serializer = RespectsLeaderboardSerializer(file)
             val map = serializer.read()
 
