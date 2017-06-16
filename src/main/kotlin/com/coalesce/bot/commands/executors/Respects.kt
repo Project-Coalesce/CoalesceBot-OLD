@@ -49,7 +49,6 @@ class Respects @Inject constructor(val bot: Main): Embeddables, Runnable {
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, resetTimeMillis, resetTimeMillis,
                     TimeUnit.MILLISECONDS)
         } else {
-
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, time, resetTimeMillis,
                     TimeUnit.MILLISECONDS)
         }

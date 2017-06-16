@@ -118,4 +118,24 @@ fun String.isInteger(): Boolean {
     return true
 }
 
+open class Timeout(time: Long, unit: TimeUnit): Thread() {
+    private val lock = java.lang.Object()
+    private val millis = TimeUnit.MILLISECONDS.convert(time, unit)
+
+    var timeout: (() -> Unit)? = null
+
+    override fun run() = interruptableCycle()
+    fun keepAlive() = interrupt()
+
+    private fun interruptableCycle() {
+        try {
+            lock.wait(millis)
+        } catch (ie: InterruptedException) {
+            interruptableCycle()
+        }
+
+        (timeout ?: return).invoke()
+    }
+}
+
 val emptyClassList = listOf<Class<*>>()

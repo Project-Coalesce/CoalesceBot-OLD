@@ -19,15 +19,13 @@ class Info: Embeddables {
         context(embed().apply {
             setColor(Color(0xBE58B6))
 
-            setAuthor("CoalesceBot", "https://github.com/Project-Coalesce/CoalesceBot", "http://i.imgur.com/4j7oFYD.png")
+            setAuthor("CoalesceBot v$VERSION", "https://github.com/Project-Coalesce/CoalesceBot", "http://i.imgur.com/4j7oFYD.png")
             setDescription(arrayOf(
                     "Developed by the Coalesce Team (Learn more: `!coalesce`).",
                     "If you find any bugs, please report them at https://goo.gl/5rGeFJ.",
                     "Abusing the bot's features may lead into a blacklist.",
                     "**Type `!help` for a list of commands.**")
                 .joinToString(separator = "\n"))
-
-            setFooter("Running CoalesceBot version $VERSION.", null)
         }.build())
     }
 }

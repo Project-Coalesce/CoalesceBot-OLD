@@ -47,9 +47,10 @@ class Permission @Inject constructor(val bot: Main) {
             }
 
             if (context.message.mentionedUsers.isNotEmpty()) {
-                perms[context.message.author] = Triple(context.message.guild, perm, value)
+                val user = context.message.mentionedUsers.first()
+                perms[user] = Triple(context.message.guild, perm, value)
 
-                val member = context.message.guild.getMember(context.message.author)
+                val member = context.message.guild.getMember(user)
                 context("${if(perms[Triple(context.message.author, context.message.guild, perm)]) "Added" else "Removed"} $perm for ${member.asMention}")
             } else if (context.message.mentionedRoles.isNotEmpty()) {
                 val role = context.message.mentionedRoles.first()
