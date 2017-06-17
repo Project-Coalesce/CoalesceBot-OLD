@@ -111,12 +111,13 @@ class Respects @Inject constructor(val bot: Main): Embeddables, Runnable {
             description = "Over-engineered meme command (Press F to pay respects)",
             permission = "commands.respects",
             type = CommandType.FUN,
-            globalCooldown = 6.0 * 3600.0
+            globalCooldown = 1800.0,
+            userCooldown = 4.0 * 3600.0
     )
     fun execute(context: RootCommandContext) {
-        context(context.author, "Respects have been paid! **+5 respect**") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
+        context(context.author, "Respects have been paid! **+4 respect**") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
 
-        transaction(context.author, 5.0, context.channel)
+        transaction(context.author, 4.0, context.channel)
     }
 
     @JDAListener
