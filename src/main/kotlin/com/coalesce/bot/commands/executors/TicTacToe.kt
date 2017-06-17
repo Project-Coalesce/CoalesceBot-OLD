@@ -12,7 +12,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.io.IOException
 
-private val allEmotes = arrayOf("❌", "⭕", "❗", "❓")
+private val allEmotes = arrayOf("X", "O", "!", "?")
 private val playerCountForSize = mapOf(
         2 to 3,
         3 to 4,
@@ -44,7 +44,7 @@ class TicTacToe @Inject constructor(val bot: Main) {
     }
 }
 
-class TicTacToeGame: ChatGame("TicTacToe", 5.0, allEmotes.size - 1) {
+class TicTacToeGame: ChatGame("TicTacToe", 3.0, allEmotes.size - 2) {
     override fun generateMatch(channel: MessageChannel, players: Array<User>, resultHandler: (Map<User, Int>) -> Unit): ChatMatch = TicTacToeMatch(channel, this, players, resultHandler)
 }
 
@@ -115,9 +115,9 @@ class TicTacToeMatch(
         channel.sendMessage(StringBuilder().apply {
             append("```")
             board.forEachIndexed { index, piece ->
-                if (index % 3 == 0) append("\n")
+                if (index % size == 0) append("\n")
                 val character = (piece.emote ?: index.toString())
-                append((if (character == "⭕" || character == "❓" || character == "❌") " " else "  ") + character)
+                append("  " + character)
             }
             append("\n```")
             if (turn != null) append("\n**${turn.asMention}'s turn!**")
