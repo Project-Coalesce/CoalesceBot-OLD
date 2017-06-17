@@ -70,7 +70,8 @@ class Cassino {
     }
 
     private fun findMatches(middleRow: Map<String, Int>, bid: Double): Pair<Double, String> =
-        if (middleRow.any { it.value == 2 }) bid / 2 to "**Match!** +50% of bid"
-        else if (middleRow.all { it.value == 3 }) bid * 1.25 to "🍀 **Lucky!** 🍀 +125% of bid"
-        else -bid to "Nothing! -100% of bid"
+        if (middleRow.any { it.value == 2 }) bid / 2 to "**Match!** +${bid / 2} respects"
+        else if (middleRow.any { it.value == 3 && it.key == "🍀" }) bid * 4 to "🍀🍀 **JACKPOT!** 🍀🍀  +${bid * 4} respects"
+        else if (middleRow.all { it.value == 3 }) bid * 1.25 to "**Lucky!** +${bid * 1.25} respects"
+        else -bid to "Nothing! -$bid respects"
 }
