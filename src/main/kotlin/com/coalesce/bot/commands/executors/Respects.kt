@@ -92,15 +92,15 @@ class Respects @Inject constructor(val bot: Main): Embeddables, Runnable {
                 val pos = amountPositions.indexOf(map[it.user.id] as Double)
                 if (pos == 1) {
                     append("**Congratulations, ${it.user.asMention}! You reached the first place!** " +
-                            "As a reward, you will be given the **MemeLord** role and a 4 respects on the new leaderboard.\n")
+                            "As a reward, you will be given the **MemeLord** role and a 4 respects boost on the new leaderboard.\n")
                     newMap[it.user.id] = 4.0
                     guild.controller.addRolesToMember(guild.getMember(it.user), guild.getRoleById(325006830332018688L)).queue()
                 } else {
-                    append("${it.user}: You'll get $pos respects on the new leaderboard for being in the Top 3.")
+                    append("${it.user}: You'll get $pos respects on the new leaderboard for being in the the position $pos.")
                     newMap[it.user.id] = pos.toDouble()
                 }
             }
-        }.toString())
+        }.toString()).queue()
 
         RespectsLeaderboardSerializer(respectsLeaderboardsFile).write(newMap)
     }
