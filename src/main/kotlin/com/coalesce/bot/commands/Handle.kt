@@ -6,6 +6,8 @@ import com.coalesce.bot.utilities.truncate
 import com.coalesce.bot.utilities.tryLog
 import com.google.gson.reflect.TypeToken
 import net.dv8tion.jda.core.JDA
+import net.dv8tion.jda.core.entities.MessageChannel
+import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent
@@ -137,6 +139,10 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
             val (input, method, third) = registry[command, event]
             val (context, clazz) = third
             if (method == null || context == null || clazz == null) {
+                return
+            }
+            if (event.channel !is TextChannel) {
+                event.channel.sendMessage("Commands are not allowed in private messages.").queue()
                 return
             }
 

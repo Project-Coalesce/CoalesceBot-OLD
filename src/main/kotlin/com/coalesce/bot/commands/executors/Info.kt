@@ -13,7 +13,7 @@ class Info: Embeddables {
             permission = "commands.info",
             type = CommandType.INFORMATION,
             description = "Bot Information",
-            aliases = arrayOf("moreinfo", "bot")
+            aliases = arrayOf("moreinfo", "bot", "about")
     )
     fun execute(context: RootCommandContext) {
         context(embed().apply {
