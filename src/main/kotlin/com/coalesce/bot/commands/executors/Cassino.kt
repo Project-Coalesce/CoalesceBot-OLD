@@ -33,9 +33,7 @@ class Cassino {
         val bid = context.args[0].parseDouble() ?: run {
             throw ArgsException("Invalid respect amount inserted.")
         }
-        if (bid > 15) {
-            throw ArgsException("Only bids up to 15 respects are allowed.")
-        }
+        if (bid !in 0..30) throw ArgsException("Only bids between 0 and 15 respects are allowed.")
         if (respects < bid) {
             throw ArgsException("Cannot afford to bid $bid.")
         }

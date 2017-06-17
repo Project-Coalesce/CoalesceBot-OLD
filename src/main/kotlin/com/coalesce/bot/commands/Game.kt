@@ -63,7 +63,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
 
             if (context.args.size > 2 && context.args[0] == "bet") {
                 val bid = context.args[1].toDoubleOrNull() ?: throw ArgsException("The provided bid is an invalid number!")
-                if (bid > 30.0) throw ArgsException("Only bids up to 30 respects are allowed.")
+                if (bid !in 0..30) throw ArgsException("Only bids between 0 and 30 respects are allowed.")
                 if (game.containsKey(context.author)) throw ArgsException("You are already on a match!")
                 if (bid > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[context.author.id] ?: 0.0)
                     throw ArgsException("You can't afford that bid!")
@@ -76,7 +76,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
             val bid = context.args[0].toDoubleOrNull() ?: throw ArgsException("The provided bid is an invalid number!")
             val amount = if (context.args.size > 2) context.args[2].toIntOrNull() ?: throw ArgsException("The provided amount of players is not a valid number!") else 0
             if (amount !in 1..maxPlayers) throw ArgsException("Amount of players must be within 1 and $maxPlayers.")
-            if (bid > 30.0) throw ArgsException("Only bids up to 30 respects are allowed.")
+            if (bid !in 0..30) throw ArgsException("Only bids between 0 and 30 respects are allowed.")
             if (game.containsKey(context.author)) throw ArgsException("You are already on a match!")
             if (bid > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[context.author.id] ?: 0.0)
                 throw ArgsException("You can't afford that bid!")
