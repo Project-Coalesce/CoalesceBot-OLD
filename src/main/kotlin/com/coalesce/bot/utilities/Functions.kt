@@ -70,6 +70,12 @@ fun String.matching(regx: Regex): String {
     return str.toString()
 }
 
+fun <T> List<T>.order(func: (T, T) -> Int): MutableList<T> {
+    val list = ArrayList(this)
+    Collections.sort(list, func)
+    return list
+}
+
 fun String.limit(limit: Int, ending: String = "..."): String {
     if (length > limit) {
         return this.substring(0, limit) + ending

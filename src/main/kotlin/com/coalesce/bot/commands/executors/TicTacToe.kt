@@ -63,6 +63,7 @@ class TicTacToeMatch(
     private val tileCount = size * size
     private val emotes = mutableMapOf<User, String>().apply { players.forEachIndexed { i, it -> this[it] = allEmotes[i] } }
     private val board = mutableListOf<Piece>().apply { for (i in 0..tileCount - 1) add(Piece(null)) }
+    private var message: Message? = null
 
     init {
         sendUpdateMessage()
@@ -114,13 +115,14 @@ class TicTacToeMatch(
     }
 
     private fun sendUpdateMessage() {
+        if (message != null) message!!.delete().queue()
         channel.sendMessage(StringBuilder().apply {
             board.forEachIndexed { index, piece ->
                 if (index % size == 0) append("\n")
                 append((piece.emote ?: "\uD83C${'\uDDE6' + index}") + " ")
             }
             appendTurns(this, emotes)
-        }.toString()).queue()
+        }.toString()).queue { message = it }
     }
 
     override fun reaction(from: User, emote: MessageReaction.ReactionEmote, message: Message) { }

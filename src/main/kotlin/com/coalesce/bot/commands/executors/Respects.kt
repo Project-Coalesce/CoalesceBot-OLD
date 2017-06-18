@@ -56,7 +56,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables, Runnable {
 
     // Used to give the memelord role every respects reset time.
     override fun run() {
-        val guild = bot.jda.getGuildById(268187052753944576L)
+        val guild = bot.jda.getGuildById(268187052753944576L) ?: return
 
         respectsResetFile.delete()
         val map = RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()

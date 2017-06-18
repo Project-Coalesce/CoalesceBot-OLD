@@ -61,6 +61,7 @@ class ConnectFourMatch(
         }
     }
     private val topMessage = StringBuilder().apply { for (x in 1..columns) append("${'\u0030' + x}\u20E3") }.toString()
+    private var message: Message? = null
 
     init {
         sendUpdateMessage()
@@ -100,6 +101,18 @@ class ConnectFourMatch(
 
         board.forEach { if (win(analyseAll(it))) return true } // Horizontally
 
+        // Vertically
+        for (x in 1..columns) if (win(analyseAll(mutableListOf<Block>().apply {
+            for (y in 1..rows) {
+                add(board[y][x])
+            }
+        } ))) return true
+
+        // Diagonally
+        for (rowStart in 0..rows - 4) {
+
+        }
+
 
         if (board.all { it.all { it.emote != null } }) {
             val map = mutableMapOf<User, Int>()
@@ -134,6 +147,7 @@ class ConnectFourMatch(
     }
 
     private fun sendUpdateMessage() {
+        if (message != null) message!!.delete().queue()
         channel.sendMessage(StringBuilder().apply {
             append(topMessage)
             board.forEach {
@@ -141,7 +155,7 @@ class ConnectFourMatch(
                 it.forEach { append(it.emote ?: "◻") }
             }
 
-        }.toString()).queue()
+        }.toString()).queue { message = it }
     }
 
     override fun reaction(from: User, emote: MessageReaction.ReactionEmote, message: Message) { }
