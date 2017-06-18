@@ -121,17 +121,31 @@ fun String.isInteger(): Boolean {
 abstract class Timeout(time: Long, unit: TimeUnit): Thread() {
     private val lock = java.lang.Object()
     private val millis = TimeUnit.MILLISECONDS.convert(time, unit)
+    private var stop = false
+
+    init {
+        start()
+        name = "TimeOut task"
+    }
 
     abstract fun timeout()
 
     override fun run() = interruptableCycle()
     fun keepAlive() = interrupt()
 
+    fun stopTimeout() {
+        stop = true
+        interrupt()
+    }
+
     private fun interruptableCycle() {
-        try {
-            lock.wait(millis)
-        } catch (ie: InterruptedException) {
-            interruptableCycle()
+        synchronized(lock) {
+            try {
+                lock.wait(millis)
+            } catch (ie: InterruptedException) {
+                if (stop) return
+                interruptableCycle()
+            }
         }
 
         timeout()

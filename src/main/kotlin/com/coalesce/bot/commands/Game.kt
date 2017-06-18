@@ -91,6 +91,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
     fun handleReaction(event: MessageReactionAddEvent) {
         if (matchfinding.containsKey(event.messageIdLong)) {
             val match = matchfinding[event.messageIdLong]!!
+            /*
             checks.forEach {
                 val (fail, message) = it(match, event.user)
                 if (fail) {
@@ -98,6 +99,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
                     return@handleReaction
                 }
             }
+            */
 
             inMatchfinding[event.user] = match
             match.entered.add(event.user)
@@ -111,6 +113,8 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
                 event.channel.getMessageById(event.messageId).queue { it.delete().queue() }
                 event.channel.sendMessage("**$name Match Created!**\n${players.joinToString(separator = " vs ") { it.name }}" +
                         "\nWinner will get **$worth respects**.\n**Good luck!**").queue()
+
+                match.matchFound()
 
                 val gameMatch = generateMatch(event.channel, players.toTypedArray()) { results ->
                     event.channel.sendMessage(StringBuilder("**The match has ended!**\nResults:").apply {
@@ -154,6 +158,8 @@ class MatchLooking(
         val entered: MutableList<User>,
         val message: Message,
         val amount: Int): Timeout(3L, TimeUnit.MINUTES) {
+    fun matchFound() = stopTimeout()
+
     override fun timeout() {
         channel.sendMessage(entered.joinToString(separator = ", ") { it.asMention } + ": The ${game.name} matchfinder has timed out due to taking too long. Try again later.").queue()
         message.delete().queue()
@@ -185,5 +191,6 @@ abstract class ChatMatch(
         chatGame.reactionPossible.removeAll(addedReactionsOf)
         players.forEach { chatGame.game.remove(it) }
         resultHandler(positions)
+        stopTimeout()
     }
 }
