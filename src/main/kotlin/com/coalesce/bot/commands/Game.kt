@@ -3,6 +3,7 @@ package com.coalesce.bot.commands
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.Timeout
+import com.coalesce.bot.utilities.subList
 import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
@@ -98,8 +99,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
                     event.channel.sendMessage("${event.user.asMention} ❌: $message").queue()
                     return@handleReaction
                 }
-            }
-            */
+            }*/
 
             inMatchfinding[event.user] = match
             match.entered.add(event.user)
@@ -161,7 +161,7 @@ class MatchLooking(
     fun matchFound() = stopTimeout()
 
     override fun timeout() {
-        channel.sendMessage(entered.joinToString(separator = ", ") { it.asMention } + ": The ${game.name} matchfinder has timed out due to taking too long. Try again later.").queue()
+        channel.sendMessage("${looker.asMention}: The ${game.name} match finder took too long and timed out. Try again later.").queue()
         message.delete().queue()
         game.matchfinding.remove(message.idLong)
         entered.forEach { game.inMatchfinding.remove(it) }
@@ -178,7 +178,7 @@ abstract class ChatMatch(
     private val addedReactionsOf = mutableListOf<Long>()
 
     override fun timeout() {
-        channel.sendMessage("Nothing happened for the last 2 minutes, so the match will be tied.")
+        channel.sendMessage("Nothing happened for the last 2 minutes, so the match will be tied.").queue()
         invoke(mapOf())
     }
 
@@ -192,5 +192,32 @@ abstract class ChatMatch(
         players.forEach { chatGame.game.remove(it) }
         resultHandler(positions)
         stopTimeout()
+    }
+}
+
+abstract class TurnChatMatch(
+        channel: MessageChannel,
+        chatGame: ChatGame,
+        players: Array<User>,
+        resultHandler: (positions: Map<User, Int>) -> Unit
+): ChatMatch(channel, chatGame, players, resultHandler) {
+    private var turnQueue = mutableListOf<User>().apply { addAll(players) }
+
+    fun isNext(user: User) = turnQueue[0] == user
+
+    fun nextTurn() {
+        val oldFirst = turnQueue[0]
+        turnQueue = turnQueue.subList(1).toMutableList()
+        turnQueue.add(oldFirst)
+    }
+
+    fun appendTurns(builder: StringBuilder, characterMap: Map<User, String>?) {
+        val curTurn = turnQueue[0]
+        players.forEach {
+            builder.append("\n")
+            if (characterMap != null) builder.append(characterMap[it] + " ")
+            if (curTurn == it) builder.append("`${it.name}                      «`")
+            else builder.append(it.name)
+        }
     }
 }

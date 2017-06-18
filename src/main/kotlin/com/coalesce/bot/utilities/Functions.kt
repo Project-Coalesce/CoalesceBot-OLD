@@ -148,7 +148,7 @@ abstract class Timeout(time: Long, unit: TimeUnit): Thread() {
             }
         }
 
-        timeout()
+        if (!stop) timeout()
     }
 }
 

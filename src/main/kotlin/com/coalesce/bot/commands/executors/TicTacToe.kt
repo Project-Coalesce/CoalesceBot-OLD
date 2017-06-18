@@ -2,7 +2,6 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.Main
 import com.coalesce.bot.commands.*
-import com.coalesce.bot.utilities.subList
 import com.google.inject.Inject
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageChannel
@@ -12,11 +11,11 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import java.io.IOException
 
-private val allEmotes = arrayOf("X", "O", "!", "?")
+private val allEmotes = arrayOf("❌", "⭕", "❗", "❓")
 private val playerCountForSize = mapOf(
         2 to 3,
         3 to 4,
-        4 to 6
+        4 to 5
 )
 
 class TicTacToe @Inject constructor(val bot: Main) {
@@ -53,7 +52,7 @@ class TicTacToeMatch(
         chatGame: TicTacToeGame,
         players: Array<User>,
         resultHandler: (positions: Map<User, Int>) -> Unit
-): ChatMatch(channel, chatGame, players, resultHandler) {
+): TurnChatMatch(channel, chatGame, players, resultHandler) {
     private val size = (playerCountForSize[players.size] ?: throw IOException("Illegal amount of players!"))
     private val indexTransformAmount = arrayOf(1, size, size + 1, size - 1)
     private val matchers = arrayOf<(Int, Int) -> Array<Int>>(
@@ -63,11 +62,10 @@ class TicTacToeMatch(
     )
     private val tileCount = size * size
     private val emotes = mutableMapOf<User, String>().apply { players.forEachIndexed { i, it -> this[it] = allEmotes[i] } }
-    private var turnQueue = mutableListOf<User>().apply { addAll(players) }
     private val board = mutableListOf<Piece>().apply { for (i in 0..tileCount - 1) add(Piece(null)) }
 
     init {
-        print(turnQueue[0])
+        sendUpdateMessage()
     }
 
     private fun detectVictory(insertedIndex: Int, user: User, piece: String): Boolean {
@@ -92,35 +90,36 @@ class TicTacToeMatch(
 
     override fun messaged(from: User, content: String): Boolean {
         keepAlive()
-        if (turnQueue.first() != from) return false
-        val numb = content.toIntOrNull() ?: return false
-        if (numb > tileCount - 1) return false
+        if (!isNext(from)) return false
+        val numb = content.toIntOrNull() ?: run {
+            if (content.length != 1) return false
+            val char = content[0]
+            val numbEquiv = char.toInt()
+            if (numbEquiv in 65..90) {
+                numbEquiv - 65
+            } else if (numbEquiv in 97..122) {
+                numbEquiv - 97
+            } else return false
+        }
+        if (numb !in 0..tileCount - 1) return false
 
         val piece = board[numb]
         if (piece.emote != null) return true
         val emote = emotes[from]!!
         piece.emote = emote
 
-        if (detectVictory(numb, from, emote)) {
-            print(null)
-        } else {
-            turnQueue = turnQueue.subList(1).toMutableList()
-            turnQueue.add(from)
-            print(turnQueue[0])
-        }
+        if (!detectVictory(numb, from, emote)) nextTurn()
+        sendUpdateMessage()
         return true
     }
 
-    private fun print(turn: User?) {
+    private fun sendUpdateMessage() {
         channel.sendMessage(StringBuilder().apply {
-            append("```")
             board.forEachIndexed { index, piece ->
                 if (index % size == 0) append("\n")
-                val character = (piece.emote ?: index.toString())
-                append("  " + character)
+                append((piece.emote ?: "\uD83C${'\uDDE6' + index}") + " ")
             }
-            append("\n```")
-            if (turn != null) append("\n**${turn.asMention}'s turn!**")
+            appendTurns(this, emotes)
         }.toString()).queue()
     }
 
