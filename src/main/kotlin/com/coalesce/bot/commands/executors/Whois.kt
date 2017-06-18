@@ -28,17 +28,18 @@ class Whois : Embeddables {
             throw ArgsException("You must mention an user to view information of.")
         }
         val builder = embed()
-                .data(null, colour = Colour.GREEN, author = member.user.name, avatar = member.user.avatarUrl)
+                .setTitle("Who is ${member.effectiveName}?", null)
+                .data(null, colour = member.color, author = member.user.name, avatar = member.user.avatarUrl)
                 .field("Nickname", member.nickname ?: "None", true)
                 .field("Discriminator", member.user.discriminator, true)
                 .field("User ID", member.user.id, true)
                 .field("Playing", member.game?.name ?: "Nothing", true)
                 .field("Roles", member.roles.map { "\u2666 ${it.name}" }.toList().joinToString(separator = "\n"), true)
                 .field("Type", if (member.user.isBot) "Bot" else if (member.isOwner) "Guild Owner" else "User")
-                .field("Creation Time", member.user.creationTime.format(DateTimeFormatter.ofPattern("d MMM uuuu")), true)
+                .field("Join Date", member.joinDate.format(DateTimeFormatter.ISO_LOCAL_DATE), true)
         if (member.roles.size == 1 && member.roles[0].name == "Python") {
             builder.addField("Has ugly yellow color?", "Sadly, yes", true)
         }
-        context(builder) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
+        context(builder) { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(1, TimeUnit.MINUTES) } }
     }
 }
