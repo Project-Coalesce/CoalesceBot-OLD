@@ -178,7 +178,8 @@ abstract class ChatMatch(
     private val addedReactionsOf = mutableListOf<Long>()
 
     override fun timeout() {
-        channel.sendMessage("Nothing happened for the last 2 minutes, so the match will be tied.").queue()
+        channel.sendMessage("${players.joinToString(separator = ", ") { it.asMention }}: Nothing happened for the last 2 minutes, so the " +
+                "${chatGame.name} match will be tied.").queue()
         invoke(mapOf())
     }
 

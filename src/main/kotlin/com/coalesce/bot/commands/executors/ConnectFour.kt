@@ -98,7 +98,8 @@ class ConnectFourMatch(
             return false
         }
 
-        board.forEach { if (win(analyseAll(it))) return true } // Vertically
+        board.forEach { if (win(analyseAll(it))) return true } // Horizontally
+
 
         if (board.all { it.all { it.emote != null } }) {
             val map = mutableMapOf<User, Int>()
@@ -112,8 +113,8 @@ class ConnectFourMatch(
     override fun messaged(from: User, content: String): Boolean {
         keepAlive()
         if (!isNext(from)) return false
-        val numb = content.toIntOrNull() ?: return false
-        if (numb !in 1..columns) return false
+        val numb = (content.toIntOrNull() ?: return false) - 1
+        if (numb !in 0..columns - 1) return false
 
         var acted = false
         board.forEachIndexed { index, blocks ->
@@ -124,7 +125,7 @@ class ConnectFourMatch(
                 return@forEachIndexed
             }
         }
-        if (!acted) board[columns - 1][numb].emote = emotes[from]!!
+        if (!acted) board[rows - 1][numb].emote = emotes[from]!!
 
         if (!detectVictory()) nextTurn()
         sendUpdateMessage()

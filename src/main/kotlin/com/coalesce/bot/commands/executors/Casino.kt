@@ -9,7 +9,7 @@ import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.parseDouble
 import java.util.concurrent.ThreadLocalRandom
 
-class Cassino {
+class Casino {
     private val emotes = listOf(
         "💧", "🍄", "🍀", "🍎", "🍪", "❄", "🚀", "🌕", "☀"
     )
