@@ -2,6 +2,7 @@ package com.coalesce.bot.commands.executors
 
 import com.coalesce.bot.commands.*
 import java.awt.Color
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 class EightBall : Embeddables {
@@ -25,14 +26,27 @@ class EightBall : Embeddables {
             throw ArgsException("You have to ask something!")
         }
 
+        val question = context.args.joinToString(separator = " ")
+
         context(
                 embed().apply {
                     setTitle("8-Ball", null)
                     setAuthor(context.author.name, null, context.author.avatarUrl)
                     setColor(Color(0x5ea81e))
-                    addField("Question", context.args.joinToString(separator = " "), false)
-                    addField("Answer", responses[ThreadLocalRandom.current().nextInt(responses.size)], false)
+                    addField("Question", question, false)
+                    addField("Answer", responses[Random(hash(question)).nextInt(responses.size)], false)
                 }
         )
+    }
+
+    // Thanks to https://stackoverflow.com/a/1660613/5572963
+    private fun hash(string: String): Long {
+        var h = 1125899906842597L // prime
+        val len = string.length
+
+        for (i in 0 .. len - 1) {
+            h = 31 * h + string[i].toLong()
+        }
+        return h
     }
 }

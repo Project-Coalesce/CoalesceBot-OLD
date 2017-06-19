@@ -53,7 +53,7 @@ class Reputation @Inject constructor(val bot: Main, val reputation: ReputationMa
         val user = event.author
         if (user.isBot || event.channel !is MessageChannel) return
         var messageCount = (messagesMap[user] ?: 0) + 1
-        val nextAchievement = 25 + Math.min((reputation[user].total * 1.5).toInt(), 1000)
+        val nextAchievement = 25 + Math.min((Math.max(0.0, reputation[user].total) * 1.5).toInt(), 1000)
 
         if (messageCount >= nextAchievement) {
             val targetValue = reputation[user]

@@ -3,6 +3,7 @@ package com.coalesce.bot.commands
 import com.coalesce.bot.binary.RespectsLeaderboardSerializer
 import com.coalesce.bot.respectsLeaderboardsFile
 import com.coalesce.bot.utilities.Timeout
+import com.coalesce.bot.utilities.subList
 import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
@@ -63,7 +64,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
 
             if (context.args.size > 2 && context.args[0] == "bet") {
                 val bid = context.args[1].toDoubleOrNull() ?: throw ArgsException("The provided bid is an invalid number!")
-                if (bid > 30.0) throw ArgsException("Only bids up to 30 respects are allowed.")
+                if (bid !in 1..30) throw ArgsException("Only bids between 1 and 30 respects are allowed.")
                 if (game.containsKey(context.author)) throw ArgsException("You are already on a match!")
                 if (bid > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[context.author.id] ?: 0.0)
                     throw ArgsException("You can't afford that bid!")
@@ -76,7 +77,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
             val bid = context.args[0].toDoubleOrNull() ?: throw ArgsException("The provided bid is an invalid number!")
             val amount = if (context.args.size > 2) context.args[2].toIntOrNull() ?: throw ArgsException("The provided amount of players is not a valid number!") else 0
             if (amount !in 1..maxPlayers) throw ArgsException("Amount of players must be within 1 and $maxPlayers.")
-            if (bid > 30.0) throw ArgsException("Only bids up to 30 respects are allowed.")
+            if (bid !in 1..30) throw ArgsException("Only bids between 1 and 30 respects are allowed.")
             if (game.containsKey(context.author)) throw ArgsException("You are already on a match!")
             if (bid > RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()[context.author.id] ?: 0.0)
                 throw ArgsException("You can't afford that bid!")
@@ -91,13 +92,14 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
     fun handleReaction(event: MessageReactionAddEvent) {
         if (matchfinding.containsKey(event.messageIdLong)) {
             val match = matchfinding[event.messageIdLong]!!
+            /*
             checks.forEach {
                 val (fail, message) = it(match, event.user)
                 if (fail) {
                     event.channel.sendMessage("${event.user.asMention} ❌: $message").queue()
                     return@handleReaction
                 }
-            }
+            }*/
 
             inMatchfinding[event.user] = match
             match.entered.add(event.user)
@@ -111,6 +113,8 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
                 event.channel.getMessageById(event.messageId).queue { it.delete().queue() }
                 event.channel.sendMessage("**$name Match Created!**\n${players.joinToString(separator = " vs ") { it.name }}" +
                         "\nWinner will get **$worth respects**.\n**Good luck!**").queue()
+
+                match.matchFound()
 
                 val gameMatch = generateMatch(event.channel, players.toTypedArray()) { results ->
                     event.channel.sendMessage(StringBuilder("**The match has ended!**\nResults:").apply {
@@ -154,8 +158,10 @@ class MatchLooking(
         val entered: MutableList<User>,
         val message: Message,
         val amount: Int): Timeout(3L, TimeUnit.MINUTES) {
+    fun matchFound() = stopTimeout()
+
     override fun timeout() {
-        channel.sendMessage(entered.joinToString(separator = ", ") { it.asMention } + ": The ${game.name} matchfinder has timed out due to taking too long. Try again later.").queue()
+        channel.sendMessage("${looker.asMention}: The ${game.name} match finder took too long and timed out. Try again later.").queue()
         message.delete().queue()
         game.matchfinding.remove(message.idLong)
         entered.forEach { game.inMatchfinding.remove(it) }
@@ -172,7 +178,8 @@ abstract class ChatMatch(
     private val addedReactionsOf = mutableListOf<Long>()
 
     override fun timeout() {
-        channel.sendMessage("Nothing happened for the last 2 minutes, so the match will be tied.")
+        channel.sendMessage("${players.joinToString(separator = ", ") { it.asMention }}: Nothing happened for the last 2 minutes, so the " +
+                "${chatGame.name} match will be tied.").queue()
         invoke(mapOf())
     }
 
@@ -185,5 +192,33 @@ abstract class ChatMatch(
         chatGame.reactionPossible.removeAll(addedReactionsOf)
         players.forEach { chatGame.game.remove(it) }
         resultHandler(positions)
+        stopTimeout()
+    }
+}
+
+abstract class TurnChatMatch(
+        channel: MessageChannel,
+        chatGame: ChatGame,
+        players: Array<User>,
+        resultHandler: (positions: Map<User, Int>) -> Unit
+): ChatMatch(channel, chatGame, players, resultHandler) {
+    private var turnQueue = mutableListOf<User>().apply { addAll(players) }
+
+    fun isNext(user: User) = turnQueue[0] == user
+
+    fun nextTurn() {
+        val oldFirst = turnQueue[0]
+        turnQueue = turnQueue.subList(1).toMutableList()
+        turnQueue.add(oldFirst)
+    }
+
+    fun appendTurns(builder: StringBuilder, characterMap: Map<User, String>?) {
+        val curTurn = turnQueue[0]
+        players.forEach {
+            builder.append("\n")
+            if (characterMap != null) builder.append(characterMap[it] + " ")
+            if (curTurn == it) builder.append("`${it.name}                      «`")
+            else builder.append(it.name)
+        }
     }
 }

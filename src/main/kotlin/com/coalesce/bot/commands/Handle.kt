@@ -66,7 +66,8 @@ class Listener internal constructor(val jda: JDA) : ListenerAdapter(), Embeddabl
             })
             checks.add(cooldown::cooldownCheck)
             checks.add({
-                val permissable = it.channel.idLong == 315934590109745154 || perms.hasPermission(it.message.guild.getMember(it.message.author), it.rootCommand.permission)
+                val permissable = it.channel.idLong == 315934590109745154 || perms.hasPermission(it.message.guild.getMember(it.message.author),
+                        if (it is SubCommandContext) it.currentSubCommand.permission else it.rootCommand.permission)
 
                 if (!permissable) {
                     it(embed().setColor(Color(204, 36, 24)).setAuthor(it.message.author.name, null, it.message.author.avatarUrl)

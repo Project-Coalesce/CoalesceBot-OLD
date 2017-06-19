@@ -56,7 +56,7 @@ class Respects @Inject constructor(val bot: Main): Embeddables, Runnable {
 
     // Used to give the memelord role every respects reset time.
     override fun run() {
-        val guild = bot.jda.getGuildById(268187052753944576L)
+        val guild = bot.jda.getGuildById(268187052753944576L) ?: return
 
         respectsResetFile.delete()
         val map = RespectsLeaderboardSerializer(respectsLeaderboardsFile).read()
@@ -92,15 +92,15 @@ class Respects @Inject constructor(val bot: Main): Embeddables, Runnable {
                 val pos = amountPositions.indexOf(map[it.user.id] as Double)
                 if (pos == 1) {
                     append("**Congratulations, ${it.user.asMention}! You reached the first place!** " +
-                            "As a reward, you will be given the **MemeLord** role and a 4 respects on the new leaderboard.\n")
+                            "As a reward, you will be given the **MemeLord** role and a 4 respects boost on the new leaderboard.\n")
                     newMap[it.user.id] = 4.0
                     guild.controller.addRolesToMember(guild.getMember(it.user), guild.getRoleById(325006830332018688L)).queue()
                 } else {
-                    append("${it.user}: You'll get $pos respects on the new leaderboard for being in the Top 3.")
+                    append("${it.user}: You'll get $pos respects on the new leaderboard for being in the the position $pos.")
                     newMap[it.user.id] = pos.toDouble()
                 }
             }
-        }.toString())
+        }.toString()).queue()
 
         RespectsLeaderboardSerializer(respectsLeaderboardsFile).write(newMap)
     }
@@ -111,12 +111,13 @@ class Respects @Inject constructor(val bot: Main): Embeddables, Runnable {
             description = "Over-engineered meme command (Press F to pay respects)",
             permission = "commands.respects",
             type = CommandType.FUN,
-            globalCooldown = 6.0 * 3600.0
+            globalCooldown = 1800.0,
+            userCooldown = 4.0 * 3600.0
     )
     fun execute(context: RootCommandContext) {
-        context(context.author, "Respects have been paid! **+5 respect**") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
+        context(context.author, "Respects have been paid! **+4 respect**") { ifwithDo(canDelete, context.message.guild) { delete().queueAfter(60, TimeUnit.SECONDS) } }
 
-        transaction(context.author, 5.0, context.channel)
+        transaction(context.author, 4.0, context.channel)
     }
 
     @JDAListener

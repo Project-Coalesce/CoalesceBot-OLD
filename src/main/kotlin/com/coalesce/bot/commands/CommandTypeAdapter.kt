@@ -21,6 +21,16 @@ class AdaptationArgsChecker {
     }
 }
 
+fun adaptWithReflection(args: Array<String>, clazz: Class<*>): Pair<Array<String>, Any>? {
+    clazz.declaredConstructors.forEach {
+        if (it.parameterCount <= args.size) {
+
+        }
+    }
+
+    return null
+}
+
 fun stringAdapter(str: String) = str
 
 fun userAdapter(str: String): User? {

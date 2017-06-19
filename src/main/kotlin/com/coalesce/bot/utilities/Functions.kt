@@ -70,6 +70,12 @@ fun String.matching(regx: Regex): String {
     return str.toString()
 }
 
+fun <T> List<T>.order(func: (T, T) -> Int): MutableList<T> {
+    val list = ArrayList(this)
+    Collections.sort(list, func)
+    return list
+}
+
 fun String.limit(limit: Int, ending: String = "..."): String {
     if (length > limit) {
         return this.substring(0, limit) + ending
@@ -121,20 +127,34 @@ fun String.isInteger(): Boolean {
 abstract class Timeout(time: Long, unit: TimeUnit): Thread() {
     private val lock = java.lang.Object()
     private val millis = TimeUnit.MILLISECONDS.convert(time, unit)
+    private var stop = false
+
+    init {
+        start()
+        name = "TimeOut task"
+    }
 
     abstract fun timeout()
 
     override fun run() = interruptableCycle()
     fun keepAlive() = interrupt()
 
+    fun stopTimeout() {
+        stop = true
+        interrupt()
+    }
+
     private fun interruptableCycle() {
-        try {
-            lock.wait(millis)
-        } catch (ie: InterruptedException) {
-            interruptableCycle()
+        synchronized(lock) {
+            try {
+                lock.wait(millis)
+            } catch (ie: InterruptedException) {
+                if (stop) return
+                interruptableCycle()
+            }
         }
 
-        timeout()
+        if (!stop) timeout()
     }
 }
 
