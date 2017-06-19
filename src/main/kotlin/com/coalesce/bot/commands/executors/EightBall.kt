@@ -7,11 +7,20 @@ import java.util.concurrent.ThreadLocalRandom
 
 class EightBall : Embeddables {
 
-    val responses = arrayOf("It is certain", "It is decidedly so", "Without a doubt", "Yes, definitely",
-            "You may rely on it", "As I see it, yes", "Most likely", "Outlook good", "Yes", "Signs point to yes",
-            "Reply hazy try again", "Ask again later", "Better not tell you now", "Cannot predict now",
-            "Concentrate and ask again", "Don't count on it", "My reply is no", "My sources say no",
-            "Outlook not so good", "Very doubtful")
+    enum class EightBallType(val color: Color) {
+        POSITIVE(Color(24, 201, 89)), NEUTRAL(Color(255, 209, 45)), NEGATIVE(Color(237, 45, 35))
+    }
+
+    val responses = listOf("It is certain" to EightBallType.POSITIVE, "It is decidedly so" to EightBallType.POSITIVE,
+            "Without a doubt" to EightBallType.POSITIVE, "Yes, definitely" to EightBallType.POSITIVE,
+            "You may rely on it" to EightBallType.POSITIVE, "As I see it, yes" to EightBallType.POSITIVE,
+            "Most likely" to EightBallType.POSITIVE, "Outlook good" to EightBallType.POSITIVE, "Yes" to EightBallType.POSITIVE,
+            "Signs point to yes" to EightBallType.POSITIVE,
+            "Reply hazy. Try again" to EightBallType.NEUTRAL, "Ask again later" to EightBallType.NEUTRAL,
+            "Better not tell you now" to EightBallType.NEUTRAL, "Cannot predict now" to EightBallType.NEUTRAL,
+            "Concentrate and ask again" to EightBallType.NEUTRAL,
+            "Don't count on it" to EightBallType.NEGATIVE, "My reply is no" to EightBallType.NEGATIVE, "My sources say no" to EightBallType.NEGATIVE,
+            "Outlook not so good" to EightBallType.NEGATIVE, "Very doubtful" to EightBallType.NEGATIVE)
 
     @RootCommand(
             name = "eightball",
@@ -27,14 +36,15 @@ class EightBall : Embeddables {
         }
 
         val question = context.args.joinToString(separator = " ")
+        val (answer, type) = responses[Random(hash(question)).nextInt(responses.size)]
 
         context(
                 embed().apply {
                     setTitle("8-Ball", null)
                     setAuthor(context.author.name, null, context.author.avatarUrl)
-                    setColor(Color(0x5ea81e))
+                    setColor(type.color)
                     addField("Question", question, false)
-                    addField("Answer", responses[Random(hash(question)).nextInt(responses.size)], false)
+                    addField("Answer", answer, false)
                 }
         )
     }
