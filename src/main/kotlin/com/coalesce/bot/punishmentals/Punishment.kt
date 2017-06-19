@@ -1,6 +1,7 @@
 package com.coalesce.bot.punishmentals
 
 import com.coalesce.bot.Main
+import com.coalesce.bot.utilities.timeOutHandler
 import com.google.gson.*
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.MessageBuilder
@@ -12,9 +13,14 @@ import java.awt.Color
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 data class Punishment(val bot: Main, val reason: Reason, val punished: User, val punishee: User, val description: String?,
                       var expiration: Long?, val guild: Guild, var expired: Boolean = false) {
+    init {
+        if (!expired && expiration != null) timeOutHandler(System.currentTimeMillis() - expiration!!, TimeUnit.MILLISECONDS, this::unmute)
+    }
+
     fun unmute() {
         val member = guild.getMember(punished)
         val role = guild.getRoleById("303317692608282625")

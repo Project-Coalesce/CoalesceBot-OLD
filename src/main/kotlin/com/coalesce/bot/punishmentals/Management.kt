@@ -8,7 +8,7 @@ import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class PunishmentManager internal constructor(bot: Main): Runnable {
+class PunishmentManager internal constructor(bot: Main) {
     val punishmentsFile = File(dataDirectory, "punishments.json")
     val punishments = mutableMapOf<Long, MutableSet<Punishment>>()
     val tempPunishments = mutableMapOf<Long, MutableSet<Punishment>>()
@@ -27,17 +27,6 @@ class PunishmentManager internal constructor(bot: Main): Runnable {
                         else tempPunishments[it.expiration!!]?.apply { add(it) } ?: mutableSetOf<Punishment>()
                     }
                 }
-            }
-        }
-
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 1L, 1L, TimeUnit.MINUTES)
-    }
-
-    override fun run() {
-        tempPunishments.forEach { k, v ->
-            if (System.currentTimeMillis() > k) {
-                v.forEach { it.unmute() }
-                tempPunishments.remove(k)
             }
         }
     }

@@ -36,7 +36,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
     fun handleCommand(context: CommandContext) {
         fun matchfinding(targeting: List<User>?, bid: Double, earnAmount: Double, amount: Int) {
             if (game.containsKey(context.author) || inMatchfinding.containsKey(context.author)) throw ArgsException("Already on a game or matchfinding queue.")
-            if (allowed.isNotEmpty() && !allowed.contains(context.channel.idLong)) throw ArgsException("You cannot play on this channel!")
+            //if (allowed.isNotEmpty() && !allowed.contains(context.channel.idLong)) throw ArgsException("You cannot play on this channel!")
 
             context(embed().apply {
                 setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)

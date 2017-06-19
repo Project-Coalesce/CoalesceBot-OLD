@@ -1,5 +1,6 @@
 package com.coalesce.bot.utilities
 
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -23,6 +24,12 @@ fun <E> List<E>.subList(fromIndex: Int): List<E> = subList(fromIndex, size)
 fun <K, V> hashTableOf(): Hashtable<K, V> = Hashtable()
 
 fun <K, V> hashTableOf(vararg elements: Pair<K, V>): Hashtable<K, V> = Hashtable<K, V>(elements.size).apply { putAll(elements) }
+
+fun Long.formatTime(): String {
+    val calendar = Calendar.getInstance()
+    calendar.timeInMillis = this
+    return SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss").format(calendar.time)
+}
 
 fun Long.formatTimeDiff(): String {
     fun ensurePlural(numb: Long, str: String): String {
@@ -76,6 +83,8 @@ fun <T> List<T>.order(func: (T, T) -> Int): MutableList<T> {
     return list
 }
 
+fun <T> List<T>.orderSelf(func: (T, T) -> Int) = Collections.sort(this, func)
+
 fun String.limit(limit: Int, ending: String = "..."): String {
     if (length > limit) {
         return this.substring(0, limit) + ending
@@ -124,38 +133,81 @@ fun String.isInteger(): Boolean {
     return true
 }
 
-abstract class Timeout(time: Long, unit: TimeUnit): Thread() {
+class SingleThreadedTimeout: Thread() {
     private val lock = java.lang.Object()
-    private val millis = TimeUnit.MILLISECONDS.convert(time, unit)
-    private var stop = false
+    private val timeouts = mutableListOf<Timeout>()
+    private val actualTime = mutableMapOf<Timeout, Long>()
 
     init {
+        name = "Single Threaded Timeout Task"
         start()
-        name = "TimeOut task"
     }
-
-    abstract fun timeout()
 
     override fun run() = interruptableCycle()
-    fun keepAlive() = interrupt()
-
-    fun stopTimeout() {
-        stop = true
-        interrupt()
-    }
 
     private fun interruptableCycle() {
         synchronized(lock) {
             try {
-                lock.wait(millis)
+                if (timeouts.isEmpty()) {
+                    lock.wait(6000)
+                } else {
+                    val timeout = timeouts[0]
+                    if (System.currentTimeMillis() >= actualTime[timeout]!!) {
+                        timeout.timeout()
+                        timeouts.remove(timeout)
+                        actualTime.remove(timeout)
+                        return@synchronized
+                    }
+
+                    lock.wait(actualTime[timeout]!! - System.currentTimeMillis())
+                    timeout.timeout()
+                    timeouts.remove(timeout)
+                    actualTime.remove(timeout)
+                }
             } catch (ie: InterruptedException) {
-                if (stop) return
                 interruptableCycle()
             }
         }
 
-        if (!stop) timeout()
+        interruptableCycle()
     }
+
+    fun removeTask(timeout: Timeout) {
+        timeouts.remove(timeout)
+        actualTime.remove(timeout)
+        order()
+        interrupt()
+    }
+
+    fun addTask(timeout: Timeout) {
+        actualTime[timeout] = System.currentTimeMillis() + timeout.millis
+        timeouts.add(timeout)
+        order()
+        interrupt()
+    }
+
+    private fun order() = timeouts.orderSelf { o1, o2 -> ((o1.millis - o2.millis) / 1000).toInt() }
 }
 
-val emptyClassList = listOf<Class<*>>()
+private val timeoutTask = SingleThreadedTimeout()
+
+fun timeOutHandler(time: Long, unit: TimeUnit, handler: () -> Unit) = timeoutTask.addTask(object: Timeout(time, unit) {
+    override fun timeout() = handler()
+})
+
+abstract class Timeout(time: Long, unit: TimeUnit) {
+    private var time = TimeUnit.MILLISECONDS.convert(time, unit)
+
+    val millis: Long
+        get() = time
+
+    init {
+        timeoutTask.addTask(this)
+    }
+    fun keepAlive() {
+        timeoutTask.removeTask(this)
+        timeoutTask.addTask(this)
+    }
+    fun stopTimeout() = timeoutTask.removeTask(this)
+    abstract fun timeout()
+}
