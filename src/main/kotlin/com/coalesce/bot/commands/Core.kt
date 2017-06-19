@@ -3,6 +3,7 @@ package com.coalesce.bot.commands
 import com.coalesce.bot.Colour
 import com.coalesce.bot.reputation.ReputationManager
 import com.coalesce.bot.utilities.formatTimeDiff
+import com.sun.management.jmx.Trace.send
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.MessageBuilder
@@ -97,102 +98,35 @@ abstract class CommandContext(
         val subcommands: Map<String, Pair<Method, SubCommand>>, // There will be a resolve method.
         val args: Array<String>
 ) {
+    fun mention(text: String) = invoke(author, text)
 
-    inline operator fun invoke(text: String, crossinline after: Message.() -> Unit) {
-        send(text) { after(this) }
-    }
+    val mentioned: User
+        get() = message.mentionedUsers.firstOrNull() ?: throw ArgsException("You must mention someone.")
 
-    inline operator fun invoke(text: Message, crossinline after: Message.() -> Unit) {
-        send(text) { after(this) }
-    }
-
-    inline operator fun invoke(text: MessageEmbed, crossinline after: Message.() -> Unit) {
-        send(text) { after(this) }
-    }
-
-    inline operator fun invoke(mention: IMentionable, text: String, crossinline after: Message.() -> Unit) {
-        send(mention, text) { after(this) }
-    }
-
-    inline operator fun invoke(text: MessageBuilder, crossinline after: Message.() -> Unit) {
-        send(text) { after(this) }
-    }
-
-    inline operator fun invoke(text: EmbedBuilder, crossinline after: Message.() -> Unit) {
-        send(text) { after(this) }
-    }
-
-    operator fun invoke(text: String) {
-        send(text)
-    }
-
-    operator fun invoke(text: Message) {
-        send(text)
-    }
-
-    operator fun invoke(text: MessageEmbed) {
-        send(text)
-    }
-
-    operator fun invoke(mention: IMentionable, text: String) {
-        send(mention, text)
-    }
-
-    operator fun invoke(text: MessageBuilder) {
-        send(text)
-    }
-
-    operator fun invoke(text: EmbedBuilder) {
-        send(text)
-    }
-
-    fun send(message: Message) {
-        channel.sendMessage(message).queue()
-    }
-
-    inline fun send(message: Message, crossinline after: Message.() -> Unit) {
-        channel.sendMessage(message).queue { after(it) }
-    }
-
-    fun send(embed: MessageEmbed) {
-        channel.sendMessage(embed).queue()
-    }
-
-    inline fun send(embed: MessageEmbed, crossinline after: Message.() -> Unit) {
-        channel.sendMessage(embed).queue { after(it) }
-    }
-
-    fun send(text: String) {
-        channel.sendMessage(text).queue()
-    }
-
-    inline fun send(text: String, crossinline after: Message.() -> Unit) {
-        channel.sendMessage(text).queue { after(it) }
-    }
-
-    fun send(mention: IMentionable, text: String) {
-        send("${mention.asMention}: $text")
-    }
-
-    inline fun send(mention: IMentionable, text: String, crossinline after: Message.() -> Unit) {
-        send("${mention.asMention}: $text") { after(this) }
-    }
-
-    fun send(builder: MessageBuilder) {
-        send(builder.build())
-    }
-
-    inline fun send(builder: MessageBuilder, crossinline after: Message.() -> Unit) {
-        send(builder.build()) { after(this) }
-    }
-
-    fun send(builder: EmbedBuilder) {
-        send(builder.build())
-    }
-
-    inline fun send(builder: EmbedBuilder, crossinline after: Message.() -> Unit) {
-        send(builder.build()) { after(this) }
-    }
+    operator fun invoke(text: String, after: Message.() -> Unit) = send(text) { after(this) }
+    operator fun invoke(text: Message, after: Message.() -> Unit) = send(text) { after(this) }
+    operator fun invoke(text: MessageEmbed, after: Message.() -> Unit) = send(text) { after(this) }
+    operator fun invoke(mention: IMentionable, text: String, after: Message.() -> Unit) = send(mention, text) { after(this) }
+    operator fun invoke(text: MessageBuilder, after: Message.() -> Unit) = send(text) { after(this) }
+    operator fun invoke(text: EmbedBuilder, after: Message.() -> Unit) = send(text) { after(this) }
+    operator fun invoke(text: String) = send(text)
+    operator fun invoke(text: Message) = send(text)
+    operator fun invoke(text: MessageEmbed) = send(text)
+    operator fun invoke(mention: IMentionable, text: String) = send(mention, text)
+    operator fun invoke(text: MessageBuilder) = send(text)
+    operator fun invoke(text: EmbedBuilder) = send(text)
+    fun send(message: Message) = channel.sendMessage(message).queue()
+    fun send(message: Message, after: Message.() -> Unit) = channel.sendMessage(message).queue { after(it) }
+    fun send(embed: MessageEmbed) = channel.sendMessage(embed).queue()
+    fun send(embed: MessageEmbed, after: Message.() -> Unit) = channel.sendMessage(embed).queue { after(it) }
+    fun send(text: String) = channel.sendMessage(text).queue()
+    fun send(text: String, after: Message.() -> Unit) = channel.sendMessage(text).queue { after(it) }
+    fun send(mention: IMentionable, text: String) = send("${mention.asMention}: $text")
+    fun send(mention: IMentionable, text: String, after: Message.() -> Unit) = send("${mention.asMention}: $text") { after(this) }
+    fun send(builder: MessageBuilder) = send(builder.build())
+    fun send(builder: MessageBuilder, after: Message.() -> Unit) = send(builder.build()) { after(this) }
+    fun send(builder: EmbedBuilder) = send(builder.build())
+    fun send(builder: EmbedBuilder, after: Message.() -> Unit) = send(builder.build()) { after(this) }
 }
 
 class EventContext(

@@ -21,11 +21,7 @@ class Punish @Inject constructor(val bot: Main, val manager: PunishmentManager) 
             description = "Issues a punishment on said users record."
     )
     fun execute(context: RootCommandContext) {
-        if (context.message.mentionedUsers.isEmpty()) {
-            throw ArgsException("You must mention an user to perform this punishment.")
-            return
-        }
-        val user = context.message.mentionedUsers.first()
+        val user = context.mentioned
         if (context.args.size < 2) {
             throw ArgsException("You must specify a reason for the punishment.")
         }

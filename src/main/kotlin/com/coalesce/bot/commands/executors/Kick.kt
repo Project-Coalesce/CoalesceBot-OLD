@@ -18,10 +18,7 @@ class Kick @Inject constructor(val bot: Main) {
             description = "Kicks the given user out of the server."
     )
     fun execute(context: RootCommandContext) {
-        if (context.message.mentionedUsers.isEmpty()) {
-            throw ArgsException("You must mention an user to perform this punishment.")
-        }
-        val user = context.message.mentionedUsers.first()
+        val user = context.mentioned
         var description: String? = null
         if (context.args.size > 1) {
             description = context.args.copyOfRange(1, context.args.size).joinToString(separator = " ")

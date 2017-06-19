@@ -17,10 +17,7 @@ class Blacklist @Inject constructor(val bot: Main) {
             aliases = arrayOf("ban")
     )
     fun execute(context: RootCommandContext) {
-        if (context.message.mentionedUsers.size < 1) {
-            throw ArgsException("You must tag someone.")
-        }
-        val user = context.message.mentionedUsers.first()
+        val user = context.mentioned
         if (bot.listener.isBlacklisted(user)) {
             bot.listener.unblacklist(user)
             context(context.author, "Un-blacklisted ${user.asMention} from bot.")

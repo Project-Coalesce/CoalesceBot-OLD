@@ -19,11 +19,12 @@ private val checks = arrayOf<(match: MatchLooking, user: User) -> Pair<Boolean, 
         { match, user -> (user == match.looker) to "You can't join your own match." }
 )
 
-abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlayers: Int): Embeddables {
+abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlayers: Int, vararg channels: Long): Embeddables {
     val game = mutableMapOf<User, ChatMatch>()
     val inMatchfinding = mutableMapOf<User, MatchLooking>()
     val reactionPossible = mutableListOf<Long>()
     val matchfinding = mutableMapOf<Long, MatchLooking>()
+    private val allowed = channels.toList()
 
     // Syntax:
     // !<game> - Finds match without bet for 1 player or leave current queue
@@ -35,6 +36,7 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
     fun handleCommand(context: CommandContext) {
         fun matchfinding(targeting: List<User>?, bid: Double, earnAmount: Double, amount: Int) {
             if (game.containsKey(context.author) || inMatchfinding.containsKey(context.author)) throw ArgsException("Already on a game or matchfinding queue.")
+            if (allowed.isNotEmpty() && !allowed.contains(context.channel.idLong)) throw ArgsException("You cannot play on this channel!")
 
             context(embed().apply {
                 setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
@@ -92,14 +94,13 @@ abstract class ChatGame(val name: String, val defaultAward: Double, val maxPlaye
     fun handleReaction(event: MessageReactionAddEvent) {
         if (matchfinding.containsKey(event.messageIdLong)) {
             val match = matchfinding[event.messageIdLong]!!
-            /*
             checks.forEach {
                 val (fail, message) = it(match, event.user)
                 if (fail) {
                     event.channel.sendMessage("${event.user.asMention} ❌: $message").queue()
                     return@handleReaction
                 }
-            }*/
+            }
 
             inMatchfinding[event.user] = match
             match.entered.add(event.user)

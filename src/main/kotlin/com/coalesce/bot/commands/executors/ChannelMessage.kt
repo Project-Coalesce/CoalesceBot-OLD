@@ -14,18 +14,13 @@ class ChannelMessage {
             description = "Message a specific channel"
     )
     fun execute(context: RootCommandContext) {
-        fun mention(text: String) {
-            context(context.author, text)
-        }
-
         if (context.args.isEmpty()) {
             throw ArgsException("Usage: `!sendch <channel> <text>`")
         }
 
         val channel = context.jda.getTextChannelById(context.args[0]) ?:
-                context.jda.getTextChannelsByName(context.args[0], true)[0] ?:
-                run { mention("No channel could be found with that name/id!"); return }
+                context.jda.getTextChannelsByName(context.args[0], true)[0] ?: throw ArgsException("No channel found by your query!")
         channel.sendMessage(context.args.copyOfRange(1, context.args.size).joinToString(separator = " ")).queue()
-        mention("Successfully sent message to ${channel.asMention}")
+        context.mention("Successfully sent message to ${channel.asMention}")
     }
 }

@@ -32,9 +32,7 @@ class Bid {
         val serializer = RespectsLeaderboardSerializer(respectsLeaderboardsFile)
         val map = serializer.read()
         val respects = map[context.author.id] ?: 0.0
-        val bid = context.args[0].parseDouble() ?: run {
-            throw ArgsException("Invalid respect amount inserted.")
-        }
+        val bid = context.args[0].parseDouble() ?: throw ArgsException("Invalid respect amount inserted.")
         if (bid !in 1..30) throw ArgsException("Only bids between 1 and 30 respects are allowed.")
         if (respects < bid) {
             throw ArgsException("Cannot afford to bid $bid.")

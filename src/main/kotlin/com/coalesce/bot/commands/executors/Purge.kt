@@ -33,7 +33,7 @@ class Purge {
     )
     fun message(context: SubCommandContext) {
         if (context.args.isEmpty()) {
-            context(context.author, "Specify a message id to delete")
+            context.mention("Specify a message id to delete")
             return
         }
         context.jda.getGuildById(COALESCE_GUILD).textChannels
@@ -51,18 +51,14 @@ class Purge {
             permission = "command.purge.user"
     )
     fun user(context: SubCommandContext) {
-        fun mention(text: String) {
-            context(context.author, text)
-        }
-
         if (context.args.isEmpty()) {
-            mention("Usage: `!purge user <@user> [optional amount]`")
+            context.mention("Usage: `!purge user <@user> [optional amount]`")
             return
         }
 
         val member: User
         if (context.message.mentionedUsers.isEmpty()) {
-            mention("You have to specify an user!")
+            context.mention("You have to specify an user!")
             return
         } else member = context.message.mentionedUsers.first()
 

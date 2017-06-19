@@ -43,7 +43,7 @@ class TicTacToe @Inject constructor(val bot: Main) {
     }
 }
 
-class TicTacToeGame: ChatGame("TicTacToe", 3.0, allEmotes.size - 2) {
+class TicTacToeGame: ChatGame("TicTacToe", 3.0, allEmotes.size - 2, 326191031412588544L /* #games */) {
     override fun generateMatch(channel: MessageChannel, players: Array<User>, resultHandler: (Map<User, Int>) -> Unit): ChatMatch = TicTacToeMatch(channel, this, players, resultHandler)
 }
 
