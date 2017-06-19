@@ -33,7 +33,7 @@ class Poll : Embeddables {
         val timeUnit = context.args[2].parseTimeUnit() ?: run { context("* Invalid unit!"); return }
 
         val options = context.args.copyOfRange(3, context.args.size).joinToString(separator = " ").split("|").map(String::trim)
-        if (options.size in 0..10) {
+        if (options.size !in 0..10) {
             throw ArgsException("The size of options must be greater than 1, and shouldn't exceed 10!")
         }
 

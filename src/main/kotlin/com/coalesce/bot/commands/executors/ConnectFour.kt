@@ -25,8 +25,12 @@ class ConnectFour @Inject constructor(val bot: Main) {
             aliases = arrayOf("connect4", "con4"),
             globalCooldown = 30.0
     )
-    fun execute(context: RootCommandContext) = game.handleCommand(context)
+    fun execute(context: RootCommandContext) {
+        throw ArgsException("Coming Soon TM")
+        // game.handleCommand(context)
+    }
 
+    /*
     @JDAListener
     fun react(event: MessageReactionAddEvent, context: EventContext) {
         if (event.user.isBot || bot.listener.isBlacklisted(event.user)) return //Bad boys can't do this
@@ -37,6 +41,7 @@ class ConnectFour @Inject constructor(val bot: Main) {
     fun message(event: MessageReceivedEvent, context: EventContext) {
         game.handleMessage(event)
     }
+    */
 }
 
 class ConnectFourGame: ChatGame("ConnectFour", 4.0, allEmotes.size - 2) {
@@ -108,10 +113,6 @@ class ConnectFourMatch(
             }
         } ))) return true
 
-        // Diagonally
-        for (rowStart in 0..rows - 4) {
-
-        }
 
 
         if (board.all { it.all { it.emote != null } }) {
