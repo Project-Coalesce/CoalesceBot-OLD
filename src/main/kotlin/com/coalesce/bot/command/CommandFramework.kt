@@ -3,8 +3,6 @@ package com.coalesce.bot.command
 import com.coalesce.bot.Main
 import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
-import com.coalesce.bot.commands.AdaptationArgsChecker
-import com.coalesce.bot.commands.ArgsException
 import com.coalesce.bot.utilities.Embeddables
 import com.coalesce.bot.utilities.subList
 import com.coalesce.bot.utilities.truncate
@@ -336,3 +334,5 @@ annotation class JDAListener
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
 annotation class ReactionListener(val name: String)
+
+class ArgsException(message: String): Exception(message)

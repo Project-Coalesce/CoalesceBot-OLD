@@ -3,7 +3,7 @@ package com.coalesce.bot
 //import com.coalesce.bot.chatbot.ChatbotBrain
 import com.coalesce.bot.command.Listener
 import com.coalesce.bot.command.PluginManager
-import com.coalesce.bot.commands.AdaptationArgsChecker
+import com.coalesce.bot.command.AdaptationArgsChecker
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer

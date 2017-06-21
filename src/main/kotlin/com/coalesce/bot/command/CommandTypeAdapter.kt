@@ -1,4 +1,4 @@
-package com.coalesce.bot.commands
+package com.coalesce.bot.command
 
 import com.coalesce.bot.utilities.matching
 import com.coalesce.bot.utilities.subList
