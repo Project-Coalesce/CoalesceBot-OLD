@@ -1,5 +1,12 @@
 package com.coalesce.bot.utilities
 
+import com.coalesce.bot.commands.setColour
+import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.entities.IMentionable
+import net.dv8tion.jda.core.entities.MessageEmbed
+import java.awt.Color
+import java.io.InputStream
+import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -83,6 +90,8 @@ fun <T> List<T>.order(func: (T, T) -> Int): MutableList<T> {
     return list
 }
 
+fun InputStream.readText(charset: Charset = Charsets.UTF_8): String = readBytes().toString(charset)
+
 fun <T> List<T>.orderSelf(func: (T, T) -> Int) = Collections.sort(this, func)
 
 fun String.limit(limit: Int, ending: String = "..."): String {
@@ -131,6 +140,36 @@ fun String.isInteger(): Boolean {
         i++
     }
     return true
+}
+
+interface Embeddables {
+    fun embed(): EmbedBuilder {
+        return EmbedBuilder()
+    }
+
+    fun makeField(title: String?, text: String, inline: Boolean = false): MessageEmbed.Field {
+        return MessageEmbed.Field(title, text, inline)
+    }
+
+    fun makeField(title: String?, user: IMentionable, inline: Boolean = false): MessageEmbed.Field {
+        return makeField(title, user.asMention, inline)
+    }
+
+    fun EmbedBuilder.field(title: String?, text: String, inline: Boolean = false): EmbedBuilder {
+        return this.addField(makeField(title, text, inline))
+    }
+
+    fun EmbedBuilder.field(title: String?, user: IMentionable, inline: Boolean = false): EmbedBuilder {
+        return field(title, user.asMention, inline)
+    }
+
+    fun EmbedBuilder.data(title: String?, colour: Color? = null, author: String? = null, avatar: String? = null, url: String? = null): EmbedBuilder {
+        return apply {
+            setTitle(title, url)
+            setAuthor(author, null, avatar)
+            setColour(colour)
+        }
+    }
 }
 
 class SingleThreadedTimeout: Thread() {

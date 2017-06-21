@@ -1,9 +1,9 @@
 package com.coalesce.bot
 
 //import com.coalesce.bot.chatbot.ChatbotBrain
+import com.coalesce.bot.command.Listener
+import com.coalesce.bot.command.PluginManager
 import com.coalesce.bot.commands.AdaptationArgsChecker
-import com.coalesce.bot.commands.GC
-import com.coalesce.bot.commands.Listener
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
@@ -32,7 +32,7 @@ import java.util.regex.Pattern
  *  Second number - Minor version
  *  Third number - Patch
  * */
-val VERSION = "1.5.4"
+val VERSION = "1.6.0"
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -44,11 +44,13 @@ class Main private constructor() {
     lateinit var jda: JDA
     lateinit var punishments: PunishmentManager
     lateinit var injector: Injector
-    lateinit var listener: Listener
+    //lateinit var listener: Listener
     lateinit var githubSecret: String
     lateinit var repManager: ReputationManager
-    lateinit var gc: GC
+    //lateinit var gc: GC
     lateinit var commandTypeAdapter: AdaptationArgsChecker
+    lateinit var commandHandler: Listener
+    lateinit var pluginManager: PluginManager
     val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String, logOnConsole: Boolean) {
@@ -74,15 +76,23 @@ class Main private constructor() {
 
         tryLog("Failed to load Reputation Manager") { repManager = ReputationManager() }
         tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
+        tryLog("Failed to load plugins") { pluginManager = PluginManager() }
 
-        tryLog("Failed to load commands") {
-            injector = Guice.createInjector(Injects(this, punishments))
+        tryLog("Failed to load Command Type Adapters") { commandTypeAdapter = AdaptationArgsChecker(jda) }
+
+        tryLog("Failed to load Command Handler") {
+            /*
             listener = Listener(jda)
             listener.register()
             jda.addEventListener(listener)
+            */
+
+            injector = Guice.createInjector(Injects(this, punishments))
+            commandHandler = Listener(jda, commandTypeAdapter, injector, pluginManager)
+            jda.addEventListener(commandHandler)
         }
 
-        tryLog("Failed to load GC") { gc = GC(listener, repManager) }
+        //tryLog("Failed to load GC") { gc = GC(listener, repManager) }
 
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
@@ -113,6 +123,7 @@ const val COALESCE_GUILD = 268187052753944576L
 const val commandPrefix = "!"
 const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
+val pluginsFolder = File(".${File.separatorChar}plugins")
 val globalPermissionsFile = File(dataDirectory, "global.dat")
 val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.dat")
 val respectsLeaderboardsFileOld = File(dataDirectory, "leaderboard.json")
