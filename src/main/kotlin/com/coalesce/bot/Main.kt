@@ -8,6 +8,7 @@ import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
 import com.coalesce.bot.reputation.ReputationManager
+import com.coalesce.bot.reputation.RespectsManager
 import com.coalesce.bot.utilities.tryLog
 import com.google.common.base.Preconditions
 import com.google.gson.Gson
@@ -44,14 +45,12 @@ class Main private constructor() {
     lateinit var jda: JDA
     lateinit var punishments: PunishmentManager
     lateinit var injector: Injector
-    //lateinit var listener: Listener
     lateinit var githubSecret: String
     lateinit var repManager: ReputationManager
-    //lateinit var gc: GC
+    lateinit var respectsManager: RespectsManager
     lateinit var commandTypeAdapter: AdaptationArgsChecker
     lateinit var commandHandler: Listener
     lateinit var pluginManager: PluginManager
-    val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String, logOnConsole: Boolean) {
         if (!dataDirectory.exists()) {
@@ -74,10 +73,10 @@ class Main private constructor() {
             }
         }
 
-        tryLog("Failed to load Reputation Manager") { repManager = ReputationManager() }
         tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
         tryLog("Failed to load plugins") { pluginManager = PluginManager() }
-
+        tryLog("Failed to load Reputation Manager") { repManager = ReputationManager() }
+        tryLog("Failed to load Respects Manager") { respectsManager = RespectsManager() }
         tryLog("Failed to load Command Type Adapters") { commandTypeAdapter = AdaptationArgsChecker(jda) }
 
         tryLog("Failed to load Command Handler") {
@@ -87,11 +86,10 @@ class Main private constructor() {
             jda.addEventListener(listener)
             */
 
-            injector = Guice.createInjector(Injects(this, punishments))
+            injector = Guice.createInjector(Injects(this))
             commandHandler = Listener(jda, commandTypeAdapter, injector, pluginManager)
             jda.addEventListener(commandHandler)
         }
-
         //tryLog("Failed to load GC") { gc = GC(listener, repManager) }
 
         // Finished loading.
@@ -110,12 +108,12 @@ class Main private constructor() {
     }
 }
 
-class Injects(val main: Main, val pmanager: PunishmentManager) : AbstractModule() {
+class Injects(val main: Main) : AbstractModule() {
     override fun configure() {
         bind(Main::class.java).toInstance(main)
         bind(JDA::class.java).toInstance(main.jda)
-        bind(PunishmentManager::class.java).toInstance(pmanager)
-        bind(ExecutorService::class.java).toInstance(main.executor)
+        bind(PunishmentManager::class.java).toInstance(main.punishments)
+        bind(RespectsManager::class.java).toInstance(main.respectsManager)
         bind(ReputationManager::class.java).toInstance(main.repManager)
     }
 }

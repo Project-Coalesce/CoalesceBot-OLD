@@ -2,9 +2,9 @@ package com.coalesce.bot.binary
 
 import java.io.File
 
-class RespectsLeaderboardSerializer(file: File): BinarySerializer<MutableMap<String, Double>>(file, { mutableMapOf() }) {
-    override fun serializeIn(): MutableMap<String, Double> {
-        val map = mutableMapOf<String, Double>()
+class RespectsLeaderboardSerializer(file: File): BinarySerializer<MutableMap<Long, Double>>(file, { mutableMapOf() }) {
+    override fun serializeIn(): MutableMap<Long, Double> {
+        val map = mutableMapOf<Long, Double>()
 
         var long: Long
         while (true) {
@@ -12,15 +12,15 @@ class RespectsLeaderboardSerializer(file: File): BinarySerializer<MutableMap<Str
             if (long == -1L) break
 
             val value = inputStream.readDouble()
-            map[long.toString()] = value
+            map[long] = value
         }
 
         return map
     }
 
-    override fun serializeOut(data: MutableMap<String, Double>) {
+    override fun serializeOut(data: MutableMap<Long, Double>) {
         data.forEach { k, v ->
-            outputStream.writeLong(k.toLong())
+            outputStream.writeLong(k)
             outputStream.writeDouble(v)
         }
         outputStream.writeLong(-1L)

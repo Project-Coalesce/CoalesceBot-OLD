@@ -1,9 +1,16 @@
 package com.coalesce.bot.command
 
+import com.coalesce.bot.dataDirectory
+import com.coalesce.bot.gson
 import com.coalesce.bot.utilities.Embeddables
+import com.coalesce.bot.utilities.Timeout
 import com.coalesce.bot.utilities.formatTimeDiff
 import com.coalesce.bot.utilities.timeOutHandler
+import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.entities.Guild
+import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.User
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 class CooldownHandler: Embeddables {
@@ -25,7 +32,7 @@ class CooldownHandler: Embeddables {
             context(embed().apply {
                 setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
                 setTitle("Wait before you can run this command again!", null)
-                setDescription("⏰ Cooldown for: " + userCooldown[context.author]!![info]!!.formatTimeDiff())
+                setDescription("⏰ Cooldown for: **${userCooldown[context.author]!![info]!!.formatTimeDiff()}")
             }.build(), deleteAfter = 8L to TimeUnit.SECONDS)
             return false
         }
@@ -33,7 +40,7 @@ class CooldownHandler: Embeddables {
             context(embed().apply {
                 setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
                 setTitle("Wait before you can run this command again!", null)
-                setDescription("⏰ Global Cooldown for: " + globalCooldown[info]!!.formatTimeDiff())
+                setDescription("⏰ Global Cooldown for: **${globalCooldown[info]!!.formatTimeDiff()}")
             }.build(), deleteAfter = 8L to TimeUnit.SECONDS)
             return false
         }
@@ -42,6 +49,84 @@ class CooldownHandler: Embeddables {
     }
 }
 
-class PermHandler: Embeddables {
+fun permCheck(context: CommandContext, info: CommandFrameworkClass.CommandInfo): Boolean {
+    if (!PermHandler[context.guild](context.author, "Commands.${info.name}")) {
+        context(EmbedBuilder().apply {
+            setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
+            setTitle("Access Denied!", null)
+            setDescription("🚫 You lack permission to run this command.") //1337 haxor message
+        }.build(), deleteAfter = 8L to TimeUnit.SECONDS)
+        return false
+    }
 
+    return true
+}
+
+class PermHandler private constructor(private val guildDataFolder: File, private val guild: Guild): Embeddables, Timeout(30L, TimeUnit.MINUTES) {
+    companion object {
+        private val permHandlers = mutableMapOf<Guild, PermHandler>()
+
+        operator fun get(guild: Guild) = permHandlers[guild] ?: PermHandler(File(dataDirectory, guild.idLong.toString() + ".json"), guild)
+    }
+
+    private val memberOverrides = mutableMapOf<User, MutableList<String>>()
+    private val roleOverrides = mutableMapOf<Role, MutableList<String>>()
+    private val globalPermissions = mutableListOf<String>()
+
+    private val membersFile = File(guildDataFolder, "members.json")
+    private val rolesFile = File(guildDataFolder, "roles.json")
+    private val globalFile = File(guildDataFolder, "global.json")
+
+    init {
+        if (membersFile.exists()) memberOverrides.putAll(gson.fromJson(membersFile.readText(), memberOverrides.javaClass))
+        if (rolesFile.exists()) roleOverrides.putAll(gson.fromJson(membersFile.readText(), roleOverrides.javaClass))
+        if (globalFile.exists()) globalPermissions.addAll(gson.fromJson(membersFile.readText(), globalPermissions.javaClass))
+    }
+
+    override fun timeout() {
+        // Ensure everything is saved
+        save(membersFile, memberOverrides)
+        save(rolesFile, roleOverrides)
+        save(globalFile, globalPermissions)
+
+        permHandlers.remove(guild)
+    }
+
+    private fun save(file: File, obj: Any) {
+        if (!guildDataFolder.exists()) guildDataFolder.mkdirs()
+        if (!file.exists()) file.createNewFile()
+        file.writeText(gson.toJson(obj))
+    }
+
+    operator fun get(user: User) = WrappedUser(user, this)
+    operator fun get(role: Role) = WrappedRole(role, this)
+
+    operator fun plusAssign(permission: String) {
+        globalPermissions.add(permission)
+        save(globalFile, globalPermissions)
+    }
+
+    operator fun invoke(user: User, permission: String): Boolean {
+        val allPermissions = mutableListOf<String>().apply {
+            if (memberOverrides.containsKey(user)) addAll(memberOverrides[user]!!)
+            guild.getMember(user).roles.forEach { if (roleOverrides.containsKey(it)) addAll(roleOverrides[it]!!) }
+            addAll(globalPermissions)
+        }
+
+        return allPermissions.contains(permission)
+    }
+
+    class WrappedRole internal constructor(private val role: Role, private val handler: PermHandler) {
+        infix fun perm(permission: String) {
+            handler.roleOverrides[role] = (handler.roleOverrides[role] ?: mutableListOf()).apply { add(permission) }
+            handler.save(handler.rolesFile, handler.roleOverrides)
+        }
+    }
+
+    class WrappedUser internal constructor(private val user: User, private val handler: PermHandler) {
+        infix fun perm(permission: String) {
+            handler.memberOverrides[user] = (handler.memberOverrides[user] ?: mutableListOf()).apply { add(permission) }
+            handler.save(handler.membersFile, handler.memberOverrides)
+        }
+    }
 }

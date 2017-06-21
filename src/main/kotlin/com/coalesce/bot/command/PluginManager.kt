@@ -10,7 +10,7 @@ import java.net.URLClassLoader
 class PluginManager {
     private val plugins = mutableListOf<Plugin>()
     val registeredPlugins: List<Plugin> = plugins
-    val addedCommands = mutableListOf<Class<Object>>()
+    val addedCommands = mutableListOf<Class<*>>()
 
     init {
         if (pluginsFolder.exists()) {
@@ -48,7 +48,7 @@ open class Plugin {
     lateinit var pluginData: PluginManager.PluginData
     lateinit var pluginManager: PluginManager
 
-    fun registerCommand(vararg commandHandler: Class<Object>) = pluginManager.addedCommands.addAll(commandHandler)
+    fun registerCommand(vararg commandHandler: Class<*>) = pluginManager.addedCommands.addAll(commandHandler)
 
     open fun onRegister() {}
 }

@@ -29,7 +29,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
     val reactionHandlers = mutableListOf<Pair<Method, CommandFrameworkClass.CommandInfo>>()
     val commands = mutableListOf<CommandFrameworkClass>()
     val checks = mutableListOf<(CommandContext, CommandFrameworkClass.CommandInfo) -> Boolean>(
-            CooldownHandler()::cooldownCheck
+            CooldownHandler()::cooldownCheck, ::permCheck
     )
 
     init {
@@ -37,13 +37,14 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         val packages = mutableListOf("com.coalesce.bot.command.handlers")
         pluginManager.registeredPlugins.forEach { packages.addAll(it.pluginData.packagesScan) }
 
-        val classes = Reflections(ConfigurationBuilder()
+        val classes = mutableListOf<Class<*>>()
+        classes.addAll(Reflections(ConfigurationBuilder()
                 .setScanners(SubTypesScanner(false), ResourcesScanner())
                 .setUrls(ClasspathHelper.forJavaClassPath())
                 .filterInputsBy(FilterBuilder().apply {
                     packages.forEach { include(FilterBuilder.prefix(it)) }
                 }))
-                .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') && !it.name.endsWith("Kt") }.toMutableList()
+                .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') && !it.name.endsWith("Kt") })
         classes.addAll(pluginManager.addedCommands)
         classes.forEach { CommandFrameworkClass(this, adaptationArgsChecker, guice, it) }
     }
@@ -63,7 +64,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
             return
         }
         val args = split.subList(1)
-        val info = commandAliasMap[split.first()] ?: run {
+        val info = commandAliasMap[split.first().toLowerCase()] ?: run {
             event.message.addReaction("❔").queue()
             return
         }
@@ -77,11 +78,14 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
 
         try {
             val (method, paramters, cmdInfo) = (info.botCommand(args, context) ?: run {
-                event.channel.sendMessage("${event.message.author.asMention}: Invalid argumentation.\nUsage:\n${info.commandInfo.usage}")
+                context("Invalid argumentation.\nUsage:\n${info.commandInfo.usage}")
                 return
             })
-            if (checks.any { !it(context, cmdInfo) }) return
-            method(info.instance, paramters)
+            context.info = cmdInfo
+           // if (checks.any { !it(context, cmdInfo) }) return
+            println(paramters.joinToString(separator = ", ") + " " + method.name)
+            println("${method.parameterCount}, ${paramters.size}")
+            method.invoke(info.instance, *(paramters.toTypedArray()))
         } catch (ex: Exception) {
             val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
 
@@ -104,7 +108,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
     fun register(command: CommandFrameworkClass) {
         commands.add(command)
         command.commandInfo.aliases.forEach {
-            commandAliasMap[it] = command
+            commandAliasMap[it.toLowerCase()] = command
         }
     }
 }
@@ -176,6 +180,14 @@ class CommandFrameworkClass(
                 }
             }
 
+            // Pretty usage generator
+            if (info.usage.isEmpty()) {
+                info.usage = StringBuilder().apply {
+                    methods.forEach { append("/${info.name.toLowerCase()} " + it.key.joinToString(separator = " ") { "<${it.simpleName}>" }) }
+                }.toString()
+            }
+            commandInfo = info
+
             // BOT COMMAND
             val subBotCommands = mutableMapOf<String, BotCommand>()
             subCommands.forEach { subBotCommands[it.key] = BotCommand(it.value.first, mapOf(), adaptationArgsChecker, it.value.second) }
@@ -183,13 +195,6 @@ class CommandFrameworkClass(
             botCommand = BotCommand(methods, subBotCommands, adaptationArgsChecker, commandInfo)
             commandHandler.register(this)
 
-            // Pretty usage generator
-            if (info.usage.isEmpty()) {
-                info.usage = StringBuilder().apply {
-                    methods.forEach { append("/${info.name} " + it.key.joinToString(separator = " ") { it.simpleName }) }
-                }.toString()
-            }
-            commandInfo = info
         }
     }
 
@@ -241,8 +246,10 @@ class CommandContext(
         val command: CommandFrameworkClass,
         val args: List<String>,
         val main: Main,
-        val channel: TextChannel
+        val channel: TextChannel,
+        val guild: Guild = channel.guild
 ) {
+    lateinit var info: CommandFrameworkClass.CommandInfo
     fun mention(text: String) = invoke(author, text)
 
     val mentioned: User

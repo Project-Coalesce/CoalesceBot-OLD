@@ -1,6 +1,5 @@
 package com.coalesce.bot.utilities
 
-import com.coalesce.bot.commands.setColour
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.IMentionable
 import net.dv8tion.jda.core.entities.MessageEmbed
@@ -167,7 +166,7 @@ interface Embeddables {
         return apply {
             setTitle(title, url)
             setAuthor(author, null, avatar)
-            setColour(colour)
+            setColor(colour)
         }
     }
 }
