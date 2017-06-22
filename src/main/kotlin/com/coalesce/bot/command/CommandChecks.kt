@@ -2,16 +2,16 @@ package com.coalesce.bot.command
 
 import com.coalesce.bot.dataDirectory
 import com.coalesce.bot.gson
-import com.coalesce.bot.utilities.Embeddables
-import com.coalesce.bot.utilities.Timeout
-import com.coalesce.bot.utilities.formatTimeDiff
-import com.coalesce.bot.utilities.timeOutHandler
+import com.coalesce.bot.utilities.*
 import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.User
 import java.io.File
 import java.util.concurrent.TimeUnit
+
+// Cooldown
 
 class CooldownHandler: Embeddables {
     private val globalCooldown = mutableMapOf<CommandFrameworkClass.CommandInfo, Long>()
@@ -30,18 +30,16 @@ class CooldownHandler: Embeddables {
     fun cooldownCheck(context: CommandContext, info: CommandFrameworkClass.CommandInfo): Boolean {
         if (userCooldown.containsKey(context.author) && userCooldown[context.author]!!.containsKey(info)) {
             context(embed().apply {
-                setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
-                setTitle("Wait before you can run this command again!", null)
-                setDescription("⏰ Cooldown for: **${userCooldown[context.author]!![info]!!.formatTimeDiff()}")
-            }.build(), deleteAfter = 8L to TimeUnit.SECONDS)
+                embTitle = "Wait before you can run this command again!"
+                embDescription = "⏰ Cooldown for: **${userCooldown[context.author]!![info]!!.formatTimeDiff()}**"
+            }, deleteAfter = 8L to TimeUnit.SECONDS)
             return false
         }
         if (globalCooldown.containsKey(info)) {
             context(embed().apply {
-                setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
-                setTitle("Wait before you can run this command again!", null)
-                setDescription("⏰ Global Cooldown for: **${globalCooldown[info]!!.formatTimeDiff()}")
-            }.build(), deleteAfter = 8L to TimeUnit.SECONDS)
+                embTitle = "Wait before you can run this command again!"
+                embDescription = "⏰ Global Cooldown for: **${globalCooldown[info]!!.formatTimeDiff()}**"
+            }, deleteAfter = 8L to TimeUnit.SECONDS)
             return false
         }
 
@@ -49,18 +47,7 @@ class CooldownHandler: Embeddables {
     }
 }
 
-fun permCheck(context: CommandContext, info: CommandFrameworkClass.CommandInfo): Boolean {
-    if (!PermHandler[context.guild](context.author, "Commands.${info.name}")) {
-        context(EmbedBuilder().apply {
-            setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
-            setTitle("Access Denied!", null)
-            setDescription("🚫 You lack permission to run this command.") //1337 haxor message
-        }.build(), deleteAfter = 8L to TimeUnit.SECONDS)
-        return false
-    }
-
-    return true
-}
+// Permissions
 
 class PermHandler private constructor(private val guildDataFolder: File, private val guild: Guild): Embeddables, Timeout(30L, TimeUnit.MINUTES) {
     companion object {
@@ -107,6 +94,8 @@ class PermHandler private constructor(private val guildDataFolder: File, private
     }
 
     operator fun invoke(user: User, permission: String): Boolean {
+        if (guild.getMember(user).run { isOwner || roles.any { it.hasPermission(Permission.ADMINISTRATOR) } }) return true
+
         val allPermissions = mutableListOf<String>().apply {
             if (memberOverrides.containsKey(user)) addAll(memberOverrides[user]!!)
             guild.getMember(user).roles.forEach { if (roleOverrides.containsKey(it)) addAll(roleOverrides[it]!!) }
@@ -129,4 +118,16 @@ class PermHandler private constructor(private val guildDataFolder: File, private
             handler.save(handler.membersFile, handler.memberOverrides)
         }
     }
+}
+
+fun permCheck(context: CommandContext, info: CommandFrameworkClass.CommandInfo): Boolean {
+    if (!PermHandler[context.guild](context.author, "Commands.${info.name}") && context.channel.idLong != 315934590109745154L) {
+        context(EmbedBuilder().apply {
+            embTitle = "Access Denied!"
+            embDescription = "🚫 You lack permission to run this command."
+        }, deleteAfter = 8L to TimeUnit.SECONDS)
+        return false
+    }
+
+    return true
 }

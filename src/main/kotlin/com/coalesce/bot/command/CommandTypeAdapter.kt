@@ -16,7 +16,7 @@ class AdaptationArgsChecker(val jda: JDA) {
 
     fun adapt(args: Array<String>, type: Class<*>): Pair<Array<String>, Any>? {
         if (adaptationsMap.containsKey(type)) {
-            return (if (args.size == 1) arrayOf<String>() else args.toList().subList(1).toTypedArray()) to
+            return (if (args.size <= 1) arrayOf<String>() else args.toList().subList(1).toTypedArray()) to
                     (adaptationsMap[type]!!(args[0]) ?: return null)
         } else {
             return adaptWithReflection(args, type)

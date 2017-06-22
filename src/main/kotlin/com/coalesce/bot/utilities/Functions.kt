@@ -10,6 +10,30 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+var EmbedBuilder.embColor: Color?
+    set(color) { setColor(color) }
+    get() = null
+
+var EmbedBuilder.embTitle: String?
+    set(title) { setTitle(title, null) }
+    get() = null
+
+var EmbedBuilder.embDescription: String?
+    set(description) { setDescription(description) }
+    get() = null
+
+fun EmbedBuilder.description(builder: StringBuilder.() -> Unit) {
+    embDescription = StringBuilder().apply(builder).toString()
+}
+
+fun <T> Iterable<T>.count(check: (T) -> Boolean): Int {
+    var amount = 0
+    forEach { if (check(it)) amount ++ }
+    return amount
+}
+
+fun <T> List<T>.startsWith(obj: T) = isNotEmpty() && first() == obj
+
 fun tryLog(message: String, func: () -> Unit) =
     try {
         func()
