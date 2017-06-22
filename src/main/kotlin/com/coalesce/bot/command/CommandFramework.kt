@@ -10,7 +10,6 @@ import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.Event
-import net.dv8tion.jda.core.events.message.GenericMessageEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
@@ -34,9 +33,9 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         ListenerAdapter(), Embeddables {
     val commandAliasMap = mutableMapOf<String, CommandFrameworkClass>()
     val eventHandlers = mutableMapOf<Class<*>, MutableList<Pair<Method, CommandFrameworkClass>>>()
-    val reactionHandlers = mutableListOf<Pair<Method, CommandFrameworkClass>>()
+    val reactionHandlers = mutableListOf<Triple<Method, CommandFrameworkClass, CommandFrameworkClass.CommandInfo>>()
     val commands = mutableListOf<CommandFrameworkClass>()
-    val checks = mutableListOf<(CommandContext, CommandFrameworkClass.CommandInfo) -> Boolean>(
+    val checks = mutableListOf<(Context, CommandFrameworkClass.CommandInfo) -> Boolean>(
             CooldownHandler()::cooldownCheck, ::permCheck
     )
 
@@ -76,7 +75,28 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
     override fun onGuildMessageReactionAdd(event: GuildMessageReactionAddEvent) {
         val context = ReactionContext(event.user, event.messageIdLong, event, event.reactionEmote, Main.instance, event.channel, event.guild)
         reactionHandlers.forEach {
-            it.first.invoke(it.second.instance, *(arrayOf(context)))
+            if (checks.any { c -> !c(context, it.third) })
+            try{
+                it.first.invoke(it.second.instance, *(arrayOf(context)))
+            } catch (ex: Exception) {
+                val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
+
+                if (thrw is ArgsException) {
+                    event.channel.sendMessage("${event.user.asMention} ❌: ${thrw.message}").queue()
+                    return
+                }
+
+                event.channel.sendMessage(embed().apply {
+                    embColor = Color(232, 46, 0)
+                    embTitle = "Error"
+                    description {
+                        appendln("An error occured with that command.")
+                        append("This has been reported to Coalesce developers.")
+                    }
+                }.build()).queue()
+                System.err.println("An error occured while attempting to handle reaction from ${event.user.name}")
+                thrw.printStackTrace()
+            }
         }
     }
 
@@ -202,7 +222,7 @@ class CommandFrameworkClass(
                         else if (it is UserCooldown) reactionInfo.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
                     }
 
-                    commandHandler.reactionHandlers.add(it to this@CommandFrameworkClass)
+                    commandHandler.reactionHandlers.add(Triple(it, this@CommandFrameworkClass, reactionInfo))
                 }
             }
 
