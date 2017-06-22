@@ -4,7 +4,6 @@ import com.coalesce.bot.command.*
 import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.utilities.*
 import java.awt.Color
-import java.awt.SystemColor.info
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KParameter
 
@@ -51,7 +50,6 @@ class Help: Embeddables {
 
     @CommandAlias("Gives you a list of commands.")
     fun execute(context: CommandContext, page: Int = 1) {
-        println(pages.size)
         if (page !in 1..pages.size) throw ArgsException("Invalid page!")
 
         context.usePCh {
@@ -59,6 +57,7 @@ class Help: Embeddables {
                 embTitle = "Command List Page $page"
                 embColor = Color(0xBE58B6)
                 embDescription = pages[page - 1]
+                if (page + 1 > pages.size) setFooter("Next page: !help ${page + 1}", null)
             }, context.author)
             context("I've sent you a list of commands in your private messages!", deleteAfter = 10L to TimeUnit.SECONDS)
         }
