@@ -9,7 +9,10 @@ import com.google.inject.Injector
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.*
+import net.dv8tion.jda.core.events.Event
+import net.dv8tion.jda.core.events.message.GenericMessageEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
+import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import net.dv8tion.jda.core.requests.RestAction
 import org.reflections.Reflections
@@ -30,8 +33,8 @@ import kotlin.reflect.jvm.kotlinFunction
 class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecker, guice: Injector, pluginManager: PluginManager):
         ListenerAdapter(), Embeddables {
     val commandAliasMap = mutableMapOf<String, CommandFrameworkClass>()
-    val eventHandlers = mutableMapOf<Class<*>, MutableList<Pair<KCallable<*>, CommandFrameworkClass>>>()
-    val reactionHandlers = mutableListOf<Pair<KCallable<*>, CommandFrameworkClass.CommandInfo>>()
+    val eventHandlers = mutableMapOf<Class<*>, MutableList<Pair<Method, CommandFrameworkClass>>>()
+    val reactionHandlers = mutableListOf<Pair<Method, CommandFrameworkClass>>()
     val commands = mutableListOf<CommandFrameworkClass>()
     val checks = mutableListOf<(CommandContext, CommandFrameworkClass.CommandInfo) -> Boolean>(
             CooldownHandler()::cooldownCheck, ::permCheck
@@ -54,6 +57,27 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         classes.forEach { CommandFrameworkClass(this, adaptationArgsChecker, guice, it) }
         Help.loadHelp(this)
         println("Registered ${commands.size} commands: ${commands.joinToString(separator = ", ") { it.commandInfo.name }.truncate(0, 1000)}")
+    }
+
+    override fun onGenericEvent(event: Event) {
+        if (eventHandlers.containsKey(event.javaClass)) {
+            eventHandlers[event.javaClass]!!.forEach {
+                try {
+                    it.first(it.second.instance, *(arrayOf(event)))
+                } catch (ex: Exception) {
+                    val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
+                    System.err.println("An error occured while attempting to handle event of type ${event.javaClass!!}")
+                    thrw.printStackTrace()
+                }
+            }
+        }
+    }
+
+    override fun onGuildMessageReactionAdd(event: GuildMessageReactionAddEvent) {
+        val context = ReactionContext(event.user, event.messageIdLong, event, event.reactionEmote, Main.instance, event.channel, event.guild)
+        reactionHandlers.forEach {
+            it.first.invoke(it.second.instance, *(arrayOf(context)))
+        }
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
@@ -167,7 +191,7 @@ class CommandFrameworkClass(
                 } else if (it.isAnnotationPresent(JDAListener::class.java)) {
                     commandHandler.eventHandlers[it.parameterTypes[0]] =
                             (commandHandler.eventHandlers[it.parameterTypes[0]] ?: mutableListOf()).apply {
-                                add(it.kotlinFunction!! to this@CommandFrameworkClass)
+                                add(it to this@CommandFrameworkClass)
                             }
                 } else if (it.isAnnotationPresent(ReactionListener::class.java)) {
                     val reactionInfo = CommandInfo(name = it.getAnnotationsByType(ReactionListener::class.java).first().name)
@@ -178,7 +202,7 @@ class CommandFrameworkClass(
                         else if (it is UserCooldown) reactionInfo.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
                     }
 
-                    commandHandler.reactionHandlers.add(it.kotlinFunction!! to reactionInfo)
+                    commandHandler.reactionHandlers.add(it to this@CommandFrameworkClass)
                 }
             }
 
@@ -242,7 +266,6 @@ class BotCommand(
 
                 if (args.isNotEmpty()) it.key.first.filter { it != CommandContext::class.java }.forEachIndexed { index, clazz ->
                     val kotlinParam = it.key.second[index + 2]
-                    println("Index: $index, Class: ${clazz.simpleName}, Kotlin Param: ${kotlinParam.name}")
                     val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz) ?:
                             run { if (kotlinParam.isOptional) return@forEachIndexed else return@forEach }
                     arguments = newArgs; paramters[kotlinParam] = obj
@@ -280,12 +303,32 @@ private fun sendTask(task: RestAction<Message>, deleteAfter: Pair<Long, TimeUnit
     else task.queue(whenDo)
 }
 
+class ReactionContext(
+        author: User,
+        val message: Long,
+        val event: GuildMessageReactionAddEvent,
+        val emote: MessageReaction.ReactionEmote,
+        main: Main,
+        channel: TextChannel,
+        guild: Guild = channel.guild
+): Context(author, main, channel, guild)
+
 class CommandContext(
-        val author: User,
+        author: User,
         val message: Message,
         val event: MessageReceivedEvent,
         val command: CommandFrameworkClass,
         val args: List<String>,
+        main: Main,
+        channel: TextChannel,
+        guild: Guild = channel.guild
+): Context(author, main, channel, guild) {
+    val mentioned: User
+        get() = message.mentionedUsers.firstOrNull() ?: throw ArgsException("You must mention someone.")
+}
+
+open class Context(
+        val author: User,
         val main: Main,
         val channel: TextChannel,
         val guild: Guild = channel.guild
@@ -296,9 +339,6 @@ class CommandContext(
         if (author.hasPrivateChannel()) handler(author.privateChannel)
         else author.openPrivateChannel().queue(handler)
     }
-
-    val mentioned: User
-        get() = message.mentionedUsers.firstOrNull() ?: throw ArgsException("You must mention someone.")
 
     operator fun invoke(text: String, mentionUser: Boolean = true, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) =

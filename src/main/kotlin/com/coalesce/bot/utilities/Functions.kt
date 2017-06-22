@@ -47,6 +47,14 @@ inline fun <T> Iterable<T>.allIndexed(predicate: (T, Int) -> Boolean): Boolean {
     return true
 }
 
+fun String.smallTimeUnit(): TimeUnit? {
+    TimeUnit.values().forEach {
+        if (it.toString().startsWith(this.toUpperCase())) return@smallTimeUnit it
+    }
+
+    return null
+}
+
 fun quietly(func: () -> Unit) = try{ func() } catch (ex: Exception) { /* Ignore */ }
 
 fun <E> List<E>.subList(fromIndex: Int): List<E> = subList(fromIndex, size)
