@@ -1,14 +1,12 @@
 package com.coalesce.bot
 
 //import com.coalesce.bot.chatbot.ChatbotBrain
+import com.coalesce.bot.command.AdaptationArgsChecker
 import com.coalesce.bot.command.Listener
 import com.coalesce.bot.command.PluginManager
-import com.coalesce.bot.command.AdaptationArgsChecker
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
-import com.coalesce.bot.reputation.ReputationManager
-import com.coalesce.bot.reputation.RespectsManager
 import com.coalesce.bot.utilities.tryLog
 import com.google.common.base.Preconditions
 import com.google.gson.Gson
@@ -21,8 +19,6 @@ import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Guild
 import java.io.File
 import java.io.PrintStream
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.concurrent.ThreadLocalRandom
 import java.util.regex.Pattern
 
@@ -46,8 +42,7 @@ class Main private constructor() {
     lateinit var punishments: PunishmentManager
     lateinit var injector: Injector
     lateinit var githubSecret: String
-    lateinit var repManager: ReputationManager
-    lateinit var respectsManager: RespectsManager
+    lateinit var respectsManager: CoCoinsManager
     lateinit var commandTypeAdapter: AdaptationArgsChecker
     lateinit var commandHandler: Listener
     lateinit var pluginManager: PluginManager
@@ -75,8 +70,7 @@ class Main private constructor() {
 
         tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
         tryLog("Failed to load plugins") { pluginManager = PluginManager() }
-        tryLog("Failed to load Reputation Manager") { repManager = ReputationManager() }
-        tryLog("Failed to load Respects Manager") { respectsManager = RespectsManager() }
+        tryLog("Failed to load CoCoins Manager") { respectsManager = CoCoinsManager() }
         tryLog("Failed to load Command Type Adapters") { commandTypeAdapter = AdaptationArgsChecker(jda) }
 
         tryLog("Failed to load Command Handler") {
@@ -113,8 +107,7 @@ class Injects(val main: Main) : AbstractModule() {
         bind(Main::class.java).toInstance(main)
         bind(JDA::class.java).toInstance(main.jda)
         bind(PunishmentManager::class.java).toInstance(main.punishments)
-        bind(RespectsManager::class.java).toInstance(main.respectsManager)
-        bind(ReputationManager::class.java).toInstance(main.repManager)
+        bind(CoCoinsManager::class.java).toInstance(main.respectsManager)
     }
 }
 const val COALESCE_GUILD = 268187052753944576L
@@ -123,11 +116,8 @@ const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
 val pluginsFolder = File(".${File.separatorChar}plugins")
 val globalPermissionsFile = File(dataDirectory, "global.dat")
-val respectsLeaderboardsFile = File(dataDirectory, "leaderboard.dat")
-val respectsLeaderboardsFileOld = File(dataDirectory, "leaderboard.json")
-val reputationFile = File(dataDirectory, "reputation.dat")
+val coCoinsFile = File(dataDirectory, "cocoins.dat")
 val blacklistFile = File(dataDirectory, "blacklist.json")
-val respectsResetFile = File(dataDirectory, "respectsReset.dat")
 val rulesMessageFile = File(dataDirectory, "rulesMessage.dat")
 val gson: Gson = GsonBuilder().apply {
     enableComplexMapKeySerialization()
