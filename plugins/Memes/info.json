@@ -1,6 +1,5 @@
 {
   "name": "Memes",
-  "main": "com.coalesce.bot.memes.MemesPlugin",
   "packagesScan": [
     "com.coalesce.bot.memes.commands"
   ]
