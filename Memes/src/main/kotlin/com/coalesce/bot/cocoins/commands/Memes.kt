@@ -24,7 +24,7 @@ class Boi {
 @GlobalCooldown(20L)
 class Bork {
     private val images = arrayOf("http://i.imgur.com/PTCUXDQ.png", "http://i.imgur.com/SRG3pYh.png", "http://i.imgur.com/LHP4Ypo.png",
-            "http://i.imgur.com/NCWGumn.png", "http://i.imgur.com/sMmzyZP.png")
+            "http://i.imgur.com/NCWGumn.png", "http://i.imgur.com/sMmzyZP.png", "http://i.imgur.com/UFKYtZZ.png")
 
     @CommandAlias("Meme command (Bork)")
     fun execute(context: CommandContext) {
