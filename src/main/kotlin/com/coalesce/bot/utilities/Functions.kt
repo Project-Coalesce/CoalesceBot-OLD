@@ -9,6 +9,7 @@ import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.Comparator
 
 var EmbedBuilder.embColor: Color?
     set(color) { setColor(color) }
@@ -113,6 +114,22 @@ fun String.matching(regx: Regex): String {
         str.append((matchList ?: break).next() ?: break)
     }
     return str.toString()
+}
+
+fun <T> List<T>.order(comp: Comparator<T>): MutableList<T> {
+    val list = ArrayList(this)
+    Collections.sort(list, comp)
+    return list
+}
+
+fun Int.nth(): String {
+    val nth = this % 10
+    return "$nth${when (nth) {
+        1 -> "st"
+        2 -> "nd"
+        3 -> "rd"
+        else -> "th"
+    }}"
 }
 
 fun <T> List<T>.order(func: (T, T) -> Int): MutableList<T> {

@@ -3,14 +3,16 @@ package com.coalesce.bot.command
 import com.coalesce.bot.gson
 import com.coalesce.bot.pluginsFolder
 import com.coalesce.bot.utilities.readText
+import com.coalesce.bot.utilities.truncate
 import com.coalesce.bot.utilities.tryLog
 import java.io.File
 import java.net.URLClassLoader
 
 class PluginManager {
     private val plugins = mutableListOf<Plugin>()
-    val registeredPlugins: List<Plugin> = plugins
-    val addedCommands = mutableListOf<Class<*>>()
+    internal val registeredPlugins: List<Plugin> = plugins
+    internal val addedCommands = mutableListOf<Class<*>>()
+    internal val addedGuiceInjections = mutableMapOf<Class<*>, Any>()
 
     init {
         if (pluginsFolder.exists()) {
@@ -20,9 +22,7 @@ class PluginManager {
                     val classLoader = PluginClassLoader(it, javaClass.classLoader)
                     val jsonInfo = gson.fromJson(classLoader.getResourceAsStream("info.json").readText(), PluginData::class.java)
                     println("Loading [${jsonInfo.name}]")
-                    val clazz = classLoader[jsonInfo.main]
-
-                    val plugin = clazz.newInstance() as Plugin
+                    val plugin = classLoader[jsonInfo.main] as? Plugin? ?: Plugin()
                     plugins.add(plugin.apply {
                         pluginClassLoader = classLoader
                         file = it
@@ -30,13 +30,15 @@ class PluginManager {
                         pluginManager = this@PluginManager
                     })
                     plugin.onRegister()
+                    addedGuiceInjections[plugin.javaClass] = plugin
                 }
             }
+            println("Registered ${plugins.size} plugins: ${plugins.joinToString(separator = ", ") { it.pluginData.name }.truncate(0, 1000)}")
         } else pluginsFolder.mkdirs()
     }
 
     data class PluginData(
-         val main: String,
+         val main: String?,
          val name: String,
          val packagesScan: List<String>
     )
@@ -49,10 +51,13 @@ open class Plugin {
     lateinit var pluginManager: PluginManager
 
     fun registerCommand(vararg commandHandler: Class<*>) = pluginManager.addedCommands.addAll(commandHandler)
+    protected fun addGuiceInjection(clazz: Class<*>, value: Any) {
+        pluginManager.addedGuiceInjections[clazz] = value
+    }
 
     open fun onRegister() {}
 }
 
 class PluginClassLoader(val file: File, parent: ClassLoader): URLClassLoader(arrayOf(file.toURI().toURL()), parent) {
-    operator fun get(name: String): Class<*> = Class.forName(name, true, this)
+    operator fun get(name: String?): Any? = if (name == null) null else Class.forName(name, true, this).newInstance()
 }

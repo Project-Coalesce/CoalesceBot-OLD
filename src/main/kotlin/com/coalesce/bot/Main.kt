@@ -42,7 +42,7 @@ class Main private constructor() {
     lateinit var punishments: PunishmentManager
     lateinit var injector: Injector
     lateinit var githubSecret: String
-    lateinit var respectsManager: CoCoinsManager
+    lateinit var coCoinsManager: CoCoinsManager
     lateinit var commandTypeAdapter: AdaptationArgsChecker
     lateinit var commandHandler: Listener
     lateinit var pluginManager: PluginManager
@@ -70,7 +70,7 @@ class Main private constructor() {
 
         tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
         tryLog("Failed to load plugins") { pluginManager = PluginManager() }
-        tryLog("Failed to load CoCoins Manager") { respectsManager = CoCoinsManager() }
+        tryLog("Failed to load CoCoins Manager") { coCoinsManager = CoCoinsManager() }
         tryLog("Failed to load Command Type Adapters") { commandTypeAdapter = AdaptationArgsChecker(jda) }
 
         tryLog("Failed to load Command Handler") {
@@ -104,11 +104,16 @@ class Main private constructor() {
 
 class Injects(val main: Main) : AbstractModule() {
     override fun configure() {
+        main.pluginManager.addedGuiceInjections.forEach {
+            addGuiceInjection(it.key, it.value)
+        }
         bind(Main::class.java).toInstance(main)
         bind(JDA::class.java).toInstance(main.jda)
         bind(PunishmentManager::class.java).toInstance(main.punishments)
-        bind(CoCoinsManager::class.java).toInstance(main.respectsManager)
+        bind(CoCoinsManager::class.java).toInstance(main.coCoinsManager)
     }
+
+    fun <T> addGuiceInjection(clazz: Class<T>, obj: Any) = bind(clazz).toInstance(obj as T)
 }
 const val COALESCE_GUILD = 268187052753944576L
 const val commandPrefix = "!"

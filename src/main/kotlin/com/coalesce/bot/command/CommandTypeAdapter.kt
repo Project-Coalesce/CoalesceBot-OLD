@@ -20,19 +20,15 @@ class AdaptationArgsChecker(val jda: JDA) {
     )
 
     fun adapt(args: Array<String>, type: Class<*>): Pair<Array<String>, Any>? {
+        val newArgs = (if (args.size <= 1) arrayOf<String>() else args.toList().subList(1).toTypedArray())
         if (adaptationsMap.containsKey(type)) {
-            return (if (args.size <= 1) arrayOf<String>() else args.toList().subList(1).toTypedArray()) to
-                    (adaptationsMap[type]!!(args[0]) ?: return null)
+            return newArgs to (adaptationsMap[type]!!(args[0]) ?: return null)
+        } else if (type.isEnum) {
+            val constants = type.enumConstants
+            return newArgs to (constants.find { it.toString() == args[0] } ?: return null)
         } else {
             return adaptWithReflection(args, type)
         }
-    }
-
-    fun attemptAdaptation(classes: Array<Class<*>>, args: Array<String>): Array<Any>? {
-        if (args.size != classes.size) return null
-        val objects = mutableListOf<Any>()
-        classes.forEachIndexed { index, it -> objects.add(adapt(arrayOf(args[index]), it) ?: return null) }
-        return objects.toTypedArray()
     }
 
     fun adaptWithReflection(args: Array<String>, clazz: Class<*>): Pair<Array<String>, Any>? {

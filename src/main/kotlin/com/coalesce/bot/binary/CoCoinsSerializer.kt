@@ -1,6 +1,6 @@
 package com.coalesce.bot.binary
 
-import com.coalesce.bot.RespectsTransaction
+import com.coalesce.bot.CoCoinsTransaction
 import com.coalesce.bot.CoCoinsValue
 import java.io.File
 
@@ -14,7 +14,7 @@ class CoCoinsSerializer(file: File): BinarySerializer<MutableMap<Long, CoCoinsVa
             if (long == -1L) break
 
             val total = inputStream.readDouble()
-            val transactions = mutableListOf<RespectsTransaction>()
+            val transactions = mutableListOf<CoCoinsTransaction>()
 
             val transactionCount = inputStream.readInt()
             var numb = 0
@@ -22,7 +22,7 @@ class CoCoinsSerializer(file: File): BinarySerializer<MutableMap<Long, CoCoinsVa
                 if (numb >= transactionCount) break
                 val amount = inputStream.readDouble()
                 val message = inputStream.readUTF()
-                transactions.add(RespectsTransaction(message, amount))
+                transactions.add(CoCoinsTransaction(message, amount))
                 ++numb
             }
 

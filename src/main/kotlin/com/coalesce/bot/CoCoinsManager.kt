@@ -20,9 +20,9 @@ class CoCoinsManager {
 
         serializer = CoCoinsSerializer(file)
     }
-
-    fun readRawData(): MutableMap<Long, CoCoinsValue> = serializer.read()
-    fun writeRawData(map: MutableMap<Long, CoCoinsValue>) = serializer.write(map)
+    var rawData: MutableMap<Long, CoCoinsValue>
+        get() = serializer.read()
+        set(map) = serializer.write(map)
 
     fun generateFile(file: File) {
         file.createNewFile()
@@ -40,11 +40,18 @@ class CoCoinsManager {
         }
     }
 
+    internal fun save(user: User, value: CoCoinsValue) {
+        val map = rawData
+        map[user.idLong] = value
+        cache[user.idLong] = value
+        rawData = map
+    }
+
     fun clearCache() = cache.clear()
 }
 
-class CoCoinsValue(var total: Double, var transactions: MutableList<RespectsTransaction>) {
-    fun transaction(transaction:  RespectsTransaction, channel: TextChannel, user: User) {
+class CoCoinsValue(var total: Double, var transactions: MutableList<CoCoinsTransaction>) {
+    fun transaction(transaction: CoCoinsTransaction, channel: TextChannel, user: User) {
         val member = channel.guild.getMember(user)
         transactions.add(0, transaction)
         if (transactions.size > 10) transactions = transactions.subList(0, 10)
@@ -52,7 +59,9 @@ class CoCoinsValue(var total: Double, var transactions: MutableList<RespectsTran
         channel.sendMessage("${member.asMention}: ${transaction.message}\n" +
                 "**${if (transaction.amount >= 0) "+" else ""}${transaction.amount.toInt()}¢$!**").queue()
         total += transaction.amount
+
+        Main.instance.coCoinsManager.save(user, this)
     }
 }
 
-data class RespectsTransaction(val message: String, val amount: Double)
+data class CoCoinsTransaction(val message: String, val amount: Double)

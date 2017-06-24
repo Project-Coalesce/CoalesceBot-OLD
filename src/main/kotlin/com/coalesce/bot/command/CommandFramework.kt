@@ -21,6 +21,7 @@ import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
 import java.awt.Color
+import java.awt.SystemColor.info
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -183,6 +184,7 @@ class CommandFrameworkClass(
             instance = guice.getInstance(clazz)
 
             val subCommands = mutableMapOf<String, Pair<MutableMap<Pair<List<Class<*>>, List<KParameter>>, Pair<KCallable<*>, String>>, CommandInfo>>()
+            fun newSubCommandMap() = mutableMapOf<Pair<List<Class<*>>, List<KParameter>>, Pair<KCallable<*>, String>>() to CommandInfo(subCommand = true)
             val info = CommandInfo()
             clazz.annotations.forEach {
                 if (it is Command) {
@@ -191,7 +193,6 @@ class CommandFrameworkClass(
                 } else if (it is Usage) info.usage = it.usage
                 else if (it is GlobalCooldown) info.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
                 else if (it is UserCooldown) info.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
-                else if (it is SubCommand) subCommands[it.name] = mutableMapOf<Pair<List<Class<*>>, List<KParameter>>, Pair<KCallable<*>, String>>() to CommandInfo(subCommand = true)
             }
 
             val methods = mutableMapOf<Pair<List<Class<*>>, List<KParameter>>, Pair<KCallable<*>, String>>()
@@ -201,10 +202,21 @@ class CommandFrameworkClass(
 
                 if (it.isAnnotationPresent(CommandAlias::class.java)) {
                     methods[getParameters(it)] = it.kotlinFunction!! to it.getAnnotationsByType(CommandAlias::class.java).first().description
-                // Sub Commands
+                    // Sub Commands
+                } else if (it.isAnnotationPresent(SubCommand::class.java)) {
+                    val subCommandAnno = it.getAnnotationsByType(SubCommand::class.java).first()
+                    val map = subCommands[subCommandAnno.name] ?: newSubCommandMap()
+                    map.second.aliases = subCommandAnno.aliases.split(" ").toMutableList().apply { add(subCommandAnno.name) }
+                    map.first[getParameters(it)] = it.kotlinFunction!! to it.getAnnotationsByType(SubCommandAlias::class.java).first().description
+                    it.declaredAnnotations.forEach {
+                        if (it is Usage) map.second.usage = it.usage
+                        else if (it is GlobalCooldown) map.second.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
+                        else if (it is UserCooldown) map.second.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
+                    }
+                    subCommands[subCommandAnno.name] = map
                 } else if (it.isAnnotationPresent(SubCommandAlias::class.java)) {
                     val subCommandAnno = it.getAnnotationsByType(SubCommandAlias::class.java).first()
-                    val map = subCommands[subCommandAnno.name]!!
+                    val map = subCommands[subCommandAnno.name] ?: newSubCommandMap()
                     map.first[getParameters(it)] = it.kotlinFunction!! to it.getAnnotationsByType(SubCommandAlias::class.java).first().description
                     subCommands[subCommandAnno.name] = map
                 // Listeners
@@ -286,6 +298,11 @@ class BotCommand(
 
                 if (args.isNotEmpty()) it.key.first.filter { it != CommandContext::class.java }.forEachIndexed { index, clazz ->
                     val kotlinParam = it.key.second[index + 2]
+                    if (index == it.key.second.size - 1 && kotlinParam.annotations.any { it is VarArg }) {
+                        paramters[kotlinParam] = arguments.joinToString(separator = " ")
+                        return@forEachIndexed
+                    }
+
                     val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz) ?:
                             run { if (kotlinParam.isOptional) return@forEachIndexed else return@forEach }
                     arguments = newArgs; paramters[kotlinParam] = obj
@@ -385,21 +402,18 @@ annotation class Command(
 )
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.CLASS)
 annotation class UserCooldown(
         val userCooldown: Long,
         val userCooldownUnit: TimeUnit = TimeUnit.SECONDS
 )
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.CLASS)
 annotation class GlobalCooldown(
         val globalCooldown: Long,
         val globalCooldownUnit: TimeUnit = TimeUnit.SECONDS
 )
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.CLASS)
 annotation class Usage(val usage: String)
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -423,6 +437,9 @@ annotation class SubCommandAlias(
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
 annotation class JDAListener
+
+@Retention(AnnotationRetention.RUNTIME)
+annotation class VarArg
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
