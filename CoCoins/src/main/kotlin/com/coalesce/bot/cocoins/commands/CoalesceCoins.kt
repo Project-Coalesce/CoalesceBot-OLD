@@ -24,7 +24,7 @@ class CoalesceCoins: Embeddables {
         })
     }
 
-    @SubCommand("top", "leaderboard top")
+    @SubCommand("top", "leaderboard top", "View the CoCoins leaderboard")
     @GlobalCooldown(20L, TimeUnit.SECONDS)
     fun coinsBoard(context: CommandContext, page: Int = 1) {
         val coins = context.main.coCoinsManager

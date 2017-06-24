@@ -24,7 +24,7 @@ class Marketplace @Inject constructor(val marketplaceManager: MarketplaceManager
         })
     }
 
-    @SubCommand("Create", "new sell")
+    @SubCommand("Create", "new sell", "Sell memes in the market.")
     @UserCooldown(10L, TimeUnit.MINUTES)
     fun create(context: CommandContext, name: String, image: String, price: Int, @VarArg title: String) {
         if (price !in 5..100) throw ArgsException("A meme's cost should be between 5 and 100.")
@@ -33,7 +33,7 @@ class Marketplace @Inject constructor(val marketplaceManager: MarketplaceManager
         context("Meme added.")
     }
 
-    @SubCommand("Buy", "find shop")
+    @SubCommand("Buy", "find shop", "Take a look at the marketplace.")
     @UserCooldown(10L, TimeUnit.SECONDS)
     fun shop(context: CommandContext) {
         val user = marketplaceManager[context.author]

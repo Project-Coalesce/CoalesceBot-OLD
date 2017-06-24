@@ -6,6 +6,7 @@ import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
 import com.coalesce.bot.utilities.*
 import com.google.inject.Injector
+import com.sun.javafx.application.ParametersImpl.getParameters
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.*
@@ -25,6 +26,7 @@ import java.awt.SystemColor.info
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.lang.reflect.Parameter
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KCallable
 import kotlin.reflect.KParameter
@@ -129,17 +131,13 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         event.message.delete().queue()
 
         try {
-            val (method, paramters, cmdInfo) = (info.botCommand(args, context, info.instance) ?: run {
+            if(!info.botCommand(args, context, info.instance, checks)) {
                 context(embed().apply {
                     embColor = Color(237, 45, 35)
                     embTitle = "Invalid Argumentation!"
                     field("Usage", "```${info.commandInfo.usage}```")
                 })
-                return
-            })
-            context.info = cmdInfo
-            if (checks.any { !it(context, cmdInfo) }) return
-            method.callBy(paramters)
+            }
         } catch (ex: Exception) {
             val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
 
@@ -183,31 +181,31 @@ class CommandFrameworkClass(
         if (clazz.isAnnotationPresent(Command::class.java)) {
             instance = guice.getInstance(clazz)
 
-            val subCommands = mutableMapOf<String, Pair<MutableMap<Pair<List<Class<*>>, List<KParameter>>, Pair<KCallable<*>, String>>, CommandInfo>>()
-            fun newSubCommandMap() = mutableMapOf<Pair<List<Class<*>>, List<KParameter>>, Pair<KCallable<*>, String>>() to CommandInfo(subCommand = true)
+            val subCommands = mutableMapOf<String, Pair<MutableList<UsableMethod>, CommandInfo>>()
+            fun newSubCommandMap() = mutableListOf<UsableMethod>() to CommandInfo(subCommand = true)
             val info = CommandInfo()
             clazz.annotations.forEach {
                 if (it is Command) {
                     info.name = it.name
                     info.aliases = it.aliases.split(" ").toMutableList().apply { add(it.name) }
-                } else if (it is Usage) info.usage = it.usage
+                }
                 else if (it is GlobalCooldown) info.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
                 else if (it is UserCooldown) info.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
             }
 
-            val methods = mutableMapOf<Pair<List<Class<*>>, List<KParameter>>, Pair<KCallable<*>, String>>()
+            val methods = mutableListOf<UsableMethod>()
 
             clazz.declaredMethods.forEach {
                 if (Modifier.isStatic(it.modifiers)) return@forEach
 
                 if (it.isAnnotationPresent(CommandAlias::class.java)) {
-                    methods[getParameters(it)] = it.kotlinFunction!! to it.getAnnotationsByType(CommandAlias::class.java).first().description
+                    methods.add(UsableMethod.of(it, it.getAnnotationsByType(CommandAlias::class.java).first().description))
                     // Sub Commands
                 } else if (it.isAnnotationPresent(SubCommand::class.java)) {
                     val subCommandAnno = it.getAnnotationsByType(SubCommand::class.java).first()
                     val map = subCommands[subCommandAnno.name] ?: newSubCommandMap()
                     map.second.aliases = subCommandAnno.aliases.split(" ").toMutableList().apply { add(subCommandAnno.name) }
-                    map.first[getParameters(it)] = it.kotlinFunction!! to it.getAnnotationsByType(SubCommandAlias::class.java).first().description
+                    map.first.add(UsableMethod.of(it, subCommandAnno.description))
                     it.declaredAnnotations.forEach {
                         if (it is Usage) map.second.usage = it.usage
                         else if (it is GlobalCooldown) map.second.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
@@ -217,7 +215,7 @@ class CommandFrameworkClass(
                 } else if (it.isAnnotationPresent(SubCommandAlias::class.java)) {
                     val subCommandAnno = it.getAnnotationsByType(SubCommandAlias::class.java).first()
                     val map = subCommands[subCommandAnno.name] ?: newSubCommandMap()
-                    map.first[getParameters(it)] = it.kotlinFunction!! to it.getAnnotationsByType(SubCommandAlias::class.java).first().description
+                    map.first.add(UsableMethod.of(it, it.getAnnotationsByType(SubCommandAlias::class.java).first().description))
                     subCommands[subCommandAnno.name] = map
                 // Listeners
                 } else if (it.isAnnotationPresent(JDAListener::class.java)) {
@@ -238,19 +236,15 @@ class CommandFrameworkClass(
                 }
             }
 
-            // Pretty usage generator
-            if (info.usage.isEmpty()) {
-                info.usage = StringBuilder().apply {
-                    fun addMethod(method: Pair<List<Class<*>>, List<KParameter>>, name: String) =
-                        appendln("$commandPrefix${name.toLowerCase()} " + method.second.subList(1).filter {
-                            it.type.classifier != CommandContext::class }.joinToString(separator = " ") { if (it.isOptional) "[${it.name!!.capitalize()}]" else "<${it.name!!.capitalize()}>" })
+            info.usage = StringBuilder().apply {
+                fun addMethod(method: UsableMethod, name: String) =
+                    appendln("$commandPrefix${name.toLowerCase()} " + method.usage)
 
-                    methods.forEach { addMethod(it.key, info.name) }
-                    subCommands.forEach { subCmd ->
-                        subCmd.value.first.forEach { addMethod(it.key, subCmd.value.second.name) }
-                    }
-                }.toString()
-            }
+                methods.forEach { addMethod(it, info.name) }
+                subCommands.forEach { subCmd ->
+                    subCmd.value.first.forEach { addMethod(it, subCmd.value.second.name) }
+                }
+            }.toString()
             commandInfo = info
 
             // BOT COMMAND
@@ -260,11 +254,6 @@ class CommandFrameworkClass(
             botCommand = BotCommand(methods, subBotCommands, adaptationArgsChecker, commandInfo)
             commandHandler.register(this)
         }
-    }
-
-    private fun getParameters(method: Method): Pair<List<Class<*>>, List<KParameter>> {
-        val params = method.kotlinFunction!!.parameters
-        return method.parameterTypes.toList() to params
     }
 
     data class CommandInfo(
@@ -277,40 +266,94 @@ class CommandFrameworkClass(
     )
 }
 
+class KotlinUsableMethod(
+        val kParams: List<KParameter>,
+        val kCallable: KCallable<*>,
+        classList: List<Parameter>,
+        javaCallable: Method,
+        info: String
+): UsableMethod(classList, javaCallable, info, kParams.subList(2).joinToString(separator = " ") { if (it.isOptional) "[${it.name!!.capitalize()}]" else "<${it.name!!.capitalize()}>" }) {
+    override val paramCount = kParams.subList(2).count { !it.isOptional }
+}
+
+open class UsableMethod(
+        val classList: List<Parameter>,
+        val invoke: Method,
+        val usage: String,
+        val info: String
+) {
+    companion object {
+        fun of(meth: Method, info: String): UsableMethod {
+            if (meth.kotlinFunction != null) {
+                val kfunc = meth.kotlinFunction!!
+                return KotlinUsableMethod(kfunc.parameters, kfunc, meth.parameters.toList(), meth, info)
+            }
+            return UsableMethod(meth.parameters.toList(), meth, info, meth.getAnnotation(Usage::class.java)!!.usage)
+        }
+    }
+
+    open val paramCount = classList.size
+}
+
 class BotCommand(
-        val methods: Map<Pair<List<Class<*>>, List<KParameter>>, Pair<KCallable<*>, String>>,
+        val methods: List<UsableMethod>,
         val subCommands: Map<String, BotCommand>,
         val commandTypeAdapter: AdaptationArgsChecker,
         private val commandInfo: CommandFrameworkClass.CommandInfo
 ) {
 
-    operator fun invoke(args: List<String>, context: CommandContext, instance: Any): Triple<KCallable<*>, Map<KParameter, Any>, CommandFrameworkClass.CommandInfo>? {
+    operator fun invoke(args: List<String>, context: CommandContext, instance: Any, checks: List<(Context, CommandFrameworkClass.CommandInfo) -> Boolean>): Boolean {
         if (args.isNotEmpty() && subCommands.containsKey(args.first())) {
-            return subCommands[args.first()]!!(args.subList(1), context, instance)
+            return subCommands[args.first()]!!(args.subList(1), context, instance, checks)
         } else {
             methods.forEach {
-                if (args.size < it.key.second.subList(2).count { !it.isOptional }) return@forEach
+                if (args.size < it.paramCount) return@forEach
                 var arguments = args.toTypedArray()
-                val paramters = mutableMapOf(
-                        it.key.second[0] to instance,
-                        it.key.second[1] to context
-                )
+                if (it is KotlinUsableMethod) {
+                    val paramters = mutableMapOf(
+                            it.kParams[0] to instance,
+                            it.kParams[1] to context
+                    )
 
-                if (args.isNotEmpty()) it.key.first.filter { it != CommandContext::class.java }.forEachIndexed { index, clazz ->
-                    val kotlinParam = it.key.second[index + 2]
-                    if (index == it.key.second.size - 1 && kotlinParam.annotations.any { it is VarArg }) {
-                        paramters[kotlinParam] = arguments.joinToString(separator = " ")
+                    if (args.isNotEmpty()) it.classList.filter { it.type != CommandContext::class.java }.forEachIndexed { index, clazz ->
+                        val kotlinParam = it.kParams[index + 2]
+                        if (index == it.classList.size - 1 && kotlinParam.annotations.any { it is VarArg }) {
+                            paramters[kotlinParam] = arguments.joinToString(separator = " ")
+                            return@forEachIndexed
+                        }
+
+                        val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz.type) ?:
+                                run { if (kotlinParam.isOptional) return@forEachIndexed else return@forEach }
+                        arguments = newArgs; paramters[kotlinParam] = obj
+                    }
+
+                    context.info = commandInfo
+                    if (checks.any { !it(context, commandInfo) }) return@invoke true
+                    it.kCallable.callBy(paramters)
+                    return@invoke true
+                }
+
+                val objects = mutableListOf<Any?>()
+                if (args.isNotEmpty()) it.classList.filter { it.type != CommandContext::class.java }.forEachIndexed { index, clazz ->
+                    if (index == it.classList.size - 1 && clazz.isAnnotationPresent(VarArg::class.java)) {
+                        objects.add(arguments.joinToString(separator = " "))
                         return@forEachIndexed
                     }
 
-                    val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz) ?:
-                            run { if (kotlinParam.isOptional) return@forEachIndexed else return@forEach }
-                    arguments = newArgs; paramters[kotlinParam] = obj
+                    val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz.type) ?:
+                            if (clazz.isAnnotationPresent(Optional::class.java)) {
+                                objects.add(null)
+                                return@forEachIndexed
+                            } else return@forEach
+                    arguments = newArgs; objects.add(obj)
                 }
-                return@invoke Triple(it.value.first, paramters, commandInfo)
+
+                context.info = commandInfo
+                if (checks.any { !it(context, commandInfo) }) return@invoke true
+                it.invoke(instance, *(objects.toTypedArray()))
             }
 
-            return null
+            return false
         }
     }
 }
@@ -414,6 +457,7 @@ annotation class GlobalCooldown(
 )
 
 @Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
 annotation class Usage(val usage: String)
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -424,7 +468,8 @@ annotation class CommandAlias(val description: String)
 @Target(AnnotationTarget.FUNCTION)
 annotation class SubCommand(
         val name: String,
-        val aliases: String = "%%name%%"
+        val aliases: String = "%%name%%",
+        val description: String
 )
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -440,6 +485,9 @@ annotation class JDAListener
 
 @Retention(AnnotationRetention.RUNTIME)
 annotation class VarArg
+
+@Retention(AnnotationRetention.RUNTIME)
+annotation class Optional
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)

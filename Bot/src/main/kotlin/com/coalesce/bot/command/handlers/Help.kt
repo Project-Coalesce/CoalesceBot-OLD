@@ -3,6 +3,7 @@ package com.coalesce.bot.command.handlers
 import com.coalesce.bot.command.*
 import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.utilities.*
+import org.reflections.util.Utils.name
 import java.awt.Color
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KParameter
@@ -26,19 +27,17 @@ class Help: Embeddables {
 
             handler.commands.forEach {
                 val alias = it.commandInfo.aliases[0]
-                fun name(method: Pair<List<Class<*>>, List<KParameter>>) =
-                        "${commandPrefix}${alias.toLowerCase()} " + method.second.subList(1).filter {
-                            it.type.classifier != CommandContext::class }.joinToString(separator = " ") { if (it.isOptional) "[${it.name!!.capitalize()}]" else "<${it.name!!.capitalize()}>" }
+                fun name(method: UsableMethod) = "$commandPrefix${alias.toLowerCase()} " + method.usage
 
                 it.botCommand.methods.forEach {
-                    val usageString = name(it.key)
-                    val desc = it.value.second
+                    val usageString = name(it)
+                    val desc = it.info
                     addLine("`$usageString`: $desc")
                 }
                 it.botCommand.subCommands.forEach {
                     it.value.methods.forEach {
-                        val usageString = name(it.key)
-                        val desc = it.value.second
+                        val usageString = name(it)
+                        val desc = it.info
                         addLine("`$usageString`: $desc")
                     }
                 }
