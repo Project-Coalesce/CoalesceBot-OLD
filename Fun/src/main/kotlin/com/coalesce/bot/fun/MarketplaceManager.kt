@@ -1,4 +1,4 @@
-package com.coalesce.bot.cocoins
+package com.coalesce.bot.`fun`
 
 import com.coalesce.bot.command.ArgsException
 import com.coalesce.bot.dataDirectory

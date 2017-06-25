@@ -1,15 +1,33 @@
 package com.coalesce.bot.cocoins.commands
 
+import com.coalesce.bot.cocoins.memesChannel
 import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.*
+import com.google.inject.Inject
+import net.dv8tion.jda.core.JDA
+import net.dv8tion.jda.core.entities.Emote
 import net.dv8tion.jda.core.entities.User
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.awt.Color
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
 @Command("CoalesceCoins", "balance bal money cocoins coins coc")
 @UserCooldown(12L, TimeUnit.SECONDS)
-class CoalesceCoins: Embeddables {
+class CoalesceCoins @Inject constructor(jda: JDA): Embeddables {
+    data class MemeReaction(val message: String,
+                             val amount: Double,
+                             val delay: Double,
+                             val rating: String,
+                             val emote: Emote? = null,
+                             val stringEmote: String? = null)
+    private val memeReactions = mutableListOf(
+            MemeReaction("Not Dank Enough", -1.0, 1260.0, "0/10", emote = jda.getEmoteById(304043388523511808L)),
+            MemeReaction("Funny 🥚🥚🇩 🇪", 1.0, 860.0, "6.9/10", stringEmote = "😂"),
+            MemeReaction("Lit Fam", 2.0, 720.0, "8.5/10", stringEmote = "🔥"),
+            MemeReaction("Dank", 3.0, 1260.0, "10/10", emote = jda.getEmoteById(318557118791680000L))
+    )
+
     @CommandAlias("Find out how much money someone has")
     fun coCoins(context: CommandContext, target: User = context.author) {
         val coins = context.main.coCoinsManager[target]
@@ -46,5 +64,22 @@ class CoalesceCoins: Embeddables {
                 }
             }
         })
+    }
+
+    @JDAListener
+    fun memeReceive(event: MessageReceivedEvent) {
+        if (event.channel.idLong == memesChannel) {
+            event.channel.getMessageById(event.messageIdLong).queue { message ->
+                memeReactions.forEach {
+                    if (it.stringEmote != null) message.addReaction(it.stringEmote).queue()
+                    else message.addReaction(it.emote!!).queue()
+                }
+            }
+        }
+    }
+
+    @ReactionListener("Meme reaction")
+    fun reactionReceive(event: ReactionContext) {
+
     }
 }

@@ -22,6 +22,7 @@
         <module>CoCoins</module>
         <module>Memes</module>
         <module>Bot</module>
+        <module>Administration</module>
     </modules>
 
     <build>

@@ -1,6 +1,5 @@
 {
   "name": "CoCoins",
-  "main": "com.coalesce.bot.cocoins.CoCoinsPlugin",
   "packagesScan": [
     "com.coalesce.bot.cocoins.commands"
   ]

@@ -18,7 +18,6 @@ import org.reflections.Reflections
 import org.reflections.scanners.ResourcesScanner
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ConfigurationBuilder
-import org.reflections.util.FilterBuilder
 import java.awt.Color
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -497,6 +496,9 @@ annotation class Optional
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
-annotation class ReactionListener(val name: String)
+annotation class ReactionListener(
+        val name: String,
+        val extraChecks: Array<String>
+)
 
 class ArgsException(message: String): Exception(message)
