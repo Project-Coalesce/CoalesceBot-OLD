@@ -19,4 +19,8 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <finalName>Memes</finalName>
+    </build>
 </project>

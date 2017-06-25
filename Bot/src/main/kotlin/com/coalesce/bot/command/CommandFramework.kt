@@ -6,7 +6,6 @@ import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
 import com.coalesce.bot.utilities.*
 import com.google.inject.Injector
-import com.sun.javafx.application.ParametersImpl.getParameters
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.*
@@ -18,15 +17,15 @@ import net.dv8tion.jda.core.requests.RestAction
 import org.reflections.Reflections
 import org.reflections.scanners.ResourcesScanner
 import org.reflections.scanners.SubTypesScanner
-import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
 import java.awt.Color
-import java.awt.SystemColor.info
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.lang.reflect.Parameter
+import java.net.URL
+import java.net.URLClassLoader
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KCallable
 import kotlin.reflect.KParameter
@@ -44,17 +43,24 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
 
     init {
         println("Registering commands...")
+        val classLoaders = mutableListOf(javaClass.classLoader as URLClassLoader)
         val packages = mutableListOf("com.coalesce.bot.command.handlers")
-        pluginManager.registeredPlugins.forEach { packages.addAll(it.pluginData.packagesScan) }
+        pluginManager.registeredPlugins.forEach {
+            classLoaders.add(it.pluginClassLoader)
+            packages.addAll(it.pluginData.packagesScan)
+        }
+
+        val urls = mutableListOf<URL>()
+        classLoaders.forEach { urls.addAll(it.urLs) }
 
         val classes = mutableListOf<Class<*>>()
         classes.addAll(Reflections(ConfigurationBuilder()
                 .setScanners(SubTypesScanner(false), ResourcesScanner())
-                .setUrls(ClasspathHelper.forJavaClassPath())
-                .filterInputsBy(FilterBuilder().apply {
-                    packages.forEach { include(FilterBuilder.prefix(it)) }
-                }))
+                .setUrls(urls)
+                .addClassLoaders(*(classLoaders.toTypedArray()))
+                .filterInputsBy { !it!!.endsWith("Kt") && !it.contains('$') && packages.any { pck -> it.startsWith(pck) } })
                 .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') && !it.name.endsWith("Kt") })
+        println(classes.joinToString(separator = ", ") { it.name })
         classes.addAll(pluginManager.addedCommands)
         classes.forEach { CommandFrameworkClass(this, adaptationArgsChecker, guice, it) }
         Help.loadHelp(this)
@@ -238,7 +244,7 @@ class CommandFrameworkClass(
 
             info.usage = StringBuilder().apply {
                 fun addMethod(method: UsableMethod, name: String) =
-                    appendln("$commandPrefix${name.toLowerCase()} " + method.usage)
+                    appendln("$commandPrefix${name.toLowerCase()} ${method.info}: ${method.usage}")
 
                 methods.forEach { addMethod(it, info.name) }
                 subCommands.forEach { subCmd ->
@@ -249,7 +255,7 @@ class CommandFrameworkClass(
 
             // BOT COMMAND
             val subBotCommands = mutableMapOf<String, BotCommand>()
-            subCommands.forEach { subBotCommands[it.key] = BotCommand(it.value.first, mapOf(), adaptationArgsChecker, it.value.second) }
+            subCommands.forEach { subBotCommands[it.key.toLowerCase()] = BotCommand(it.value.first, mapOf(), adaptationArgsChecker, it.value.second) }
 
             botCommand = BotCommand(methods, subBotCommands, adaptationArgsChecker, commandInfo)
             commandHandler.register(this)
@@ -303,8 +309,8 @@ class BotCommand(
 ) {
 
     operator fun invoke(args: List<String>, context: CommandContext, instance: Any, checks: List<(Context, CommandFrameworkClass.CommandInfo) -> Boolean>): Boolean {
-        if (args.isNotEmpty() && subCommands.containsKey(args.first())) {
-            return subCommands[args.first()]!!(args.subList(1), context, instance, checks)
+        if (args.isNotEmpty() && subCommands.containsKey(args.first().toLowerCase())) {
+            return subCommands[args.first().toLowerCase()]!!(args.subList(1), context, instance, checks)
         } else {
             methods.forEach {
                 if (args.size < it.paramCount) return@forEach

@@ -27,17 +27,17 @@ class Help: Embeddables {
 
             handler.commands.forEach {
                 val alias = it.commandInfo.aliases[0]
-                fun name(method: UsableMethod) = "$commandPrefix${alias.toLowerCase()} " + method.usage
+                fun name(method: UsableMethod) = "$commandPrefix${alias.toLowerCase()} " + method.info
 
                 it.botCommand.methods.forEach {
                     val usageString = name(it)
-                    val desc = it.info
+                    val desc = it.usage
                     addLine("`$usageString`: $desc")
                 }
                 it.botCommand.subCommands.forEach {
                     it.value.methods.forEach {
                         val usageString = name(it)
-                        val desc = it.info
+                        val desc = it.usage
                         addLine("`$usageString`: $desc")
                     }
                 }
