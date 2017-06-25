@@ -19,9 +19,9 @@
     </properties>
 
     <modules>
-        <module>CoCoins</module>
-        <module>Memes</module>
         <module>Bot</module>
+        <module>CoCoins</module>
+        <module>Fun</module>
         <module>Administration</module>
     </modules>
 

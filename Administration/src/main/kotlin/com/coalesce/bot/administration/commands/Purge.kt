@@ -13,7 +13,7 @@ import net.dv8tion.jda.core.entities.User
 class Purge {
     @CommandAlias("Purge a channel")
     fun purgeChannel(context: CommandContext, channel: TextChannel = context.channel, amount: Int = 100) {
-        purge(context.channel, amount = amount) { true }
+        purge(channel, amount = amount) { true }
     }
 
     @CommandAlias("Purge messages from a specific user")
