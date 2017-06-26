@@ -9,6 +9,7 @@ import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.function.Predicate
 import kotlin.Comparator
 
 var EmbedBuilder.embColor: Color?
@@ -23,6 +24,16 @@ var EmbedBuilder.embDescription: String?
     set(description) { setDescription(description) }
     get() = null
 
+infix fun <E> Iterable<E>.and(other: Iterable<E>): List<E> =
+    listOf {
+        addAll(this@and)
+        addAll(other)
+    }
+
+fun <E> Predicate<E>.toLambdaFunc(): (E) -> Boolean = { this@toLambdaFunc.test(it) }
+
+fun <E> listOf(handler: MutableList<E>.() -> Unit) = mutableListOf<E>().apply(handler)
+
 fun EmbedBuilder.description(builder: StringBuilder.() -> Unit) {
     embDescription = StringBuilder().apply(builder).toString()
 }
@@ -33,8 +44,6 @@ fun <T> Iterable<T>.count(check: (T) -> Boolean): Int {
     return amount
 }
 
-fun <T> List<T>.startsWith(obj: T) = isNotEmpty() && first() == obj
-
 fun tryLog(message: String, func: () -> Unit) =
     try {
         func()
@@ -42,11 +51,6 @@ fun tryLog(message: String, func: () -> Unit) =
         System.err.println(message)
         ex.printStackTrace()
     }
-
-inline fun <T> Iterable<T>.allIndexed(predicate: (T, Int) -> Boolean): Boolean {
-    forEachIndexed { index, element -> if (!predicate(element, index)) return false }
-    return true
-}
 
 fun String.smallTimeUnit(): TimeUnit? {
     TimeUnit.values().forEach {
@@ -59,10 +63,6 @@ fun String.smallTimeUnit(): TimeUnit? {
 fun quietly(func: () -> Unit) = try{ func() } catch (ex: Exception) { /* Ignore */ }
 
 fun <E> List<E>.subList(fromIndex: Int): List<E> = subList(fromIndex, size)
-
-fun <K, V> hashTableOf(): Hashtable<K, V> = Hashtable()
-
-fun <K, V> hashTableOf(vararg elements: Pair<K, V>): Hashtable<K, V> = Hashtable<K, V>(elements.size).apply { putAll(elements) }
 
 fun Long.formatTime(): String {
     val calendar = Calendar.getInstance()
@@ -90,22 +90,6 @@ fun Long.formatTimeDiff(): String {
 }
 
 fun String.truncate(from: Int, to: Int): String = if (this.length >= to) substring(from, to) + "..." else this
-
-fun String.parseTimeUnit(): TimeUnit? {
-    try {
-        return TimeUnit.valueOf(this.toUpperCase())
-    } catch (ex: IllegalArgumentException) {
-        return null
-    }
-}
-
-fun String.parseDouble(): Double? {
-    try {
-        return java.lang.Double.parseDouble(this)
-    } catch (ex: NumberFormatException) {
-        return null
-    }
-}
 
 fun String.matching(regx: Regex): String {
     val matchList = regx.matchEntire(this)
@@ -142,54 +126,6 @@ fun InputStream.readText(charset: Charset = Charsets.UTF_8): String = readBytes(
 
 fun <T> List<T>.orderSelf(func: (T, T) -> Int) = Collections.sort(this, func)
 
-fun String.limit(limit: Int, ending: String = "..."): String {
-    if (length > limit) {
-        return this.substring(0, limit) + ending
-    }
-    return this
-}
-
-inline fun ifDo(can: Boolean, crossinline todo: () -> Unit) {
-    if (can) {
-        todo.invoke()
-    }
-}
-
-inline fun ifDo(can: () -> Boolean, crossinline todo: () -> Unit) {
-    if (can.invoke()) {
-        todo.invoke()
-    }
-}
-
-inline fun <T> ifwithDo(can: (T) -> Boolean, with: T, crossinline todo: () -> Unit) {
-    if (can.invoke(with)) {
-        todo.invoke()
-    }
-}
-
-fun String.isInteger(): Boolean {
-    if (this.isEmpty()) return false
-    val length = this.length
-    if (length == 0) {
-        return false
-    }
-    var i = 0
-    if (this[0] == '-') {
-        if (length == 1) {
-            return false
-        }
-        i = 1
-    }
-    while (i < length) {
-        val c = this[i]
-        if (c < '0' || c > '9') {
-            return false
-        }
-        i++
-    }
-    return true
-}
-
 interface Embeddables {
     fun embed(): EmbedBuilder {
         return EmbedBuilder()
@@ -199,16 +135,8 @@ interface Embeddables {
         return MessageEmbed.Field(title, text, inline)
     }
 
-    fun makeField(title: String?, user: IMentionable, inline: Boolean = false): MessageEmbed.Field {
-        return makeField(title, user.asMention, inline)
-    }
-
     fun EmbedBuilder.field(title: String?, text: String, inline: Boolean = false): EmbedBuilder {
         return this.addField(makeField(title, text, inline))
-    }
-
-    fun EmbedBuilder.field(title: String?, user: IMentionable, inline: Boolean = false): EmbedBuilder {
-        return field(title, user.asMention, inline)
     }
 
     fun EmbedBuilder.data(title: String?, colour: Color? = null, author: String? = null, avatar: String? = null, url: String? = null): EmbedBuilder {

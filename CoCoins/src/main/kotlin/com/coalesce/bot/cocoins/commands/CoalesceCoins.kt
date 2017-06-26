@@ -1,5 +1,6 @@
 package com.coalesce.bot.cocoins.commands
 
+import com.coalesce.bot.CoCoinsTransaction
 import com.coalesce.bot.cocoins.memesChannel
 import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.*
@@ -78,8 +79,15 @@ class CoalesceCoins @Inject constructor(jda: JDA): Embeddables {
         }
     }
 
-    @ReactionListener("Meme reaction")
-    fun reactionReceive(event: ReactionContext) {
-
+    @ReactionListener("MemeReaction", arrayOf("memeReactionCheck"))
+    fun reactionReceive(context: ReactionContext) {
+        val coins = context.main.coCoinsManager[context.author]
+        val reaction = memeReactions.find { (it.stringEmote ?: it.emote) == (context.emote.emote ?: context.emote.name) }!!
+        coins.transaction(CoCoinsTransaction("Meme reaction (${context.author.name}): \"${reaction.message}\" - ${reaction.rating}",
+                reaction.amount), context.channel, context.author)
     }
+
+    // Checks for memes
+    fun memeReactionCheck(event: ReactionContext) = !event.author.isBot &&
+            memeReactions.any { (it.stringEmote ?: it.emote) == (event.emote.emote ?: event.emote.name) }
 }

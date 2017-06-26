@@ -27,7 +27,8 @@ class CooldownHandler: Embeddables {
         timeOutHandler(info.globalCooldown, TimeUnit.MILLISECONDS) { (userCooldown[user] ?: return@timeOutHandler).remove(info) }
     }
 
-    fun cooldownCheck(context: Context, info: CommandFrameworkClass.CommandInfo): Boolean {
+    fun cooldownCheck(context: Context): Boolean {
+        val info = context.info
         if (userCooldown.containsKey(context.author) && userCooldown[context.author]!!.containsKey(info)) {
             context(embed().apply {
                 embTitle = "Wait before you can run this command again!"
@@ -120,8 +121,8 @@ class PermHandler private constructor(private val guildDataFolder: File, private
     }
 }
 
-fun permCheck(context: Context, info: CommandFrameworkClass.CommandInfo): Boolean {
-    if (!PermHandler[context.guild](context.author, "Commands.${info.name}") && context.channel.idLong != 315934590109745154L) {
+fun permCheck(context: Context): Boolean {
+    if (!PermHandler[context.guild](context.author, "Commands.${context.info.name}") && context.channel.idLong != 315934590109745154L) {
         context(EmbedBuilder().apply {
             embTitle = "Access Denied!"
             embDescription = "🚫 You lack permission to run this command."

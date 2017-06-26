@@ -26,7 +26,9 @@ import java.lang.reflect.Parameter
 import java.net.URL
 import java.net.URLClassLoader
 import java.util.concurrent.TimeUnit
+import java.util.function.Predicate
 import kotlin.reflect.KCallable
+import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.jvm.kotlinFunction
 
@@ -34,9 +36,9 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         ListenerAdapter(), Embeddables {
     val commandAliasMap = mutableMapOf<String, CommandFrameworkClass>()
     val eventHandlers = mutableMapOf<Class<*>, MutableList<Pair<Method, CommandFrameworkClass>>>()
-    val reactionHandlers = mutableListOf<Triple<Method, CommandFrameworkClass, CommandFrameworkClass.CommandInfo>>()
+    val reactionHandlers = mutableListOf<ReactionHandler>()
     val commands = mutableListOf<CommandFrameworkClass>()
-    val checks = mutableListOf<(Context, CommandFrameworkClass.CommandInfo) -> Boolean>(
+    val checks = mutableListOf<(Context) -> Boolean>(
             CooldownHandler()::cooldownCheck, ::permCheck
     )
 
@@ -83,9 +85,9 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
     override fun onGuildMessageReactionAdd(event: GuildMessageReactionAddEvent) {
         val context = ReactionContext(event.user, event.messageIdLong, event, event.reactionEmote, Main.instance, event.channel, event.guild)
         reactionHandlers.forEach {
-            if (checks.any { c -> !c(context, it.third) })
+            if ((checks and it.checks).any { c -> !c(context) })
             try{
-                it.first.invoke(it.second.instance, *(arrayOf(context)))
+                it.method.invoke(it.clazz.instance, *(arrayOf(context)))
             } catch (ex: Exception) {
                 val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
 
@@ -229,7 +231,8 @@ class CommandFrameworkClass(
                                 add(it to this@CommandFrameworkClass)
                             }
                 } else if (it.isAnnotationPresent(ReactionListener::class.java)) {
-                    val reactionInfo = CommandInfo(name = it.getAnnotationsByType(ReactionListener::class.java).first().name)
+                    val anno = it.getAnnotationsByType(ReactionListener::class.java).first()
+                    val reactionInfo = CommandInfo(name = anno.name)
 
                     it.annotations.forEach {
                         if (it is Usage) reactionInfo.usage = it.usage
@@ -237,7 +240,10 @@ class CommandFrameworkClass(
                         else if (it is UserCooldown) reactionInfo.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
                     }
 
-                    commandHandler.reactionHandlers.add(Triple(it, this@CommandFrameworkClass, reactionInfo))
+                    commandHandler.reactionHandlers.add(ReactionHandler(it, this@CommandFrameworkClass, reactionInfo, anno.extraChecks.map {
+                        val meth = clazz.getDeclaredMethod(it, *(arrayOf(ReactionContext::class.java)))
+                        Predicate<ReactionContext> { meth(it) as Boolean }
+                    }.map(Predicate<ReactionContext>::toLambdaFunc)))
                 }
             }
 
@@ -270,6 +276,13 @@ class CommandFrameworkClass(
             var subCommand: Boolean = false
     )
 }
+
+data class ReactionHandler(
+        val method: Method,
+        val clazz: CommandFrameworkClass,
+        val info: CommandFrameworkClass.CommandInfo,
+        val checks: List<(ReactionContext) -> Boolean>
+)
 
 class KotlinUsableMethod(
         val kParams: List<KParameter>,
@@ -307,7 +320,7 @@ class BotCommand(
         private val commandInfo: CommandFrameworkClass.CommandInfo
 ) {
 
-    operator fun invoke(args: List<String>, context: CommandContext, instance: Any, checks: List<(Context, CommandFrameworkClass.CommandInfo) -> Boolean>): Boolean {
+    operator fun invoke(args: List<String>, context: CommandContext, instance: Any, checks: List<(Context) -> Boolean>): Boolean {
         if (args.isNotEmpty() && subCommands.containsKey(args.first().toLowerCase())) {
             return subCommands[args.first().toLowerCase()]!!(args.subList(1), context, instance, checks)
         } else {
@@ -333,7 +346,7 @@ class BotCommand(
                     }
 
                     context.info = commandInfo
-                    if (checks.any { !it(context, commandInfo) }) return@invoke true
+                    if (checks.any { !it(context) }) return@invoke true
                     it.kCallable.callBy(paramters)
                     return@invoke true
                 }
@@ -354,7 +367,7 @@ class BotCommand(
                 }
 
                 context.info = commandInfo
-                if (checks.any { !it(context, commandInfo) }) return@invoke true
+                if (checks.any { !it(context) }) return@invoke true
                 it.invoke(instance, *(objects.toTypedArray()))
             }
 

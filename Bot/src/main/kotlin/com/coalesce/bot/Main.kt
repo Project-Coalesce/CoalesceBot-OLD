@@ -49,16 +49,16 @@ class Main private constructor() {
 
     internal fun boot(token: String, secret: String, logOnConsole: Boolean) {
         if (!dataDirectory.exists()) {
-                dataDirectory.mkdirs()
-            }
+            dataDirectory.mkdirs()
+        }
 
-            jda = JDABuilder(AccountType.BOT).apply {
-                setToken(token)
-                setCorePoolSize(6)
-                setAudioEnabled(true) // Depri has implemented a Youtube player that proxi fucked up.
-                @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET")
-                setGame(Game.of("the loading game"))
-                setStatus(OnlineStatus.DO_NOT_DISTURB)
+        jda = JDABuilder(AccountType.BOT).apply {
+            setToken(token)
+            setCorePoolSize(6)
+            setAudioEnabled(true) // Depri has implemented a Youtube player that proxi fucked up.
+            @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET")
+            setGame(Game.of("the loading game"))
+            setStatus(OnlineStatus.DO_NOT_DISTURB)
         }.buildBlocking()
 
         if (!logOnConsole) {

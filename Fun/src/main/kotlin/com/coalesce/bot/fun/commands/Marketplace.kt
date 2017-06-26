@@ -1,34 +1,39 @@
 package com.coalesce.bot.`fun`.commands
 
+import com.coalesce.bot.`fun`.MarketplaceManager
+import com.coalesce.bot.command.*
+import com.coalesce.bot.utilities.Embeddables
 import com.coalesce.bot.utilities.embTitle
 import com.coalesce.bot.utilities.order
+import com.google.inject.Inject
+import java.util.concurrent.TimeUnit
 
-@com.coalesce.bot.command.Command("Market", "mememarket memes meme marketplace")
-@com.coalesce.bot.command.UserCooldown(10L)
-class Marketplace @com.google.inject.Inject constructor(val marketplaceManager: com.coalesce.bot.`fun`.MarketplaceManager): com.coalesce.bot.utilities.Embeddables {
-    @com.coalesce.bot.command.CommandAlias("Use a dank maymay!")
-    fun use(context: com.coalesce.bot.command.CommandContext, memeName: String) {
+@Command("Market", "mememarket memes meme marketplace")
+@UserCooldown(10L)
+class Marketplace @Inject constructor(val marketplaceManager: MarketplaceManager): Embeddables {
+    @CommandAlias("Use a dank maymay!")
+    fun use(context: CommandContext, memeName: String) {
         val meme = marketplaceManager[memeName]
         val user = marketplaceManager[context.author]
-        if (!user.items.contains(meme)) throw com.coalesce.bot.command.ArgsException("You don't own that maymay!")
+        if (!user.items.contains(meme)) throw ArgsException("You don't own that maymay!")
         context(embed().apply {
             embTitle = meme.text
             setImage(meme.imageURL)
         })
     }
 
-    @com.coalesce.bot.command.SubCommand("Create", "new sell", "Sell memes in the market.")
-    @com.coalesce.bot.command.UserCooldown(10L, java.util.concurrent.TimeUnit.MINUTES)
-    fun create(context: com.coalesce.bot.command.CommandContext, name: String, image: String, price: Int, @com.coalesce.bot.command.VarArg title: String) {
-        if (price !in 5..100) throw com.coalesce.bot.command.ArgsException("A meme's cost should be between 5 and 100.")
+    @SubCommand("Create", "new sell", "Sell memes in the market.")
+    @UserCooldown(10L, TimeUnit.MINUTES)
+    fun create(context: CommandContext, name: String, image: String, price: Int, @VarArg title: String) {
+        if (price !in 5..100) throw ArgsException("A meme's cost should be between 5 and 100.")
         val meme = com.coalesce.bot.`fun`.MarketplaceItem(marketplaceManager, image, title, price, System.currentTimeMillis(), context.author.idLong, 0)
         marketplaceManager[name] = meme
         context("Meme added.")
     }
 
-    @com.coalesce.bot.command.SubCommand("Buy", "find shop", "Take a look at the marketplace.")
-    @com.coalesce.bot.command.UserCooldown(10L, java.util.concurrent.TimeUnit.SECONDS)
-    fun shop(context: com.coalesce.bot.command.CommandContext) {
+    @SubCommand("Buy", "find shop", "Take a look at the marketplace.")
+    @UserCooldown(10L, TimeUnit.SECONDS)
+    fun shop(context: CommandContext) {
         val user = marketplaceManager[context.author]
         val items = marketplaceManager.rawItemData.entries.toList().filter { !user.items.contains(it.value) }
         context(StringBuilder().apply {
@@ -45,15 +50,15 @@ class Marketplace @com.google.inject.Inject constructor(val marketplaceManager: 
         }.toString())
     }
 
-    @com.coalesce.bot.command.SubCommandAlias("Buy", "Search for a specific meme to buy.")
-    fun query(context: com.coalesce.bot.command.CommandContext, query: String) {
+    @SubCommandAlias("Buy", "Search for a specific meme to buy.")
+    fun query(context: CommandContext, query: String) {
         val item = marketplaceManager[query]
-        if (item.owner == context.author.idLong) throw com.coalesce.bot.command.ArgsException("Can't buy your own meme.")
-        if (marketplaceManager[context.author].items.contains(item)) throw com.coalesce.bot.command.ArgsException("You already have that meme.")
+        if (item.owner == context.author.idLong) throw ArgsException("Can't buy your own meme.")
+        if (marketplaceManager[context.author].items.contains(item)) throw ArgsException("You already have that meme.")
         val coins = context.main.coCoinsManager
         val bal = coins[context.author]
-        if (item.price > bal.total) throw com.coalesce.bot.command.ArgsException("You can't afford that meme.")
-        val owner = context.main.jda.getUserById(item.owner) ?: throw com.coalesce.bot.command.ArgsException("Seems like the creator of that meme abandoned the server.")
+        if (item.price > bal.total) throw ArgsException("You can't afford that meme.")
+        val owner = context.main.jda.getUserById(item.owner) ?: throw ArgsException("Seems like the creator of that meme abandoned the server.")
 
         coins[owner].transaction(com.coalesce.bot.CoCoinsTransaction("Your meme ${item.text} was purchased by ${context.author.name}.", item.price.toDouble()),
                 context.channel, context.author)
