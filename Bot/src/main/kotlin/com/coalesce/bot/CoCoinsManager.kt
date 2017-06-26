@@ -8,46 +8,9 @@ import java.io.DataOutputStream
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-class CoCoinsManager {
-    private val cache = mutableMapOf<Long, CoCoinsValue>()
-    private val serializer: CoCoinsSerializer
-
-    init {
-        val file = coCoinsFile
-
-        if (!file.parentFile.exists()) file.parentFile.mkdirs()
-        if (!file.exists())  generateFile(file)
-
-        serializer = CoCoinsSerializer(file)
-    }
-    var rawData: MutableMap<Long, CoCoinsValue>
-        get() = serializer.read()
-        set(map) = serializer.write(map)
-
-    fun generateFile(file: File) {
-        file.createNewFile()
-        file.outputStream().use {
-            DataOutputStream(it).writeLong(-1L)
-        }
-    }
-
-    operator fun get(from: User): CoCoinsValue {
-        return cache[from.idLong] ?: run {
-            val userData = serializer.read()[from.idLong] ?: CoCoinsValue(0.0, mutableListOf())
-            cache[from.idLong] = userData
-            timeOutHandler(1L, TimeUnit.HOURS) { cache.remove(from.idLong) }
-            userData
-        }
-    }
-
-    internal fun save(user: User, value: CoCoinsValue) {
-        val map = rawData
-        map[user.idLong] = value
-        cache[user.idLong] = value
-        rawData = map
-    }
-
-    fun clearCache() = cache.clear()
+class CoCoinsManager: CachedDataManager<Long, CoCoinsValue>(coCoinsFile, CoCoinsSerializer(coCoinsFile), { CoCoinsValue(0.0, mutableListOf()) }) {
+    operator fun get(from: User) = get(from.idLong)
+    internal fun save(user: User, value: CoCoinsValue) = save(user.idLong, value)
 }
 
 class CoCoinsValue(var total: Double, var transactions: MutableList<CoCoinsTransaction>) {

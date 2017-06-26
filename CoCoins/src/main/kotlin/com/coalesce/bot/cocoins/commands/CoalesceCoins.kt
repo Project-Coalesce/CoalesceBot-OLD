@@ -1,12 +1,18 @@
 package com.coalesce.bot.cocoins.commands
 
+import com.coalesce.bot.CachedDataManager
 import com.coalesce.bot.CoCoinsTransaction
+import com.coalesce.bot.Main
+import com.coalesce.bot.cocoins.MessagesSentSerializer
 import com.coalesce.bot.cocoins.memesChannel
+import com.coalesce.bot.cocoins.messagesSentFile
 import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.*
 import com.google.inject.Inject
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Emote
+import net.dv8tion.jda.core.entities.MessageChannel
+import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.awt.Color
@@ -15,7 +21,9 @@ import java.util.concurrent.TimeUnit
 
 @Command("CoalesceCoins", "balance bal money cocoins coins coc")
 @UserCooldown(12L, TimeUnit.SECONDS)
-class CoalesceCoins @Inject constructor(jda: JDA): Embeddables {
+class CoalesceCoins @Inject constructor(jda: JDA, val main: Main):
+        CachedDataManager<Long, Int>(messagesSentFile, MessagesSentSerializer(messagesSentFile), { 0 }),
+        Embeddables {
     data class MemeReaction(val message: String,
                              val amount: Double,
                              val delay: Double,
@@ -68,7 +76,7 @@ class CoalesceCoins @Inject constructor(jda: JDA): Embeddables {
     }
 
     @JDAListener
-    fun memeReceive(event: MessageReceivedEvent) {
+    fun messageReceive(event: MessageReceivedEvent) {
         if (event.channel.idLong == memesChannel) {
             event.channel.getMessageById(event.messageIdLong).queue { message ->
                 memeReactions.forEach {
@@ -77,6 +85,17 @@ class CoalesceCoins @Inject constructor(jda: JDA): Embeddables {
                 }
             }
         }
+
+        val user = event.author
+        if (user.isBot || event.channel !is MessageChannel) return
+        val messageCount = (this[user.idLong]) + 1
+        val nextAchievement = 25 + Math.min((Math.max(0.0, main.coCoinsManager[user].total) * 1.5).toInt(), 1000)
+        if (messageCount >= nextAchievement) {
+            val targetValue = main.coCoinsManager[user]
+            targetValue.transaction(CoCoinsTransaction("Award for sending $nextAchievement messages", 2.0),
+                    event.channel as TextChannel, user)
+            save(user.idLong, 0)
+        } else save(user.idLong, messageCount)
     }
 
     @ReactionListener("MemeReaction", arrayOf("memeReactionCheck"))
