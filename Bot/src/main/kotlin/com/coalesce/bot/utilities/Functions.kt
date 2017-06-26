@@ -1,7 +1,6 @@
 package com.coalesce.bot.utilities
 
 import net.dv8tion.jda.core.EmbedBuilder
-import net.dv8tion.jda.core.entities.IMentionable
 import net.dv8tion.jda.core.entities.MessageEmbed
 import java.awt.Color
 import java.io.InputStream
@@ -10,7 +9,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
-import kotlin.Comparator
 
 var EmbedBuilder.embColor: Color?
     set(color) { setColor(color) }
@@ -23,6 +21,12 @@ var EmbedBuilder.embTitle: String?
 var EmbedBuilder.embDescription: String?
     set(description) { setDescription(description) }
     get() = null
+
+infix fun <E> Iterable<E>.and(other: E): List<E> =
+    listOf {
+        addAll(this@and)
+        add(other)
+    }
 
 infix fun <E> Iterable<E>.and(other: Iterable<E>): List<E> =
     listOf {
@@ -206,9 +210,11 @@ class SingleThreadedTimeout: Thread() {
 
 private val timeoutTask = SingleThreadedTimeout()
 
-fun timeOutHandler(time: Long, unit: TimeUnit, handler: () -> Unit) = timeoutTask.addTask(object: Timeout(time, unit) {
+fun <E> MutableMap<E, *>.removeAll(list: List<E>) = list.forEach { remove(it) }
+
+fun timeOutHandler(time: Long, unit: TimeUnit, handler: () -> Unit) = object: Timeout(time, unit) {
     override fun timeout() = handler()
-})
+}
 
 abstract class Timeout(time: Long, unit: TimeUnit) {
     private var time = TimeUnit.MILLISECONDS.convert(time, unit)
