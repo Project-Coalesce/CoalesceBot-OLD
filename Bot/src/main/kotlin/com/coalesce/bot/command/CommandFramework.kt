@@ -336,7 +336,15 @@ class BotCommand(
                     if (args.isNotEmpty()) it.classList.filter { it.type != CommandContext::class.java }.forEachIndexed { index, clazz ->
                         val kotlinParam = it.kParams[index + 2]
                         if (index == it.classList.size - 1 && kotlinParam.annotations.any { it is VarArg }) {
-                            paramters[kotlinParam] = arguments.joinToString(separator = " ")
+                            if (clazz.type == String::class.java) paramters[kotlinParam] = arguments.joinToString(separator = " ")
+                            else paramters[kotlinParam] = listOf<Any> {
+                                var argset = args.subList(index).toTypedArray()
+                                while (argset.isNotEmpty()) {
+                                    val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz.type) ?: break
+                                    argset = newArgs
+                                    add(obj)
+                                }
+                            }
                             return@forEachIndexed
                         }
 
@@ -354,7 +362,15 @@ class BotCommand(
                 val objects = mutableListOf<Any?>()
                 if (args.isNotEmpty()) it.classList.filter { it.type != CommandContext::class.java }.forEachIndexed { index, clazz ->
                     if (index == it.classList.size - 1 && clazz.isAnnotationPresent(VarArg::class.java)) {
-                        objects.add(arguments.joinToString(separator = " "))
+                        if (clazz.type == String::class.java) objects.add(arguments.joinToString(separator = " "))
+                        else objects.add(listOf<Any> {
+                            var argset = args.subList(index).toTypedArray()
+                            while (argset.isNotEmpty()) {
+                                val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz.type) ?: break
+                                argset = newArgs
+                                add(obj)
+                            }
+                        })
                         return@forEachIndexed
                     }
 
