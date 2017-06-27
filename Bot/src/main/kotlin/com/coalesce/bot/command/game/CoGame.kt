@@ -24,6 +24,7 @@ abstract class CoGame(val name: String, val winCount: Int, val maxPlayers: Int):
     fun matchfinding(context: CommandContext, target: List<User>, targetAmount: Int, bid: Int?) {
         if (bid != null && bid > context.main.coCoinsManager[context.author].total) throw ArgsException("You don't have enough money to bid that.")
         if (bid != null && bid !in 4..20) throw ArgsException("You can only bid between 4 and 20 coins.")
+        if (context.channel.idLong != 326191031412588544L) throw ArgsException("Please use the channel <#326191031412588544>.") // #games
         if (targetAmount !in 1..maxPlayers) throw ArgsException("Invalid amount of players.")
 
         context(embed().apply {
@@ -45,7 +46,7 @@ abstract class CoGame(val name: String, val winCount: Int, val maxPlayers: Int):
             }
             reactionListeners[idLong] = {
                 if ((target.isEmpty() || target.contains(it.user)) && (bid == null || bid > context.main.coCoinsManager[it.user].total) &&
-                        !(entered.contains(it.user)) && it.reactionEmote.name == "🚪" /*&& context.author != it.user*/) {
+                        !(entered.contains(it.user)) && it.reactionEmote.name == "🚪" && context.author != it.user) {
                     timeout.stopTimeout()
                     entered.add(it.user)
                     context("${it.user.asMention} joined the queue! (${entered.size}/$targetAmount)")
