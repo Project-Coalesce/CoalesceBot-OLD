@@ -68,7 +68,7 @@ class Connect4Match(
         val numb = (content.toIntOrNull() ?: return false) - 1
         if (numb !in 0..columns) return false
         val line = board[numb]
-        val index = line.indexOfFirst { it != null } + 1
+        val index = line.indexOfLast { it != null } + 1
         if (index > rows) return true
         line[index] = emotes[from]
 
@@ -83,7 +83,7 @@ class Connect4Match(
             for (i in 0..columns) append("${'\u0030' + (i + 1)}\u20E3")
             appendln()
 
-            for (x in 0..rows) {
+            for (x in (0..rows).reversed()) {
                 for (y in 0..columns) {
                     append(board[y][x] ?: "⬜")
                 }

@@ -31,44 +31,42 @@ fun winDetection(board: List<List<String?>>, rows: Int, columns: Int, size: Int)
         for (rowStr in 0..rows - count) {
             add(listOf {
                 var col = 0; var row = rowStr
-                while (row < rows && col < columns) {
-                    println("Checking on col: $col and row: $row (Starting row = $rowStr)")
+                while (row <= rows && col <= columns) {
                     add(board[col][row])
                     row ++; col ++
                 }
             })
         }
-        for (colStr in 1..columns - count) {
-            add(listOf {
-                var col = colStr; var row = 0
-                while (row < rows && col < columns) {
-                    println("Checking on col: $col and row: $row (Starting col = $colStr)")
-                    add(board[col][row])
-                    row ++; col ++
-                }
-            })
-        }
+        if (columns > count)
+            for (colStr in 1..columns - count) {
+                add(listOf {
+                    var col = colStr; var row = 0
+                    while (row <= rows && col <= columns) {
+                        add(board[col][row])
+                        row ++; col ++
+                    }
+                })
+            }
         // Top-right to bottom-left
         for (rowStr in count..rows) {
             add(listOf {
                 var col = 0; var row = rowStr
-                while (row < rows && col > 0) {
-                    println("Checking on col: $col and row: $row (Starting row = $rowStr)")
+                while (row >= 0 && col <= columns) {
                     add(board[col][row])
-                    row ++; col --
+                    row --; col ++
                 }
             })
         }
-        for (colStr in 1..rows - count) {
-            add(listOf {
-                var col = colStr; var row = 0
-                while (row < rows && col > 0) {
-                    println("Checking on col: $col and row: $row (Starting col = $colStr)")
-                    add(board[col][row])
-                    row ++; col --
-                }
-            })
-        }
+        if (columns > count)
+            for (colStr in 1..columns - count) {
+                add(listOf {
+                    var col = colStr; var row = 0
+                    while (row <= rows && col >= 0) {
+                        add(board[col][row])
+                        row ++; col --
+                    }
+                })
+            }
     }.forEach {
         val detectResult = attemptDetect(it)
         if (detectResult != null) return detectResult

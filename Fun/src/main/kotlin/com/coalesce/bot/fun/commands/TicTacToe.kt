@@ -15,7 +15,6 @@ import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent
 import java.io.IOException
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 private val characters = listOf("⭕", "❌", "❗", "❓", "🍆", "<:brazil:328369151926075392>")
 private val playerCountForSize = mapOf(
@@ -48,8 +47,8 @@ class TicTacToeMatch(
         players: List<User>,
         resultHandler: (Map<User, Int>) -> Unit
 ): CoTurnMatch(channel, chatGame, players, resultHandler) {
-    private val size = (playerCountForSize[players.size] ?: throw IOException("Illegal amount of players!"))
-    private val tileCount = size * size
+    private val boardSize = (playerCountForSize[players.size] ?: throw IOException("Illegal amount of players!"))
+    private val tileCount = boardSize * boardSize
     private val emotes = mutableMapOf<User, String>().apply { players.forEachIndexed { i, it -> this[it] = characters[i] } }
     private val board = listOf<String?> { for (i in 0..tileCount - 1) add(null) }
     private var message: Message? = null
@@ -61,17 +60,17 @@ class TicTacToeMatch(
     private fun detectVictory(): Boolean {
         val reorganizedBoard = mutableListOf<MutableList<String?>>()
 
-        (1..size).forEach {
+        for (i in 1..boardSize) {
             reorganizedBoard.add(listOf<String?> {
-                var index = it
-                while (index <= tileCount) {
+                var index = i
+                while (size < 3) {
                     add(board[index - 1])
-                    index += size
+                    index += boardSize
                 }
             })
         }
 
-        val result = winDetection(reorganizedBoard, size - 1, size - 1, if (size == 3) 3 else 4)
+        val result = winDetection(reorganizedBoard, boardSize - 1, boardSize - 1, if (boardSize == 3) 3 else 4)
         if (result != null) {
             val winner = emotes.entries.find { it.value == result }!!.key
             val map = mutableMapOf<User, Int>()
@@ -110,7 +109,7 @@ class TicTacToeMatch(
         if (message != null) message!!.delete().queue()
         channel.sendMessage(StringBuilder().apply {
             board.forEachIndexed { index, piece ->
-                if (index % size == 0) append("\n")
+                if (index % boardSize == 0) append("\n")
                 append((piece ?: "\uD83C${'\uDDE6' + index}") + " ")
             }
             appendTurns(this, emotes)
