@@ -100,6 +100,7 @@ class TicTacToeMatch(
         val emote = emotes[from]!!
         board[numb] = emote
 
+        keepAlive()
         if (!detectVictory()) nextTurn()
         sendUpdateMessage()
         return true

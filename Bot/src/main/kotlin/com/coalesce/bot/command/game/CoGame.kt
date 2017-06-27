@@ -98,6 +98,7 @@ abstract class CoGameMatch(
 
     override fun timeout() {
         channel.send(players.joinToString(separator = ", ") { it.asMention } + ": Nothing happened for the last 2 minutes, so the match will be tied.")
+        invoke(mutableMapOf())
     }
 
     abstract fun reaction(from: User, emote: MessageReaction.ReactionEmote, message: Message)

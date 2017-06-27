@@ -72,6 +72,7 @@ class Connect4Match(
         if (index > rows) return true
         line[index] = emotes[from]
 
+        keepAlive()
         if (!detectVictory()) nextTurn()
         sendUpdateMessage()
         return true
