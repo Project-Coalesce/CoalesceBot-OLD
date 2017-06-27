@@ -1,5 +1,6 @@
 package com.coalesce.bot.`fun`.commands
 
+import com.coalesce.bot.`fun`.MarketplaceItem
 import com.coalesce.bot.`fun`.MarketplaceManager
 import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.Embeddables
@@ -26,8 +27,8 @@ class Marketplace @Inject constructor(val marketplaceManager: MarketplaceManager
     @UserCooldown(10L, TimeUnit.MINUTES)
     fun create(context: CommandContext, name: String, image: String, price: Int, @VarArg title: String) {
         if (price !in 5..100) throw ArgsException("A meme's cost should be between 5 and 100.")
-        val meme = com.coalesce.bot.`fun`.MarketplaceItem(marketplaceManager, image, title, price, System.currentTimeMillis(), context.author.idLong, 0)
-        marketplaceManager[name] = meme
+        val meme = MarketplaceItem(image, title, price, System.currentTimeMillis(), context.author.idLong, 0)
+        marketplaceManager.save(name, meme)
         context("Meme added.")
     }
 
@@ -35,7 +36,7 @@ class Marketplace @Inject constructor(val marketplaceManager: MarketplaceManager
     @UserCooldown(10L, TimeUnit.SECONDS)
     fun shop(context: CommandContext) {
         val user = marketplaceManager[context.author]
-        val items = marketplaceManager.rawItemData.entries.toList().filter { !user.items.contains(it.value) }
+        val items = marketplaceManager.rawData.entries.toList().filter { !user.items.contains(it.value) }
         context(StringBuilder().apply {
             fun namer(it: Map.Entry<String, com.coalesce.bot.`fun`.MarketplaceItem>) = "${it.key} [${it.value.price}¢$] by ${context.main.jda.getUserById(it.value.owner)?.name}"
             fun basedOn(func: (Map.Entry<String, com.coalesce.bot.`fun`.MarketplaceItem>, Map.Entry<String, com.coalesce.bot.`fun`.MarketplaceItem>) -> Int) =
@@ -63,7 +64,7 @@ class Marketplace @Inject constructor(val marketplaceManager: MarketplaceManager
         coins[owner].transaction(com.coalesce.bot.CoCoinsTransaction("Your meme ${item.text} was purchased by ${context.author.name}.", item.price.toDouble()),
                 context.channel, context.author)
         bal.transaction(com.coalesce.bot.CoCoinsTransaction("Purchased **${item.text}** meme", -item.price.toDouble()), context.channel, context.author)
-        marketplaceManager[context.author].addItem(item, marketplaceManager, context.author)
+        marketplaceManager[context.author].addItem(item, context.author)
         item.purchases ++
     }
 }

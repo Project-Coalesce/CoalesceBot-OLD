@@ -49,9 +49,9 @@ open class Plugin {
     lateinit var pluginClassLoader: PluginClassLoader
     lateinit var pluginData: PluginManager.PluginData
     lateinit var pluginManager: PluginManager
-
     fun registerCommand(vararg commandHandler: Class<*>) = pluginManager.addedCommands.addAll(commandHandler)
     protected fun addGuiceInjection(clazz: Class<*>, value: Any) {
+
         pluginManager.addedGuiceInjections[clazz] = value
     }
 

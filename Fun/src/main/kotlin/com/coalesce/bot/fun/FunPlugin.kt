@@ -4,7 +4,7 @@ import com.coalesce.bot.command.Plugin
 import com.coalesce.bot.dataDirectory
 import java.io.File
 
-class MemesPlugin: Plugin() {
+class FunPlugin: Plugin() {
     lateinit var marketplaceManager: MarketplaceManager
 
     override fun onRegister() {

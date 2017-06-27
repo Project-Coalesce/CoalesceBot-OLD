@@ -14,14 +14,14 @@ import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEv
 import java.util.concurrent.TimeUnit
 
 // Dank Command Framework
-class CoGame(val name: String, val winCount: Int, val maxPlayers: Int, val matchCreator:
-        (channel: TextChannel, players: List<User>, resultHandler: (Map<User, Int>) -> Unit) -> CoGameMatch): Embeddables {
+abstract class CoGame(val name: String, val winCount: Int, val maxPlayers: Int): Embeddables {
     internal val reactionListeners = mutableMapOf<Long, (GuildMessageReactionAddEvent) -> Unit>()
     internal val inMatch = mutableMapOf<Long, CoGameMatch>()
     internal val inFinder = mutableListOf<Long>()
 
-    fun matchfinding(context: CommandContext, target: List<User> = listOf(), targetAmount: Int = if (target.isEmpty()) 1 else target.size,
-                     bid: Int? = null) {
+    abstract fun match(channel: TextChannel, players: List<User>, resultHandler: (Map<User, Int>) -> Unit): CoGameMatch
+
+    fun matchfinding(context: CommandContext, target: List<User>, targetAmount: Int, bid: Int?) {
         if (bid != null && bid > context.main.coCoinsManager[context.author].total) throw ArgsException("You don't have enough money to bid that.")
         if (bid != null && bid !in 4..20) throw ArgsException("You can only bid between 4 and 20 coins.")
         if (targetAmount !in 1..maxPlayers) throw ArgsException("Invalid amount of players.")
@@ -34,6 +34,8 @@ class CoGame(val name: String, val winCount: Int, val maxPlayers: Int, val match
                 appendln("Winner gets ${bid ?: winCount} CoCoins!")
             }
         }) {
+            addReaction("🚪").queue()
+
             val entered = mutableListOf<User>()
             val timeout = timeOutHandler(3L, TimeUnit.MINUTES) {
                 context("The match timer timed out.")
@@ -42,15 +44,17 @@ class CoGame(val name: String, val winCount: Int, val maxPlayers: Int, val match
                 delete().queue()
             }
             reactionListeners[idLong] = {
-                if ((target.isEmpty() || target.contains(it.user)) && (bid == null || bid > context.main.coCoinsManager[it.user].total)) {
+                if ((target.isEmpty() || target.contains(it.user)) && (bid == null || bid > context.main.coCoinsManager[it.user].total) &&
+                        !(entered.contains(it.user)) && it.reactionEmote.name == "🚪" /*&& context.author != it.user*/) {
                     timeout.stopTimeout()
                     entered.add(it.user)
                     context("${it.user.asMention} joined the queue! (${entered.size}/$targetAmount)")
 
                     if (entered.size == targetAmount) {
+                        delete().queue()
                         val players = entered and context.author
                         inFinder.removeAll(players.map(User::getIdLong))
-                        val match = matchCreator(context.channel, players) { results ->
+                        val match = match(context.channel, players) { results ->
                             val coins = context.main.coCoinsManager
                             players.forEach {
                                 val pos = results[it]
@@ -113,5 +117,32 @@ abstract class CoGameMatch(
         players.forEach { game.inMatch.remove(it.idLong) }
         resultHandler(positions)
         stopTimeout()
+    }
+}
+
+abstract class CoTurnMatch(
+        channel: TextChannel,
+        chatGame: CoGame,
+        players: List<User>,
+        resultHandler: (positions: Map<User, Int>) -> Unit
+): CoGameMatch(channel, chatGame, players, resultHandler) {
+    private var turnQueue = mutableListOf<User>().apply { addAll(players) }
+
+    fun isNext(user: User) = turnQueue[0] == user
+
+    fun nextTurn() {
+        val oldFirst = turnQueue[0]
+        turnQueue = turnQueue.subList(1).toMutableList()
+        turnQueue.add(oldFirst)
+    }
+
+    fun appendTurns(builder: StringBuilder, characterMap: Map<User, String>? = null) {
+        val curTurn = turnQueue[0]
+        players.forEach {
+            builder.append("\n")
+            if (characterMap != null) builder.append(characterMap[it] + " ")
+            if (curTurn == it) builder.append("`${it.name}                      «`")
+            else builder.append(it.name)
+        }
     }
 }
