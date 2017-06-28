@@ -38,8 +38,9 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
     val eventHandlers = mutableMapOf<Class<*>, MutableList<Pair<Method, CommandFrameworkClass>>>()
     val reactionHandlers = mutableListOf<ReactionHandler>()
     val commands = mutableListOf<CommandFrameworkClass>()
+    val cooldownHandler = CooldownHandler()
     val checks = mutableListOf<(Context) -> Boolean>(
-            CooldownHandler()::cooldownCheck, ::permCheck
+            cooldownHandler::cooldownCheck, ::permCheck
     )
 
     init {
@@ -138,7 +139,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         event.message.delete().queue()
 
         try {
-            if(!info.botCommand(args, context, info.instance, checks)) {
+            if(!info.botCommand(cooldownHandler, args, context, info.instance, checks)) {
                 context(embed().apply {
                     embColor = Color(237, 45, 35)
                     embTitle = "Invalid Argumentation!"
@@ -320,9 +321,9 @@ class BotCommand(
         private val commandInfo: CommandFrameworkClass.CommandInfo
 ) {
 
-    operator fun invoke(args: List<String>, context: CommandContext, instance: Any, checks: List<(Context) -> Boolean>): Boolean {
+    operator fun invoke(cooldownHandler: CooldownHandler, args: List<String>, context: CommandContext, instance: Any, checks: List<(Context) -> Boolean>): Boolean {
         if (args.isNotEmpty() && subCommands.containsKey(args.first().toLowerCase())) {
-            return subCommands[args.first().toLowerCase()]!!(args.subList(1), context, instance, checks)
+            return subCommands[args.first().toLowerCase()]!!(cooldownHandler, args.subList(1), context, instance, checks)
         } else {
             methods.forEach {
                 if (args.size < it.paramCount) return@forEach
@@ -333,14 +334,14 @@ class BotCommand(
                             it.kParams[1] to context
                     )
 
-                    if (args.isNotEmpty()) it.classList.filter { it.type != CommandContext::class.java }.forEachIndexed { index, clazz ->
+                    if (args.isNotEmpty()) it.classList.filter { it.type != CommandContext::class.java }.forEachIndexed { index, parameter ->
                         val kotlinParam = it.kParams[index + 2]
-                        if (index == it.classList.size - 1 && kotlinParam.annotations.any { it is VarArg }) {
-                            if (clazz.type == String::class.java) paramters[kotlinParam] = arguments.joinToString(separator = " ")
+                        if (parameter.isAnnotationPresent(VarArg::class.java)) {
+                            if (parameter.type == String::class.java) paramters[kotlinParam] = arguments.joinToString(separator = " ")
                             else paramters[kotlinParam] = listOf<Any> {
                                 var argset = args.subList(index).toTypedArray()
                                 while (argset.isNotEmpty()) {
-                                    val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz.type) ?: break
+                                    val (newArgs, obj) = commandTypeAdapter.adapt(arguments, parameter.type) ?: break
                                     argset = newArgs
                                     add(obj)
                                 }
@@ -348,7 +349,7 @@ class BotCommand(
                             return@forEachIndexed
                         }
 
-                        val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz.type) ?:
+                        val (newArgs, obj) = commandTypeAdapter.adapt(arguments, parameter.type) ?:
                                 run { if (kotlinParam.isOptional) return@forEachIndexed else return@forEach }
                         arguments = newArgs; paramters[kotlinParam] = obj
                     }
@@ -356,17 +357,19 @@ class BotCommand(
                     context.info = commandInfo
                     if (checks.any { !it(context) }) return@invoke true
                     it.kCallable.callBy(paramters)
+                    if (commandInfo.userCooldown > 0L) cooldownHandler.doUserCooldown(context.author, commandInfo)
+                    if (commandInfo.globalCooldown > 0L) cooldownHandler.doGlobalCooldown(commandInfo)
                     return@invoke true
                 }
 
                 val objects = mutableListOf<Any?>()
-                if (args.isNotEmpty()) it.classList.filter { it.type != CommandContext::class.java }.forEachIndexed { index, clazz ->
-                    if (index == it.classList.size - 1 && clazz.isAnnotationPresent(VarArg::class.java)) {
-                        if (clazz.type == String::class.java) objects.add(arguments.joinToString(separator = " "))
+                if (args.isNotEmpty()) it.classList.filter { it.type != CommandContext::class.java }.forEachIndexed { index, parameter ->
+                    if (parameter.isAnnotationPresent(VarArg::class.java)) {
+                        if (parameter.type == String::class.java) objects.add(arguments.joinToString(separator = " "))
                         else objects.add(listOf<Any> {
                             var argset = args.subList(index).toTypedArray()
                             while (argset.isNotEmpty()) {
-                                val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz.type) ?: break
+                                val (newArgs, obj) = commandTypeAdapter.adapt(arguments, parameter.type) ?: break
                                 argset = newArgs
                                 add(obj)
                             }
@@ -374,8 +377,8 @@ class BotCommand(
                         return@forEachIndexed
                     }
 
-                    val (newArgs, obj) = commandTypeAdapter.adapt(arguments, clazz.type) ?:
-                            if (clazz.isAnnotationPresent(Optional::class.java)) {
+                    val (newArgs, obj) = commandTypeAdapter.adapt(arguments, parameter.type) ?:
+                            if (parameter.isAnnotationPresent(Optional::class.java)) {
                                 objects.add(null)
                                 return@forEachIndexed
                             } else return@forEach
@@ -385,6 +388,8 @@ class BotCommand(
                 context.info = commandInfo
                 if (checks.any { !it(context) }) return@invoke true
                 it.invoke(instance, *(objects.toTypedArray()))
+                if (commandInfo.userCooldown > 0L) cooldownHandler.doUserCooldown(context.author, commandInfo)
+                if (commandInfo.globalCooldown > 0L) cooldownHandler.doGlobalCooldown(commandInfo)
             }
 
             return false

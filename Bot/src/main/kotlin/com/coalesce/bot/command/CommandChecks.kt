@@ -17,12 +17,12 @@ class CooldownHandler: Embeddables {
     private val globalCooldown = mutableMapOf<CommandFrameworkClass.CommandInfo, Long>()
     private val userCooldown = mutableMapOf<User, MutableMap<CommandFrameworkClass.CommandInfo, Long>>()
 
-    private fun doGlobalCooldown(info: CommandFrameworkClass.CommandInfo) {
+    fun doGlobalCooldown(info: CommandFrameworkClass.CommandInfo) {
         globalCooldown.put(info, System.currentTimeMillis())
         timeOutHandler(info.globalCooldown, TimeUnit.MILLISECONDS) { globalCooldown.remove(info) }
     }
 
-    private fun doUserCooldown(user: User, info: CommandFrameworkClass.CommandInfo) {
+    fun doUserCooldown(user: User, info: CommandFrameworkClass.CommandInfo) {
         userCooldown[user] = (userCooldown[user] ?: mutableMapOf()).apply { put(info, System.currentTimeMillis()) }
         timeOutHandler(info.globalCooldown, TimeUnit.MILLISECONDS) { (userCooldown[user] ?: return@timeOutHandler).remove(info) }
     }
@@ -32,14 +32,14 @@ class CooldownHandler: Embeddables {
         if (userCooldown.containsKey(context.author) && userCooldown[context.author]!!.containsKey(info)) {
             context(embed().apply {
                 embTitle = "Wait before you can run this command again!"
-                embDescription = "⏰ Cooldown for: **${userCooldown[context.author]!![info]!!.formatTimeDiff()}**"
+                embDescription = "⏰ Cooldown for: **${(System.currentTimeMillis() - userCooldown[context.author]!![info]!!).formatTimeDiff()}**"
             }, deleteAfter = 8L to TimeUnit.SECONDS)
             return false
         }
         if (globalCooldown.containsKey(info)) {
             context(embed().apply {
                 embTitle = "Wait before you can run this command again!"
-                embDescription = "⏰ Global Cooldown for: **${globalCooldown[info]!!.formatTimeDiff()}**"
+                embDescription = "⏰ Global Cooldown for: **${(System.currentTimeMillis() - globalCooldown[info]!!).formatTimeDiff()}**"
             }, deleteAfter = 8L to TimeUnit.SECONDS)
             return false
         }

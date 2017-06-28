@@ -19,6 +19,8 @@ import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Guild
 import java.io.File
 import java.io.PrintStream
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.ThreadLocalRandom
 import java.util.regex.Pattern
 
@@ -46,6 +48,7 @@ class Main private constructor() {
     lateinit var commandTypeAdapter: AdaptationArgsChecker
     lateinit var commandHandler: Listener
     lateinit var pluginManager: PluginManager
+    val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String, logOnConsole: Boolean) {
         if (!dataDirectory.exists()) {
@@ -111,6 +114,7 @@ class Injects(val main: Main) : AbstractModule() {
         bind(JDA::class.java).toInstance(main.jda)
         bind(PunishmentManager::class.java).toInstance(main.punishments)
         bind(CoCoinsManager::class.java).toInstance(main.coCoinsManager)
+        bind(ExecutorService::class.java).toInstance(main.executor)
     }
 
     fun <T> addGuiceInjection(clazz: Class<T>, obj: Any) = bind(clazz).toInstance(obj as T)
