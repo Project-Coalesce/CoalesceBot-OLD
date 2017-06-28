@@ -9,7 +9,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>memes-coalescebot</artifactId>
+    <artifactId>fun-coalescebot</artifactId>
 
     <dependencies>
         <dependency>
@@ -21,6 +21,6 @@
     </dependencies>
 
     <build>
-        <finalName>Memes</finalName>
+        <finalName>Fun</finalName>
     </build>
 </project>

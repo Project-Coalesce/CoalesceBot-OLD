@@ -79,7 +79,7 @@ abstract class CoGame(val name: String, val winCount: Int, val maxPlayers: Int):
     fun message(event: MessageReceivedEvent) {
         if (event.channel !is TextChannel) return
         if (inMatch.containsKey(event.author.idLong)) {
-            inMatch[event.author.idLong]!!.messaged(event.author, event.message.rawContent)
+            if (inMatch[event.author.idLong]!!.messaged(event.author, event.message.rawContent)) event.message.delete().queue()
         }
     }
     fun react(event: GuildMessageReactionAddEvent) {

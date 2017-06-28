@@ -1,10 +1,7 @@
 package com.coalesce.bot.`fun`.commands
 
 import com.coalesce.bot.`fun`.winDetection
-import com.coalesce.bot.command.Command
-import com.coalesce.bot.command.CommandAlias
-import com.coalesce.bot.command.CommandContext
-import com.coalesce.bot.command.JDAListener
+import com.coalesce.bot.command.*
 import com.coalesce.bot.command.game.CoGame
 import com.coalesce.bot.command.game.CoTurnMatch
 import com.coalesce.bot.utilities.listOf
@@ -20,7 +17,7 @@ private val characters = listOf("⚫", "🔵", "🔴","⚪")
 @Command("Connect4", "connectfour")
 class Connect4 {
     private val game = object: CoGame("ConnectFour", 3, characters.size - 2) {
-        override fun match(channel: TextChannel, players: List<User>, resultHandler: (Map<User, Int>) -> Unit) =
+        override fun match(channel: TextChannel, @VarArg players: List<User>, resultHandler: (Map<User, Int>) -> Unit) =
                 Connect4Match(channel, this, players, resultHandler)
     }
 

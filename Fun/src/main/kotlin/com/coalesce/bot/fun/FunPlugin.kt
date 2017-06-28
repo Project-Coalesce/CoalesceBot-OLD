@@ -13,4 +13,4 @@ class FunPlugin: Plugin() {
     }
 }
 
-val marketplaceFile = File(dataDirectory, "marketplace.json")
+val marketplaceFile = File(dataDirectory, "marketplace.dat")

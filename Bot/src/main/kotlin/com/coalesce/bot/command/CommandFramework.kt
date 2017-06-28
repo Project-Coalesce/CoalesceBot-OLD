@@ -406,6 +406,11 @@ fun MessageChannel.send(embed: EmbedBuilder, mention: User, deleteAfter: Pair<Lo
     sendTask(sendMessage(embed.build()), deleteAfter, queueAfter, handler)
 }
 
+fun User.usePCh(handler: PrivateChannel.() -> Unit) {
+    if (hasPrivateChannel()) handler(privateChannel)
+    else openPrivateChannel().queue(handler)
+}
+
 private fun sendTask(task: RestAction<Message>, deleteAfter: Pair<Long, TimeUnit>? = null,
                      queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) {
     val whenDo: (Message) -> Unit = {
@@ -449,10 +454,8 @@ open class Context(
 ) {
     lateinit var info: CommandFrameworkClass.CommandInfo
     fun mention(text: String) = invoke(author, text)
-    fun usePCh(handler: PrivateChannel.() -> Unit) {
-        if (author.hasPrivateChannel()) handler(author.privateChannel)
-        else author.openPrivateChannel().queue(handler)
-    }
+
+    fun usePCh(handler: PrivateChannel.() -> Unit) = author.usePCh(handler)
 
     operator fun invoke(text: String, mentionUser: Boolean = true, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) =

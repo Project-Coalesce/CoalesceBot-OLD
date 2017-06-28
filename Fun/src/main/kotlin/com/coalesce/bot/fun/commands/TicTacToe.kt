@@ -1,10 +1,7 @@
 package com.coalesce.bot.`fun`.commands
 
 import com.coalesce.bot.`fun`.winDetection
-import com.coalesce.bot.command.Command
-import com.coalesce.bot.command.CommandAlias
-import com.coalesce.bot.command.CommandContext
-import com.coalesce.bot.command.JDAListener
+import com.coalesce.bot.command.*
 import com.coalesce.bot.command.game.CoGame
 import com.coalesce.bot.command.game.CoTurnMatch
 import com.coalesce.bot.utilities.listOf
@@ -26,7 +23,7 @@ private val playerCountForSize = mapOf(
 @Command("TicTacToe", "ttt")
 class TicTacToe {
     private val game = object: CoGame("TicTacToe", 3, characters.size - 2) {
-        override fun match(channel: TextChannel, players: List<User>, resultHandler: (Map<User, Int>) -> Unit) =
+        override fun match(channel: TextChannel, @VarArg players: List<User>, resultHandler: (Map<User, Int>) -> Unit) =
                 TicTacToeMatch(channel, this, players, resultHandler)
     }
 

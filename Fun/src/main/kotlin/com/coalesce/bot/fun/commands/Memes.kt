@@ -45,10 +45,20 @@ class Bork {
     }
 }
 
+@Command("Rules")
+@GlobalCooldown(20L)
+class Rules {
+    @CommandAlias("Shows you ruless")
+    fun execute(context: CommandContext) {
+        context("Psst, you... Head over to <#269178364483338250>. They got memes such as this one.")
+        context("http://i.imgur.com/B50EQKp.png", deleteAfter = 20L to TimeUnit.SECONDS)
+    }
+}
+
 @Command("EggsDee", "eggsd xd exd")
 @GlobalCooldown(20L)
 class EggsD {
-    @CommandAlias("Meme command (Bork)")
+    @CommandAlias("Meme command (Eggs d)")
     fun execute(context: CommandContext) {
         context(":egg: :egg: :regional_indicator_d: :regional_indicator_e:")
     }
