@@ -37,10 +37,10 @@ class AdaptationArgsChecker(val jda: JDA) {
     fun adaptWithReflection(args: Array<String>, clazz: Class<*>): Pair<Array<String>, Any>? {
         clazz.declaredConstructors.forEach {
             if (it.parameterCount <= args.size) {
+                var arguments = args.copyOf()
                 if (it.kotlinFunction != null) {
                     val kFunc = it.kotlinFunction!!
                     val parameters = mutableMapOf<KParameter, Any>()
-                    var arguments = args.copyOf()
 
                     kFunc.parameters.forEachIndexed { index, param ->
                         val (newArgs, obj) = adapt(arguments, param.type as Class<*>) ?:
@@ -54,7 +54,6 @@ class AdaptationArgsChecker(val jda: JDA) {
                 }
 
                 val items = mutableListOf<Any?>()
-                var arguments = args.copyOf()
 
                 it.parameterTypes.forEachIndexed { index, param ->
                     val (newArgs, obj) = adapt(arguments, param) ?: return@forEach

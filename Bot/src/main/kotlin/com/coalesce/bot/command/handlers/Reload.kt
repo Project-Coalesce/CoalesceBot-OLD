@@ -18,6 +18,7 @@ class Reload: Embeddables {
             jda.presence.game = Game.of("reloading")
             jda.presence.status = OnlineStatus.DO_NOT_DISTURB
 
+            jda.removeEventListener(commandHandler)
             context("Reloading...")
             loadCommands()
             context("Done.")

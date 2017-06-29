@@ -290,8 +290,11 @@ class KotlinUsableMethod(
         val kCallable: KCallable<*>,
         classList: List<Parameter>,
         javaCallable: Method,
-        info: String
-): UsableMethod(classList, javaCallable, info, kParams.subList(2).joinToString(separator = " ") { if (it.isOptional) "[${it.name!!.capitalize()}]" else "<${it.name!!.capitalize()}>" }) {
+        info: String,
+        usage: String =
+                if (javaCallable.isAnnotationPresent(Usage::class.java)) javaCallable.getAnnotation(Usage::class.java).usage
+                else kParams.subList(2).joinToString(separator = " ") { if (it.isOptional) "[${it.name!!.capitalize()}]" else "<${it.name!!.capitalize()}>" }
+): UsableMethod(classList, javaCallable, info, usage) {
     override val paramCount = kParams.subList(2).count { !it.isOptional }
 }
 

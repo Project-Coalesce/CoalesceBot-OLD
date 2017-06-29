@@ -13,9 +13,10 @@ class Poll: Embeddables {
     /*
      * TARGETED TO USER POLLS, NOT ADMINISTRATION ONES
      */
+    @Usage("!poll <Time> <Title>|<Answers separated in |>")
     @CommandAlias("Create a quick poll")
     fun execute(context: CommandContext, time: Calendar, @VarArg message: String) {
-        if (System.currentTimeMillis() <= time.timeInMillis) throw ArgsException("Invalid time.")
+        if (time.timeInMillis <= System.currentTimeMillis()) throw ArgsException("Invalid time.")
         val split = message.split("|")
         if (split.size < 3) throw ArgsException("Invalid syntax!")
 
@@ -35,12 +36,11 @@ class Poll: Embeddables {
                 addReaction("${'\u0030' + i}\u20E3").queue()
             }
 
-            timeOutHandler(System.currentTimeMillis() - time.timeInMillis, TimeUnit.MILLISECONDS) {
+            timeOutHandler(time.timeInMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS) {
                 context.channel.sendTyping().queue()
                 editMessage(EmbedBuilder(embeds.first()).apply {
                     embDescription = "Voting has ended!"
                 }.build()).queue()
-                clearReactions().queue()
                 context(embed().apply {
                     embTitle = "Voting results (Poll: $title)"
                     embColor = Color.YELLOW
@@ -64,8 +64,9 @@ class Poll: Embeddables {
                                 }
                             }
                         }
+                        clearReactions().queue()
                     }
-                    field("Winner", winner.joinToString(separator = ", ") { answers[it] })
+                    field("Winner(s)", winner.joinToString(separator = ", ") { answers[it] })
                 })
             }
         }
