@@ -38,6 +38,14 @@ fun <E> Predicate<E>.toLambdaFunc(): (E) -> Boolean = { this@toLambdaFunc.test(i
 
 fun <E> listOf(handler: MutableList<E>.() -> Unit) = mutableListOf<E>().apply(handler)
 
+fun <E> tryOrNull(func: () -> E): E? {
+    try {
+        return func()
+    } catch (ex: Exception) {
+        return null
+    }
+}
+
 fun EmbedBuilder.description(builder: StringBuilder.() -> Unit) {
     embDescription = StringBuilder().apply(builder).toString()
 }

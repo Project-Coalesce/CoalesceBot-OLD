@@ -3,10 +3,13 @@ package com.coalesce.bot.command
 import com.coalesce.bot.utilities.matching
 import com.coalesce.bot.utilities.smallTimeUnit
 import com.coalesce.bot.utilities.subList
+import com.coalesce.bot.utilities.tryOrNull
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.User
 import java.util.*
+import kotlin.reflect.KParameter
+import kotlin.reflect.jvm.kotlinFunction
 
 class AdaptationArgsChecker(val jda: JDA) {
     private val adaptationsMap = mutableMapOf<Class<*>, (String) -> Any?>(
@@ -25,7 +28,7 @@ class AdaptationArgsChecker(val jda: JDA) {
             return newArgs to (adaptationsMap[type]!!(args[0]) ?: return null)
         } else if (type.isEnum) {
             val constants = type.enumConstants
-            return newArgs to (constants.find { it.toString() == args[0] } ?: return null)
+            return newArgs to (constants.find { it.toString().toLowerCase() == args[0].toLowerCase() } ?: return null)
         } else {
             return adaptWithReflection(args, type)
         }
@@ -34,22 +37,33 @@ class AdaptationArgsChecker(val jda: JDA) {
     fun adaptWithReflection(args: Array<String>, clazz: Class<*>): Pair<Array<String>, Any>? {
         clazz.declaredConstructors.forEach {
             if (it.parameterCount <= args.size) {
-                val items = mutableListOf<Any>()
+                if (it.kotlinFunction != null) {
+                    val kFunc = it.kotlinFunction!!
+                    val parameters = mutableMapOf<KParameter, Any>()
+                    var arguments = args.copyOf()
+
+                    kFunc.parameters.forEachIndexed { index, param ->
+                        val (newArgs, obj) = adapt(arguments, param.type as Class<*>) ?:
+                                if (param.isOptional) return@forEachIndexed else return@forEach
+                        arguments = newArgs; parameters[param] = obj
+                    }
+
+                    if (!it.isAccessible) tryOrNull { it.isAccessible = true } ?: return@forEach
+                    val item = kFunc.callBy(parameters)
+                    return arguments to item
+                }
+
+                val items = mutableListOf<Any?>()
+                var arguments = args.copyOf()
+
                 it.parameterTypes.forEachIndexed { index, param ->
-                    val respectiveArg = args[index]
-                    items.add(adapt(arrayOf(respectiveArg), param) ?: return@forEach)
+                    val (newArgs, obj) = adapt(arguments, param) ?: return@forEach
+                    arguments = newArgs; items.add(obj)
                 }
 
-                if (!it.isAccessible) try {
-                    it.isAccessible = true
-                } catch (ex: Exception) {
-                    return@forEach
-                }
-
-                val outArgs = args.toList().subList(0, it.parameterCount).toTypedArray()
+                if (!it.isAccessible) tryOrNull { it.isAccessible = true } ?: return@forEach
                 val item = it.newInstance(items)
-
-                return outArgs to item
+                return arguments to item
             }
         }
 
