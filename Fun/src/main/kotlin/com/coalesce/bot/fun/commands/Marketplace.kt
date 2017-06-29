@@ -1,5 +1,6 @@
 package com.coalesce.bot.`fun`.commands
 
+import com.coalesce.bot.CoCoinsTransaction
 import com.coalesce.bot.`fun`.MarketplaceItem
 import com.coalesce.bot.`fun`.MarketplaceManager
 import com.coalesce.bot.command.*
@@ -23,17 +24,23 @@ class Marketplace @Inject constructor(val marketplaceManager: MarketplaceManager
         })
     }
 
-    @SubCommand("Create", "new sell", "Sell memes in the market.")
+    @SubCommand("Create", "new sell", "Sell memes in the market. You'll have to pay twice the price you charge to create it.")
     @UserCooldown(10L, TimeUnit.MINUTES)
     fun create(context: CommandContext, name: String, image: String, price: Int, @VarArg title: String) {
         if (price !in 5..100) throw ArgsException("A meme's cost should be between 5 and 100.")
+        val coins = context.main.coCoinsManager
+        if (price * 2 > coins[context.author].total) throw ArgsException("You don't have enough money to create this meme.")
+        if (marketplaceManager.exists(name)) throw ArgsException("A meme with that name already exists.")
+        coins[context.author].transaction(CoCoinsTransaction("Created a meme", (price * 2).toDouble()), context.channel, context.author)
+
         val meme = MarketplaceItem(image, title, price, System.currentTimeMillis(), context.author.idLong, 0)
         marketplaceManager.save(name, meme)
+        marketplaceManager[context.author].addItem(meme, context.author)
         context("Meme added.")
     }
 
     @SubCommand("Buy", "find shop", "Take a look at the marketplace.")
-    @UserCooldown(10L, TimeUnit.SECONDS)
+    @UserCooldown(10L)
     fun shop(context: CommandContext) {
         val user = marketplaceManager[context.author]
         val items = marketplaceManager.rawData.entries.toList().filter { !user.items.contains(it.value) }

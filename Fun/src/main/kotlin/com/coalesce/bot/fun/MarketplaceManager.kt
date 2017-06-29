@@ -10,7 +10,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 class MarketplaceManager: CachedDataManager<String, MarketplaceItem>(marketplaceFile, MarketplaceSerializer(marketplaceFile),
-        { throw ArgsException("Meme not found!") }) {
+        { throw ArgsException("That meme doesn't exist!") }) {
     private val userCache = mutableMapOf<Long, MarketplaceUser>()
 
     operator fun get(from: User): MarketplaceUser {
@@ -23,6 +23,8 @@ class MarketplaceManager: CachedDataManager<String, MarketplaceItem>(marketplace
             userData
         }
     }
+
+    fun exists(name: String) = rawData.containsKey(name)
 }
 
 class MarketplaceItem(val imageURL: String, val text: String, val price: Int, val creation: Long, val owner: Long, var purchases: Int)

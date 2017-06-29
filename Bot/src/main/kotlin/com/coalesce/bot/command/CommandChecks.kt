@@ -54,7 +54,7 @@ class PermHandler private constructor(private val guildDataFolder: File, private
     companion object {
         private val permHandlers = mutableMapOf<Guild, PermHandler>()
 
-        operator fun get(guild: Guild) = permHandlers[guild] ?: PermHandler(File(dataDirectory, guild.idLong.toString() + ".json"), guild)
+        operator fun get(guild: Guild) = permHandlers[guild] ?: PermHandler(File(dataDirectory, guild.idLong.toString()), guild)
     }
 
     private val memberOverrides = mutableMapOf<User, MutableList<String>>()

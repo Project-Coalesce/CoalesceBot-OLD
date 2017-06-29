@@ -20,10 +20,10 @@ import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
 @Command("CoalesceCoins", "balance bal money cocoins coins coc")
-@UserCooldown(12L, TimeUnit.SECONDS)
-class CoalesceCoins @Inject constructor(jda: JDA, val main: Main):
-        CachedDataManager<Long, Int>(messagesSentFile, MessagesSentSerializer(messagesSentFile), { 0 }),
-        Embeddables {
+@UserCooldown(12L)
+class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
+    private val messageDataManager = CachedDataManager(messagesSentFile, MessagesSentSerializer(messagesSentFile), { 0 })
+
     data class MemeReaction(val message: String,
                              val amount: Double,
                              val delay: Double,
@@ -88,14 +88,14 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main):
 
         val user = event.author
         if (user.isBot || event.channel !is MessageChannel) return
-        val messageCount = (this[user.idLong]) + 1
+        val messageCount = (messageDataManager[user.idLong]) + 1
         val nextAchievement = 25 + Math.min((Math.max(0.0, main.coCoinsManager[user].total) * 1.5).toInt(), 1000)
         if (messageCount >= nextAchievement) {
             val targetValue = main.coCoinsManager[user]
             targetValue.transaction(CoCoinsTransaction("Award for sending $nextAchievement messages", 2.0),
                     event.channel as TextChannel, user)
-            save(user.idLong, 0)
-        } else save(user.idLong, messageCount)
+            messageDataManager.save(user.idLong, 0)
+        } else messageDataManager.save(user.idLong, messageCount)
     }
 
     @ReactionListener("MemeReaction", arrayOf("memeReactionCheck"))

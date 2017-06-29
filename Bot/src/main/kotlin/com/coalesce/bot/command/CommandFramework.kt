@@ -261,7 +261,10 @@ class CommandFrameworkClass(
 
             // BOT COMMAND
             val subBotCommands = mutableMapOf<String, BotCommand>()
-            subCommands.forEach { subBotCommands[it.key.toLowerCase()] = BotCommand(it.value.first, mapOf(), adaptationArgsChecker, it.value.second) }
+            subCommands.forEach {
+                val command = BotCommand(it.value.first, mapOf(), adaptationArgsChecker, it.value.second)
+                it.value.second.aliases.forEach { subBotCommands[it.toLowerCase()] = command }
+            }
 
             botCommand = BotCommand(methods, subBotCommands, adaptationArgsChecker, commandInfo)
             commandHandler.register(this)
