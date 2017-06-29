@@ -71,23 +71,7 @@ class Main private constructor() {
             }
         }
 
-        tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
-        tryLog("Failed to load plugins") { pluginManager = PluginManager() }
-        tryLog("Failed to load CoCoins Manager") { coCoinsManager = CoCoinsManager() }
-        tryLog("Failed to load Command Type Adapters") { commandTypeAdapter = AdaptationArgsChecker(jda) }
-
-        tryLog("Failed to load Command Handler") {
-            /*
-            listener = Listener(jda)
-            listener.register()
-            jda.addEventListener(listener)
-            */
-
-            injector = Guice.createInjector(Injects(this))
-            commandHandler = Listener(jda, commandTypeAdapter, injector, pluginManager)
-            jda.addEventListener(commandHandler)
-        }
-        //tryLog("Failed to load GC") { gc = GC(listener, repManager) }
+        loadCommands()
 
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
@@ -97,6 +81,19 @@ class Main private constructor() {
         githubSecret = secret
 
         println("Outputting messages to this channel. Running CoalesceBot version $VERSION.")
+    }
+
+    fun loadCommands() {
+        tryLog("Failed to load Punishment Manager") { punishments = PunishmentManager(this) }
+        tryLog("Failed to load plugins") { pluginManager = PluginManager() }
+        tryLog("Failed to load CoCoins Manager") { coCoinsManager = CoCoinsManager() }
+        tryLog("Failed to load Command Type Adapters") { commandTypeAdapter = AdaptationArgsChecker(jda) }
+
+        tryLog("Failed to load Command Handler") {
+            injector = Guice.createInjector(Injects(this))
+            commandHandler = Listener(jda, commandTypeAdapter, injector, pluginManager)
+            jda.addEventListener(commandHandler)
+        }
     }
 
     companion object {

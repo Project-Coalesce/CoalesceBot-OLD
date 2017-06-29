@@ -16,6 +16,6 @@ class LoadPlugin: Embeddables {
         val attach = context.message.attachments.first()
         context("Downloading...")
         attach.download(File(pluginsFolder, "$name.jar"))
-        context("Plugin added! Restart to load it.")
+        context("Plugin added! You can reload with `!reload`.")
     }
 }
