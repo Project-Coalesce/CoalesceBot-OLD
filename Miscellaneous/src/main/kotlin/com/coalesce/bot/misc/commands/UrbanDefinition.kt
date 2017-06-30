@@ -1,4 +1,4 @@
-package com.coalesce.bot.`fun`.commands
+package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.command.Command
 import com.coalesce.bot.command.CommandAlias
@@ -11,10 +11,9 @@ import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import java.awt.Color
 import java.net.URL
-import java.util.concurrent.ExecutorService
 
 @Command("UrbanDefinition", "ud udefine udefinition")
-class UrbanDefinition @Inject constructor(val executorService: ExecutorService): Embeddables {
+class UrbanDefinition @Inject constructor(val executorService: java.util.concurrent.ExecutorService): Embeddables {
     @CommandAlias("Defines something using the UrbanDictonary (rather *untrusted* source)")
     fun execute(context: CommandContext, @VarArg term: String) {
         context(embed().apply {
@@ -46,8 +45,16 @@ class UrbanDefinition @Inject constructor(val executorService: ExecutorService):
                         field("Ratings", "👍${firstResult.get("thumbs_up").asInt} 👎${firstResult.get("thumbs_down").asInt}", false)
                     }.build()).queue()
                 } catch (ex: Exception) {
-                    context(embed().setColor(Color(232, 46, 0)).setTitle("Error", null).setDescription("An error occured with that command:\n" +
-                            "${ex.javaClass.name}: ${ex.message}\nPlease report this to project coalesce developers."))
+                    editMessage(EmbedBuilder(embeds.first()).apply {
+                        embTitle = "Error"
+                        embColor = Color(232, 46, 0)
+
+                        description {
+                            appendln("Failed to provide results!")
+                            appendln("${ex.javaClass.name}: ${ex.message}")
+                            appendln("This has been reported to coalesce developers.")
+                        }
+                    }.build()).queue()
                     ex.printStackTrace()
                 }
             }

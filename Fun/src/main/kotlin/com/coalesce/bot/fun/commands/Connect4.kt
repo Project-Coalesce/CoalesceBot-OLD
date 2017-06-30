@@ -16,7 +16,7 @@ private val characters = listOf("⚫", "🔵", "🔴","⚪")
 
 @Command("Connect4", "connectfour")
 class Connect4 {
-    private val game = object: CoGame("ConnectFour", 3, characters.size - 2) {
+    private val game = object: CoGame("ConnectFour", 3, 1, characters.size - 2) {
         override fun match(channel: TextChannel, @VarArg players: List<User>, resultHandler: (Map<User, Int>) -> Unit) =
                 Connect4Match(channel, this, players, resultHandler)
     }

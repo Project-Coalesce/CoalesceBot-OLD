@@ -23,6 +23,7 @@
         <module>CoCoins</module>
         <module>Fun</module>
         <module>Administration</module>
+        <module>Miscellaneous</module>
     </modules>
 
     <build>

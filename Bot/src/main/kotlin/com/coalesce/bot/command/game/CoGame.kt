@@ -14,7 +14,7 @@ import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEv
 import java.util.concurrent.TimeUnit
 
 // Dank Command Framework
-abstract class CoGame(val name: String, val winCount: Int, val maxPlayers: Int): Embeddables {
+abstract class CoGame(val name: String, val winCount: Int, val minPlayers: Int, val maxPlayers: Int): Embeddables {
     internal val reactionListeners = mutableMapOf<Long, (GuildMessageReactionAddEvent) -> Unit>()
     internal val inMatch = mutableMapOf<Long, CoGameMatch>()
     internal val inFinder = mutableListOf<Long>()
@@ -25,7 +25,7 @@ abstract class CoGame(val name: String, val winCount: Int, val maxPlayers: Int):
         if (bid != null && bid > context.main.coCoinsManager[context.author].total) throw ArgsException("You don't have enough money to bid that.")
         if (bid != null && bid !in 4..20) throw ArgsException("You can only bid between 4 and 20 coins.")
         if (context.channel.idLong != 326191031412588544L) throw ArgsException("Please use the channel <#326191031412588544>.") // #games
-        if (targetAmount !in 1..maxPlayers) throw ArgsException("Invalid amount of players.")
+        if (targetAmount !in minPlayers..maxPlayers) throw ArgsException("The amount of players must be between $minPlayers and $maxPlayers.")
 
         context(embed().apply {
             embTitle = "Looking for a match of $name!"
@@ -84,7 +84,7 @@ abstract class CoGame(val name: String, val winCount: Int, val maxPlayers: Int):
     }
     fun react(event: GuildMessageReactionAddEvent) {
         if (reactionListeners.contains(event.messageIdLong) && !event.member.user.isBot) {
-            reactionListeners[event.messageIdLong]!!.invoke(event)
+            reactionListeners[event.messageIdLong]!!(event)
         }
     }
 }
@@ -143,7 +143,7 @@ abstract class CoTurnMatch(
         players.forEach {
             builder.append("\n")
             if (characterMap != null) builder.append(characterMap[it] + " ")
-            if (curTurn == it) builder.append("`${it.name}                      «`")
+            if (curTurn == it) builder.append("`${it.name}             «`")
             else builder.append(it.name)
         }
     }

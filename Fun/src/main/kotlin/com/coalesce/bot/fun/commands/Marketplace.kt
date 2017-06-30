@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit
 @UserCooldown(10L)
 class Marketplace @Inject constructor(val marketplaceManager: MarketplaceManager): Embeddables {
     @CommandAlias("Use a dank maymay!")
+    @GlobalCooldown(4L)
+    @UserCooldown(10L)
     fun use(context: CommandContext, memeName: String) {
         val meme = marketplaceManager[memeName]
         val user = marketplaceManager[context.author]
@@ -68,7 +70,7 @@ class Marketplace @Inject constructor(val marketplaceManager: MarketplaceManager
         if (item.price > bal.total) throw ArgsException("You can't afford that meme.")
         val owner = context.main.jda.getUserById(item.owner) ?: throw ArgsException("Seems like the creator of that meme abandoned the server.")
 
-        coins[owner].transaction(com.coalesce.bot.CoCoinsTransaction("Your meme ${item.text} was purchased by ${context.author.name}.", item.price.toDouble()),
+        coins[owner].transaction(CoCoinsTransaction("Your meme ${item.text} was purchased by ${context.author.name}.", item.price.toDouble()),
                 context.channel, context.author)
         bal.transaction(com.coalesce.bot.CoCoinsTransaction("Purchased **${item.text}** meme", -item.price.toDouble()), context.channel, context.author)
         marketplaceManager[context.author].addItem(item, context.author)

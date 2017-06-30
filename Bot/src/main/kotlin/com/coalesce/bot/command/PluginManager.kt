@@ -6,6 +6,7 @@ import com.coalesce.bot.utilities.readText
 import com.coalesce.bot.utilities.truncate
 import com.coalesce.bot.utilities.tryLog
 import java.io.File
+import java.io.IOException
 import java.net.URLClassLoader
 
 class PluginManager {
@@ -20,7 +21,7 @@ class PluginManager {
             pluginsFolder.listFiles { dir, name -> name.endsWith(".jar") }.forEach {
                 tryLog("Failed to register plugin at ${it.absolutePath}") {
                     val classLoader = PluginClassLoader(it, javaClass.classLoader)
-                    val jsonInfo = gson.fromJson(classLoader.getResourceAsStream("info.json").readText(), PluginData::class.java)
+                    val jsonInfo = gson.fromJson((classLoader.getResourceAsStream("info.json") ?: throw IOException("Plugin doesn't contain info.json!")).readText(), PluginData::class.java)
                     println("Loading [${jsonInfo.name}]")
                     val plugin = classLoader[jsonInfo.main] as? Plugin? ?: Plugin()
                     plugins.add(plugin.apply {

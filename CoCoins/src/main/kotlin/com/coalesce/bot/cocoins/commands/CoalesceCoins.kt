@@ -27,9 +27,9 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
     data class MemeReaction(val message: String,
                              val amount: Double,
                              val delay: Double,
-                             val rating: String,
-                             val emote: Emote? = null,
-                             val stringEmote: String? = null)
+                            val rating: String,
+                            val emote: Emote? = null,
+                            val stringEmote: String? = null)
     private val memeReactions = mutableListOf(
             MemeReaction("Not Dank Enough", -1.0, 1260.0, "0/10", emote = jda.getEmoteById(304043388523511808L)),
             MemeReaction("Funny 🥚🥚🇩 🇪", 1.0, 860.0, "6.9/10", stringEmote = "😂"),

@@ -4,6 +4,7 @@ import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.MessageEmbed
 import java.awt.Color
 import java.io.InputStream
+import java.io.OutputStream
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
@@ -111,6 +112,8 @@ fun String.matching(regx: Regex): String {
     }
     return str.toString()
 }
+
+fun OutputStream.writeText(text: String, charset: Charset = kotlin.text.Charsets.UTF_8): Unit = write(text.toByteArray(charset))
 
 fun <T> List<T>.order(comp: Comparator<T>): MutableList<T> {
     val list = ArrayList(this)

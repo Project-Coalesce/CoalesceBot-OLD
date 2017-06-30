@@ -1,0 +1,6 @@
+{
+  "name": "Miscellaneous",
+  "packagesScan": [
+    "com.coalesce.bot.misc.commands"
+  ]
+}

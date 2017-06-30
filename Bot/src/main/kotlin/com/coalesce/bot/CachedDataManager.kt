@@ -25,17 +25,21 @@ open class CachedDataManager<U, A>(file: File,
 
     operator fun get(from: U): A {
         return cache[from] ?: run {
-            val userData = serializer.read()[from] ?: creator()
-            cache[from] = userData
-            timeOutHandler(1L, TimeUnit.HOURS) { cache.remove(from) }
-            userData
+            synchronized(serializer) {
+                val userData = serializer.read()[from] ?: creator()
+                cache[from] = userData
+                timeOutHandler(1L, TimeUnit.HOURS) { cache.remove(from) }
+                userData
+            }
         }
     }
 
     fun save(user: U, value: A) {
-        val map = rawData
-        map[user] = value
-        cache[user] = value
-        rawData = map
+        synchronized(serializer) {
+            val map = rawData
+            map[user] = value
+            cache[user] = value
+            rawData = map
+        }
     }
 }

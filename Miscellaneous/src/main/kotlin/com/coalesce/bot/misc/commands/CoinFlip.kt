@@ -1,4 +1,4 @@
-package com.coalesce.bot.`fun`.commands
+package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.command.Command
 import com.coalesce.bot.command.CommandAlias
