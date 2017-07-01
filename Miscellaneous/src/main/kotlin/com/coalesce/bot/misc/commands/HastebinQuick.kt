@@ -27,30 +27,30 @@ class HastebinQuick @Inject constructor(val executorService: java.util.concurren
         println("Hastebin cookie: $id")
     }
 
-    @CommandAlias("Creates a hastebin with the provided code or with previous messages")
+    @CommandAlias("Creates a hastebin with the provided code")
     fun execute(context: CommandContext, @VarArg code: String) {
-        if (code.isEmpty()) {
-            context.channel.history.retrievePast(10).queue {
-                val message = it.firstOrNull { it.rawContent.contains(codeBlock) } ?: throw ArgsException("No messages found!\nYou can use !hastebin <code> instead.")
-                message.delete().queue()
-                context(embed().apply {
-                    embColor = Color.YELLOW
-                    embTitle = "Posting..."
-                }) {
-                    executorService.submit {
-                        createHastebin(context, message.rawContent.matching(codeBlock).let { it.substring(3 .. it.length - 3) }, this)
-                    }
-                }
-            }
-            return
-        }
-
         context(embed().apply {
             embColor = Color.YELLOW
             embTitle = "Posting..."
         }) {
             executorService.submit {
                 createHastebin(context, code, this)
+            }
+        }
+    }
+
+    @CommandAlias("Creates hastebin with previous messages")
+    fun previousMessages(context: CommandContext) {
+        context.channel.history.retrievePast(10).queue {
+            val message = it.firstOrNull { it.rawContent.contains(codeBlock) } ?: throw ArgsException("No messages found!\nYou can use !hastebin <code> instead.")
+            message.delete().queue()
+            context(embed().apply {
+                embColor = Color.YELLOW
+                embTitle = "Posting..."
+            }) {
+                executorService.submit {
+                    createHastebin(context, message.rawContent.matching(codeBlock).let { it.substring(3 .. it.length - 3) }, this)
+                }
             }
         }
     }

@@ -40,8 +40,8 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
                         embColor = Color(112, 255, 45)
 
                         field("Term", term, true)
-                        field("Result", firstResult.get("definition").asString.truncate(0, 1000), true)
-                        field("Example", firstResult.get("example").asString.truncate(0, 1000), true)
+                        field("Result", firstResult.get("definition").asString.truncate(0, 1000) + "\n\n**Examples:**\n\n" +
+                            "*${firstResult.get("example").asString.truncate(0, 500)}*", true)
                         field("Ratings", "👍${firstResult.get("thumbs_up").asInt} 👎${firstResult.get("thumbs_down").asInt}", false)
                     }.build()).queue()
                 } catch (ex: Exception) {
