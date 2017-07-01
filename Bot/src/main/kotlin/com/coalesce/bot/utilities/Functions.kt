@@ -104,6 +104,15 @@ fun Long.formatTimeDiff(): String {
 
 fun String.truncate(from: Int, to: Int): String = if (this.length >= to) substring(from, to) + "..." else this
 
+fun String.matchList(regx: Regex): List<MatchResult> {
+    val matchList = regx.matchEntire(this)
+    return listOf {
+        while (true) {
+            add((matchList ?: break).next() ?: break)
+        }
+    }
+}
+
 fun String.matching(regx: Regex): String {
     val matchList = regx.matchEntire(this)
     val str = StringBuilder()
