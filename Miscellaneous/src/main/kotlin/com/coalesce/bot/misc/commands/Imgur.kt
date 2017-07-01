@@ -58,10 +58,11 @@ class Imgur @Inject constructor(val executorService: ExecutorService): Embeddabl
             val json = gson.fromJson(client.execute(post).entity.content.readText(), JsonElement::class.java).asJsonObject
 
             message.editMessage(EmbedBuilder(message.embeds.first()).apply {
-                setTitle("Imgur Image Uploaded", json["data"].asJsonObject["link"].asString)
-                setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
+                val lnk = json["data"].asJsonObject["link"].asString
                 embColor = Color(112, 255, 45)
-                embDescription = "Click the title to view!"
+                setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
+                setTitle("Imgur Image Uploaded", lnk)
+                setImage(lnk)
             }.build()).queue()
         } catch (ex: Exception) {
             message.editMessage(EmbedBuilder(message.embeds.first()).apply {

@@ -33,16 +33,17 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
                         return@submit
                     }
 
-                    val firstResult = json.get("list").asJsonArray.get(0).asJsonObject
+                    val result = json.get("list").asJsonArray.first().asJsonObject
                     editMessage(EmbedBuilder(embeds.first()).apply {
-                        setTitle("Urban Dictionary Definition", firstResult.get("permalink").asString)
+                        setTitle("Urban Dictionary Definition", result.get("permalink").asString)
                         setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
                         embColor = Color(112, 255, 45)
 
-                        field("Term", term, true)
-                        field("Result", firstResult.get("definition").asString.truncate(0, 1000) + "\n\n**Examples:**\n\n" +
-                            "*${firstResult.get("example").asString.truncate(0, 500)}*", true)
-                        field("Ratings", "👍${firstResult.get("thumbs_up").asInt} 👎${firstResult.get("thumbs_down").asInt}", false)
+                        field("Term", term, false)
+                        field("Result", result["definition"].asString.truncate(0, 1000) + "\n\n**Examples:**\n\n" +
+                            "*${result["example"].asString.truncate(0, 500)}*", false)
+                        field("Ratings", "👍${result["thumbs_up"].asInt} 👎${result["thumbs_down"].asInt}", true)
+                        field("By", result["author"].asString, true)
                     }.build()).queue()
                 } catch (ex: Exception) {
                     editMessage(EmbedBuilder(embeds.first()).apply {
