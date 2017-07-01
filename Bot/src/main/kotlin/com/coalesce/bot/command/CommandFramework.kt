@@ -34,7 +34,7 @@ import kotlin.reflect.jvm.kotlinFunction
 class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecker, guice: Injector, pluginManager: PluginManager):
         ListenerAdapter(), Embeddables {
     val commandAliasMap = mutableMapOf<String, CommandFrameworkClass>()
-    val eventHandlers = mutableMapOf<Class<*>, MutableList<Pair<Method, CommandFrameworkClass>>>()
+    val eventHandlers = mutableMapOf<Class<*>, MutableList<Pair<Method, Any>>>()
     val reactionHandlers = mutableListOf<ReactionHandler>()
     val commands = mutableListOf<CommandFrameworkClass>()
     val cooldownHandler = CooldownHandler()
@@ -61,9 +61,19 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
                 .addClassLoaders(*(classLoaders.toTypedArray()))
                 .filterInputsBy { !it!!.endsWith("Kt") && !it.contains('$') && packages.any { pck -> it.startsWith(pck) } })
                 .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') && !it.name.endsWith("Kt") })
-        println(classes.joinToString(separator = ", ") { it.name })
         classes.addAll(pluginManager.addedCommands)
-        classes.forEach { CommandFrameworkClass(this, adaptationArgsChecker, guice, it) }
+        classes.forEach { tryLog("Failed to register command class at ${it.name}") {
+            if (it.isAnnotationPresent(Command::class.java)) CommandFrameworkClass(this, adaptationArgsChecker, guice, it)
+            else if (it.isAnnotationPresent(JDAEventHandler::class.java)) {
+                val instance = guice.getInstance(it)
+                it.declaredMethods.forEach {
+                    if (it.isAnnotationPresent(JDAListener::class.java)) {
+                        val clazz = it.parameterTypes.first()
+                        eventHandlers[clazz] = (eventHandlers[clazz] ?: mutableListOf()).apply { add(it to instance) }
+                    }
+                }
+            }
+        } }
         Help.loadHelp(this)
         println("Registered ${commands.size} commands: ${commands.joinToString(separator = ", ") { it.commandInfo.name }.truncate(0, 1000)}")
     }
@@ -72,7 +82,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         if (eventHandlers.containsKey(event.javaClass)) {
             eventHandlers[event.javaClass]!!.forEach {
                 try {
-                    it.first(it.second.instance, *(arrayOf(event)))
+                    it.first(it.second, *(arrayOf(event)))
                 } catch (ex: Exception) {
                     val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
                     System.err.println("An error occured while attempting to handle event of type ${event.javaClass!!}")
@@ -86,27 +96,27 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         val context = ReactionContext(event.user, event.messageIdLong, event, event.reactionEmote, Main.instance, event.channel, event.guild)
         reactionHandlers.forEach {
             if ((checks and it.checks).any { c -> !c(context) })
-            try{
-                it.method.invoke(it.clazz.instance, *(arrayOf(context)))
-            } catch (ex: Exception) {
-                val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
+                try{
+                    it.method.invoke(it.clazz.instance, *(arrayOf(context)))
+                } catch (ex: Exception) {
+                    val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
 
-                if (thrw is ArgsException) {
-                    event.channel.sendMessage("${event.user.asMention} ❌: ${thrw.message}").queue()
-                    return
-                }
-
-                event.channel.sendMessage(embed().apply {
-                    embColor = Color(232, 46, 0)
-                    embTitle = "Error"
-                    description {
-                        appendln("An error occured with that command.")
-                        append("This has been reported to Coalesce developers.")
+                    if (thrw is ArgsException) {
+                        event.channel.sendMessage("${event.user.asMention} ❌: ${thrw.message}").queue()
+                        return
                     }
-                }.build()).queue()
-                System.err.println("An error occured while attempting to handle reaction from ${event.user.name}")
-                thrw.printStackTrace()
-            }
+
+                    event.channel.sendMessage(embed().apply {
+                        embColor = Color(232, 46, 0)
+                        embTitle = "Error"
+                        description {
+                            appendln("An error occured with that command.")
+                            append("This has been reported to Coalesce developers.")
+                        }
+                    }.build()).queue()
+                    System.err.println("An error occured while attempting to handle reaction from ${event.user.name}")
+                    thrw.printStackTrace()
+                }
         }
     }
 
@@ -121,7 +131,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         val command = event.message.rawContent.substring(commandPrefixLen)
         val split = command.split(" ")
         if (split.isEmpty()) {
-             event.message.addReaction("❔").queue()
+            event.message.addReaction("❔").queue()
             return
         }
         val args = split.subList(1)
@@ -180,94 +190,90 @@ class CommandFrameworkClass(
         guice: Injector,
         clazz: Class<*>
 ) {
-    lateinit var instance: Any
-    lateinit var commandInfo: CommandInfo
-    lateinit var botCommand: BotCommand
+    val instance = guice.getInstance(clazz)!!
+    val commandInfo: CommandInfo
+    val botCommand: BotCommand
 
     init {
-        if (clazz.isAnnotationPresent(Command::class.java)) {
-            instance = guice.getInstance(clazz)
-
-            val subCommands = mutableMapOf<String, Pair<MutableList<UsableMethod>, CommandInfo>>()
-            fun newSubCommandMap() = mutableListOf<UsableMethod>() to CommandInfo(subCommand = true)
-            val info = CommandInfo()
-            clazz.annotations.forEach {
-                if (it is Command) {
-                    info.name = it.name
-                    info.aliases = it.aliases.split(" ").toMutableList().apply { add(it.name) }
-                }
-                else if (it is GlobalCooldown) info.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
-                else if (it is UserCooldown) info.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
+        val subCommands = mutableMapOf<String, Pair<MutableList<UsableMethod>, CommandInfo>>()
+        fun newSubCommandMap() = mutableListOf<UsableMethod>() to CommandInfo(subCommand = true)
+        val info = CommandInfo()
+        clazz.annotations.forEach {
+            if (it is Command) {
+                info.name = it.name
+                info.aliases = it.aliases.split(" ").toMutableList().apply { add(it.name) }
             }
+            else if (it is GlobalCooldown) info.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
+            else if (it is UserCooldown) info.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
+        }
 
-            val methods = mutableListOf<UsableMethod>()
+        val methods = mutableListOf<UsableMethod>()
 
-            clazz.declaredMethods.forEach {
-                if (Modifier.isStatic(it.modifiers)) return@forEach
+        clazz.declaredMethods.forEach {
+            if (Modifier.isStatic(it.modifiers)) return@forEach
 
-                if (it.isAnnotationPresent(CommandAlias::class.java)) {
-                    methods.add(UsableMethod.of(it, it.getAnnotationsByType(CommandAlias::class.java).first().description))
-                    // Sub Commands
-                } else if (it.isAnnotationPresent(SubCommand::class.java)) {
-                    val subCommandAnno = it.getAnnotationsByType(SubCommand::class.java).first()
-                    val map = subCommands[subCommandAnno.name] ?: newSubCommandMap()
-                    map.second.aliases = subCommandAnno.aliases.split(" ").toMutableList().apply { add(subCommandAnno.name) }
-                    map.first.add(UsableMethod.of(it, subCommandAnno.description))
-                    it.declaredAnnotations.forEach {
-                        if (it is Usage) map.second.usage = it.usage
-                        else if (it is GlobalCooldown) map.second.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
-                        else if (it is UserCooldown) map.second.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
-                    }
-                    subCommands[subCommandAnno.name] = map
-                } else if (it.isAnnotationPresent(SubCommandAlias::class.java)) {
-                    val subCommandAnno = it.getAnnotationsByType(SubCommandAlias::class.java).first()
-                    val map = subCommands[subCommandAnno.name] ?: newSubCommandMap()
-                    map.first.add(UsableMethod.of(it, it.getAnnotationsByType(SubCommandAlias::class.java).first().description))
-                    subCommands[subCommandAnno.name] = map
+            if (it.isAnnotationPresent(CommandAlias::class.java)) {
+                methods.add(UsableMethod.of(it, it.getAnnotationsByType(CommandAlias::class.java).first().description))
+                // Sub Commands
+            } else if (it.isAnnotationPresent(SubCommand::class.java)) {
+                val subCommandAnno = it.getAnnotationsByType(SubCommand::class.java).first()
+                val map = subCommands[subCommandAnno.name] ?: newSubCommandMap()
+                map.second.aliases = subCommandAnno.aliases.split(" ").toMutableList().apply { add(subCommandAnno.name) }
+                map.first.add(UsableMethod.of(it, subCommandAnno.description))
+                it.declaredAnnotations.forEach {
+                    if (it is Usage) map.second.usage = it.usage
+                    else if (it is GlobalCooldown) map.second.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
+                    else if (it is UserCooldown) map.second.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
+                }
+                subCommands[subCommandAnno.name] = map
+            } else if (it.isAnnotationPresent(SubCommandAlias::class.java)) {
+                val subCommandAnno = it.getAnnotationsByType(SubCommandAlias::class.java).first()
+                val map = subCommands[subCommandAnno.name] ?: newSubCommandMap()
+                map.first.add(UsableMethod.of(it, it.getAnnotationsByType(SubCommandAlias::class.java).first().description))
+                subCommands[subCommandAnno.name] = map
                 // Listeners
-                } else if (it.isAnnotationPresent(JDAListener::class.java)) {
-                    commandHandler.eventHandlers[it.parameterTypes[0]] =
-                            (commandHandler.eventHandlers[it.parameterTypes[0]] ?: mutableListOf()).apply {
-                                add(it to this@CommandFrameworkClass)
-                            }
-                } else if (it.isAnnotationPresent(ReactionListener::class.java)) {
-                    val anno = it.getAnnotationsByType(ReactionListener::class.java).first()
-                    val reactionInfo = CommandInfo(name = anno.name)
+            } else if (it.isAnnotationPresent(JDAListener::class.java)) {
+                commandHandler.eventHandlers[it.parameterTypes[0]] =
+                        (commandHandler.eventHandlers[it.parameterTypes[0]] ?: mutableListOf()).apply {
+                            add(it to instance)
+                        }
+            } else if (it.isAnnotationPresent(ReactionListener::class.java)) {
+                val anno = it.getAnnotationsByType(ReactionListener::class.java).first()
+                val reactionInfo = CommandInfo(name = anno.name)
 
-                    it.annotations.forEach {
-                        if (it is Usage) reactionInfo.usage = it.usage
-                        else if (it is GlobalCooldown) reactionInfo.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
-                        else if (it is UserCooldown) reactionInfo.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
-                    }
-
-                    commandHandler.reactionHandlers.add(ReactionHandler(it, this@CommandFrameworkClass, reactionInfo, anno.extraChecks.map {
-                        val meth = clazz.getDeclaredMethod(it, *(arrayOf(ReactionContext::class.java)))
-                        Predicate<ReactionContext> { meth(it) as Boolean }
-                    }.map(Predicate<ReactionContext>::toLambdaFunc)))
+                it.annotations.forEach {
+                    if (it is Usage) reactionInfo.usage = it.usage
+                    else if (it is GlobalCooldown) reactionInfo.globalCooldown = it.globalCooldownUnit.toMillis(it.globalCooldown)
+                    else if (it is UserCooldown) reactionInfo.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
                 }
-            }
 
-            info.usage = StringBuilder().apply {
-                fun addMethod(method: UsableMethod, name: String) =
+                commandHandler.reactionHandlers.add(ReactionHandler(it, this@CommandFrameworkClass, reactionInfo, anno.extraChecks.map {
+                    val meth = clazz.getDeclaredMethod(it, *(arrayOf(ReactionContext::class.java)))
+                    Predicate<ReactionContext> { meth(it) as Boolean }
+                }.map(Predicate<ReactionContext>::toLambdaFunc)))
+            }
+        }
+
+        info.usage = StringBuilder().apply {
+            fun addMethod(method: UsableMethod, name: String) =
                     appendln("$commandPrefix${name.toLowerCase()} ${method.info}: ${method.usage}")
 
-                methods.forEach { addMethod(it, info.name) }
-                subCommands.forEach { subCmd ->
-                    subCmd.value.first.forEach { addMethod(it, subCmd.value.second.name) }
-                }
-            }.toString()
-            commandInfo = info
-
-            // BOT COMMAND
-            val subBotCommands = mutableMapOf<String, BotCommand>()
-            subCommands.forEach {
-                val command = BotCommand(it.value.first, mapOf(), adaptationArgsChecker, it.value.second)
-                it.value.second.aliases.forEach { subBotCommands[it.toLowerCase()] = command }
+            methods.forEach { addMethod(it, info.name) }
+            subCommands.forEach { subCmd ->
+                subCmd.value.first.forEach { addMethod(it, subCmd.value.second.name) }
             }
+        }.toString()
+        commandInfo = info
 
-            botCommand = BotCommand(methods, subBotCommands, adaptationArgsChecker, commandInfo)
-            commandHandler.register(this)
+        // BOT COMMAND
+        val subBotCommands = mutableMapOf<String, BotCommand>()
+        subCommands.forEach {
+            val command = BotCommand(it.value.first, mapOf(), adaptationArgsChecker, it.value.second)
+            it.value.second.aliases.forEach { subBotCommands[it.toLowerCase()] = command }
         }
+
+        botCommand = BotCommand(methods, subBotCommands, adaptationArgsChecker, commandInfo)
+        commandHandler.register(this)
     }
 
     data class CommandInfo(
@@ -294,8 +300,8 @@ class KotlinUsableMethod(
         javaCallable: Method,
         info: String,
         usage: String =
-                if (javaCallable.isAnnotationPresent(Usage::class.java)) javaCallable.getAnnotation(Usage::class.java).usage
-                else kParams.subList(2).joinToString(separator = " ") { if (it.isOptional) "[${it.name!!.capitalize()}]" else "<${it.name!!.capitalize()}>" }
+        if (javaCallable.isAnnotationPresent(Usage::class.java)) javaCallable.getAnnotation(Usage::class.java).usage
+        else kParams.subList(2).joinToString(separator = " ") { if (it.isOptional) "[${it.name!!.capitalize()}]" else "<${it.name!!.capitalize()}>" }
 ): UsableMethod(classList, javaCallable, info, usage) {
     override val paramCount = kParams.subList(2).count { !it.isOptional }
 }
@@ -344,10 +350,9 @@ class BotCommand(
                         if (parameter.isAnnotationPresent(VarArg::class.java)) {
                             if (parameter.type == String::class.java) paramters[kotlinParam] = arguments.joinToString(separator = " ")
                             else paramters[kotlinParam] = listOf<Any> {
-                                var argset = args.subList(index).toTypedArray()
-                                while (argset.isNotEmpty()) {
+                                while (arguments.isNotEmpty()) {
                                     val (newArgs, obj) = commandTypeAdapter.adapt(arguments, parameter.type) ?: break
-                                    argset = newArgs
+                                    arguments = newArgs
                                     add(obj)
                                 }
                             }
@@ -404,11 +409,11 @@ class BotCommand(
 
 fun MessageChannel.send(text: String, mention: IMentionable? = null, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) =
-    sendTask(sendMessage(if (mention != null) "${mention.asMention}: $text" else text), deleteAfter, queueAfter, handler)
+        sendTask(sendMessage(if (mention != null) "${mention.asMention}: $text" else text), deleteAfter, queueAfter, handler)
 
 fun MessageChannel.send(embed: MessageEmbed, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) =
-    sendTask(sendMessage(embed), deleteAfter, queueAfter, handler)
+        sendTask(sendMessage(embed), deleteAfter, queueAfter, handler)
 
 fun MessageChannel.send(embed: EmbedBuilder, mention: User, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) {
@@ -469,19 +474,19 @@ open class Context(
 
     operator fun invoke(text: String, mentionUser: Boolean = true, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) =
-        channel.send(text, if (mentionUser) author else null, deleteAfter, queueAfter, handler)
+            channel.send(text, if (mentionUser) author else null, deleteAfter, queueAfter, handler)
 
     operator fun invoke(mention: IMentionable, text: String, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) =
-        channel.send(text, mention, deleteAfter, queueAfter, handler)
+            channel.send(text, mention, deleteAfter, queueAfter, handler)
 
     operator fun invoke(embed: MessageEmbed, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) =
-        channel.send(embed, deleteAfter, queueAfter, handler)
+            channel.send(embed, deleteAfter, queueAfter, handler)
 
     operator fun invoke(embed: EmbedBuilder, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) =
-        channel.send(embed, author, deleteAfter, queueAfter, handler)
+            channel.send(embed, author, deleteAfter, queueAfter, handler)
 }
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -490,6 +495,10 @@ annotation class Command(
         val name: String,
         val aliases: String = ""
 )
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS)
+annotation class JDAEventHandler
 
 @Retention(AnnotationRetention.RUNTIME)
 annotation class UserCooldown(

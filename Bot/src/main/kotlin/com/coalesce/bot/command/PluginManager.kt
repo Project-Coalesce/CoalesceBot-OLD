@@ -22,7 +22,6 @@ class PluginManager {
                 tryLog("Failed to register plugin at ${it.absolutePath}") {
                     val classLoader = PluginClassLoader(it, javaClass.classLoader)
                     val jsonInfo = gson.fromJson((classLoader.getResourceAsStream("info.json") ?: throw IOException("Plugin doesn't contain info.json!")).readText(), PluginData::class.java)
-                    println("Loading [${jsonInfo.name}]")
                     val plugin = classLoader[jsonInfo.main] as? Plugin? ?: Plugin()
                     plugins.add(plugin.apply {
                         pluginClassLoader = classLoader

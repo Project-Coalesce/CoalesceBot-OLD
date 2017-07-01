@@ -36,33 +36,17 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
                     }
 
                     val result = json["list"].asJsonArray.first().asJsonObject
-                    val definition = result["definition"].asString
-                    val references = definition.matchList(Regex("\\[.*?\\]"))
 
-                    references.forEachIndexed { index, it ->
-                        definition.replaceRange(it.range.start + 1 .. it.range.endInclusive - 1, it.value.substring(1, it.value.length - 1) +
-                            it.value.toCharArray().map { superscriptMap[it] })
-                    }
                     editMessage(EmbedBuilder(embeds.first()).apply {
                         setTitle("Urban Dictionary Definition", result["permalink"].asString)
                         setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
                         embColor = Color(112, 255, 45)
 
                         field("Term", term, false)
-                        field("Result", definition.truncate(0, 1000) + "\n\n**Examples:**\n\n" +
-                            "*${result["example"].asString.truncate(0, 500)}*", false)
-                        if (references.isNotEmpty()) {
-                            val maxSize = references.size / 1024 - references.size * 7 /* New lines, number. etc... */
-                            field("References", references.joinToString(separator = "\n") {
-                                val refResult = gson.fromJson(URL("http://api.urbandictionary.com/v0/define?term=${it.value}")
-                                        .openConnection().getInputStream().readText(), JsonElement::class.java)
-                                        .asJsonObject["list"].asJsonArray.first().asJsonObject
+                        field("Result", result["definition"].asString.truncate(0, 1000), false)
+                        field("Examples", result["example"].asString.truncate(0, 1000), false)
 
-                                "${references.indexOf(it)}." + refResult["definition"].asString.truncate(0, maxSize)
-                            }, false)
-                        }
-                        field("Ratings", "👍${result["thumbs_up"].asInt} 👎${result["thumbs_down"].asInt}", true)
-                        field("By", result["author"].asString, true)
+                        setFooter("By ${result["author"].asString} 👍${result["thumbs_up"].asInt} 👎${result["thumbs_down"].asInt}", null)
                     }.build()).queue()
                 } catch (ex: Exception) {
                     editMessage(EmbedBuilder(embeds.first()).apply {

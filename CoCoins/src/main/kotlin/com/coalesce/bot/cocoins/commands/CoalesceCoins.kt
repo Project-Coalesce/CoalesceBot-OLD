@@ -46,7 +46,7 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
 
         context(embed().apply {
             embColor = Color(0x5ea81e)
-            embTitle = "${if (target == context.author) "You have" else "${target.name} has"} ${coins.total.toInt()} reputation."
+            embTitle = "${if (target == context.author) "You have" else "${target.name} has"} ${coins.total.toInt()} CoCoins."
             field("Recent", transactionsString, false)
         })
     }
@@ -56,7 +56,7 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
     fun coinsBoard(context: CommandContext, page: Int = 1) {
         val coins = context.main.coCoinsManager
         val board = coins.rawData
-        if (page * 10 > board.size || page < 1) throw ArgsException("That page is out of bounds.")
+        if (page * 10 > board.size + 10 || page < 1) throw ArgsException("That page is out of bounds.")
         val list = board.entries.toList().filter { context.main.jda.getUserById(it.key) != null }
                 .order { o1, o2 -> (o1.value.total - o2.value.total).toInt() }.subList((page - 1) * 10, Math.min(board.size, page * 10))
         val amountPositions = list.map { it.value.total }.order(Comparator.comparingInt(Double::toInt).reversed())
