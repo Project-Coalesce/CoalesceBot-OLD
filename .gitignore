@@ -1,6 +1,11 @@
 
 # Created by https://www.gitignore.io/api/maven,java,eclipse,netbeans,intellij
 
+## I accidentally added gralde and dont know how to get rid of it :\
+gradlew
+gradlew.bat
+gradle
+.gradle
 
 ### Eclipse ###
 

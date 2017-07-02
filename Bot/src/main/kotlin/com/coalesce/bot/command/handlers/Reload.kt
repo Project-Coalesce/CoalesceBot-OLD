@@ -21,6 +21,7 @@ class Reload: Embeddables {
             jda.removeEventListener(commandHandler)
             context("Reloading...")
             loadCommands()
+            System.gc()
             context("Done.")
 
             @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // ffs

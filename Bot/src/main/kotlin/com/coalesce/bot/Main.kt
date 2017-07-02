@@ -121,6 +121,7 @@ const val commandPrefix = "!"
 const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
 val pluginsFolder = File("plugins")
+val usingPluginsFolder = File("using-plugins")
 val globalPermissionsFile = File(dataDirectory, "global.dat")
 val coCoinsFile = File(dataDirectory, "cocoins.dat")
 val blacklistFile = File(dataDirectory, "blacklist.json")

@@ -2,6 +2,7 @@ package com.coalesce.bot.command
 
 import com.coalesce.bot.gson
 import com.coalesce.bot.pluginsFolder
+import com.coalesce.bot.usingPluginsFolder
 import com.coalesce.bot.utilities.readText
 import com.coalesce.bot.utilities.truncate
 import com.coalesce.bot.utilities.tryLog
@@ -17,10 +18,21 @@ class PluginManager {
 
     init {
         if (pluginsFolder.exists()) {
+            if (usingPluginsFolder.exists()) usingPluginsFolder.delete()
+            usingPluginsFolder.mkdirs()
+
             println("Registering plugins...")
-            pluginsFolder.listFiles { dir, name -> name.endsWith(".jar") }.forEach {
-                tryLog("Failed to register plugin at ${it.absolutePath}") {
-                    val classLoader = PluginClassLoader(it, javaClass.classLoader)
+            pluginsFolder.listFiles { _, name -> name.endsWith(".jar") }.forEach {
+                val pluginFile = File(usingPluginsFolder, it.name)
+                tryLog("Failed to register plugin at ${pluginFile.absolutePath}") {
+                    pluginFile.createNewFile()
+                    pluginFile.outputStream().use { output ->
+                        it.inputStream().use { input ->
+                            output.write(input.readBytes())
+                        }
+                    }
+
+                    val classLoader = PluginClassLoader(pluginFile, javaClass.classLoader)
                     val jsonInfo = gson.fromJson((classLoader.getResourceAsStream("info.json") ?: throw IOException("Plugin doesn't contain info.json!")).readText(), PluginData::class.java)
                     val plugin = classLoader[jsonInfo.main] as? Plugin? ?: Plugin()
                     plugins.add(plugin.apply {
@@ -50,8 +62,8 @@ open class Plugin {
     lateinit var pluginData: PluginManager.PluginData
     lateinit var pluginManager: PluginManager
     fun registerCommand(vararg commandHandler: Class<*>) = pluginManager.addedCommands.addAll(commandHandler)
-    protected fun addGuiceInjection(clazz: Class<*>, value: Any) {
 
+    protected fun addGuiceInjection(clazz: Class<*>, value: Any) {
         pluginManager.addedGuiceInjections[clazz] = value
     }
 
