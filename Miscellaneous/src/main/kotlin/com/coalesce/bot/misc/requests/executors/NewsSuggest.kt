@@ -37,6 +37,8 @@ class NewsSuggest @Inject constructor(val bot: Main): Request {
         if (accepted) {
             bot.jda.getTextChannelById(newsChannelID).send(embed().apply {
                 embColor = Color.YELLOW
+                embTitle = "News"
+                embDescription = content
                 setFooter("Author: ${user.name}", user.effectiveAvatarUrl)
             }.build())
         }
