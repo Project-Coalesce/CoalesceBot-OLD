@@ -60,7 +60,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
                 .setUrls(urls)
                 .addClassLoaders(*(classLoaders.toTypedArray()))
                 .filterInputsBy { !it!!.endsWith("Kt") && !it.contains('$') && packages.any { pck -> it.startsWith(pck) } })
-                .getSubTypesOf(Object::class.java).filter { !it.name.contains('$') && !it.name.endsWith("Kt") })
+                .getSubTypesOf(Object::class.java))
         classes.addAll(pluginManager.addedCommands)
         classes.forEach { tryLog("Failed to register command class at ${it.name}") {
             if (it.isAnnotationPresent(Command::class.java)) CommandFrameworkClass(this, adaptationArgsChecker, guice, it)
@@ -95,6 +95,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
     override fun onGuildMessageReactionAdd(event: GuildMessageReactionAddEvent) {
         val context = ReactionContext(event.user, event.messageIdLong, event, event.reactionEmote, Main.instance, event.channel, event.guild)
         reactionHandlers.forEach {
+            context.info = it.info
             if ((checks and it.checks).any { c -> !c(context) })
                 try{
                     it.method.invoke(it.clazz.instance, *(arrayOf(context)))
@@ -247,10 +248,12 @@ class CommandFrameworkClass(
                     else if (it is UserCooldown) reactionInfo.userCooldown = it.userCooldownUnit.toMillis(it.userCooldown)
                 }
 
-                commandHandler.reactionHandlers.add(ReactionHandler(it, this@CommandFrameworkClass, reactionInfo, anno.extraChecks.map {
+                val reactionHandler = ReactionHandler(it, this@CommandFrameworkClass, reactionInfo, anno.extraChecks.map {
                     val meth = clazz.getDeclaredMethod(it, *(arrayOf(ReactionContext::class.java)))
                     Predicate<ReactionContext> { meth(it) as Boolean }
-                }.map(Predicate<ReactionContext>::toLambdaFunc)))
+                }.map(Predicate<ReactionContext>::toLambdaFunc))
+
+                commandHandler.reactionHandlers.add(reactionHandler)
             }
         }
 

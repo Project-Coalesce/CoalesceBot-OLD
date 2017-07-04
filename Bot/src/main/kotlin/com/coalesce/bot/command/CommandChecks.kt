@@ -89,8 +89,9 @@ class PermHandler private constructor(private val guildDataFolder: File, private
     operator fun get(user: User) = WrappedUser(user, this)
     operator fun get(role: Role) = WrappedRole(role, this)
 
+    operator fun get(perm: String) = globalPermissions.contains(perm)
     operator fun plusAssign(permission: String) {
-        globalPermissions.add(permission)
+        if (globalPermissions.contains(permission)) globalPermissions.remove(permission) else globalPermissions.add(permission)
         save(globalFile, globalPermissions)
     }
 
@@ -107,15 +108,25 @@ class PermHandler private constructor(private val guildDataFolder: File, private
     }
 
     class WrappedRole internal constructor(private val role: Role, private val handler: PermHandler) {
-        infix fun perm(permission: String) {
-            handler.roleOverrides[role] = (handler.roleOverrides[role] ?: mutableListOf()).apply { add(permission) }
+        operator fun get(perm: String): Boolean {
+            return (handler.roleOverrides[role] ?: return false).contains(perm)
+        }
+        operator fun plusAssign(permission: String) {
+            handler.roleOverrides[role] = (handler.roleOverrides[role] ?: mutableListOf()).apply {
+                if (contains(permission)) remove(permission) else add(permission)
+            }
             handler.save(handler.rolesFile, handler.roleOverrides)
         }
     }
 
     class WrappedUser internal constructor(private val user: User, private val handler: PermHandler) {
-        infix fun perm(permission: String) {
-            handler.memberOverrides[user] = (handler.memberOverrides[user] ?: mutableListOf()).apply { add(permission) }
+        operator fun get(perm: String): Boolean {
+            return (handler.memberOverrides[user] ?: return false).contains(perm)
+        }
+        operator fun plusAssign(permission: String) {
+            handler.memberOverrides[user] = (handler.memberOverrides[user] ?: mutableListOf()).apply {
+                if (contains(permission)) remove(permission) else add(permission)
+            }
             handler.save(handler.membersFile, handler.memberOverrides)
         }
     }
