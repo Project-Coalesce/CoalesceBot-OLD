@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutorService
 class Google @Inject constructor(val executorService: ExecutorService): Embeddables {
 
     @UserCooldown(5L)
-    @Usage("!google <query>")
     @CommandAlias("Google something")
     fun google(context: CommandContext, @VarArg query: String) {
         context(embed().apply {
