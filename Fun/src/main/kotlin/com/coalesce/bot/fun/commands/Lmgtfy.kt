@@ -10,7 +10,7 @@ import com.coalesce.bot.utilities.embDescription
 import net.dv8tion.jda.core.entities.User
 import java.awt.Color
 
-@Command("lmgtfy", "google gog justgoogleretard badcommand")
+@Command("lmgtfy", "lemmegoog justgoogleretard badcommand")
 class Lmgtfy: Embeddables {
     @CommandAlias("Have you tried googling it? Let me do it for you!")
     fun lmgtfy(context: CommandContext, mention: User = context.author, @VarArg query: String) {

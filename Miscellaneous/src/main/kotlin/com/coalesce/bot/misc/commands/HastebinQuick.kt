@@ -2,25 +2,26 @@ package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.command.*
 import com.coalesce.bot.gson
+import com.coalesce.bot.misc.AGENT
 import com.coalesce.bot.utilities.*
 import com.google.gson.JsonElement
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
+import sun.management.resources.agent
 import java.awt.Color
 import java.net.HttpURLConnection
 import java.net.URL
 
 @Command("HastebinQuick", "hb hastebin pastebin pb codeblock")
 class HastebinQuick @Inject constructor(val executorService: java.util.concurrent.ExecutorService): Embeddables {
-    private val agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
     private val codeBlock = Regex("```[\\s\\S]*```")
     private val id: String
 
     init {
         val url = URL("https://hastebin.com")
         val conn = url.openConnection()
-        conn.addRequestProperty("User-Agent", agent)
+        conn.addRequestProperty("User-Agent", AGENT)
         conn.getInputStream().readText() // Ensure connection
         val cookies = conn.headerFields["Set-Cookie"]!!
         id = cookies.find { it.startsWith("__cfduid=") }!!.split(";").first()
@@ -58,7 +59,7 @@ class HastebinQuick @Inject constructor(val executorService: java.util.concurren
     private val properties: Map<String, String>
         get() = mapOf(
                 "Cookie" to id,
-                "User-Agent" to agent,
+                "User-Agent" to AGENT,
                 "Content-Type" to "application/json; charset=utf-8"
         )
 

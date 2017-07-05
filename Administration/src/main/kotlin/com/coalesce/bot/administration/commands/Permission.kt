@@ -22,7 +22,7 @@ class Permission {
             "The permission '$perm' will no longer be accessible by ${user.asMention}.")
     }
 
-    @CommandAlias("Toggle permission from being accessed by an user")
+    @CommandAlias("Toggle permission from being accessed by a role")
     fun permission(context: CommandContext, role: Role, perm: String) {
         val handler = PermHandler[context.guild][role]
         handler += perm
