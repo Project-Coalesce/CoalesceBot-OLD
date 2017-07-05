@@ -67,8 +67,8 @@ class PermHandler private constructor(private val guildDataFolder: File, private
 
     init {
         if (membersFile.exists()) memberOverrides.putAll(gson.fromJson(membersFile.readText(), memberOverrides.javaClass))
-        if (rolesFile.exists()) roleOverrides.putAll(gson.fromJson(membersFile.readText(), roleOverrides.javaClass))
-        if (globalFile.exists()) globalPermissions.addAll(gson.fromJson(membersFile.readText(), Array<String>::class.java))
+        if (rolesFile.exists()) roleOverrides.putAll(gson.fromJson(rolesFile.readText(), roleOverrides.javaClass))
+        if (globalFile.exists()) globalPermissions.addAll(gson.fromJson(globalFile.readText(), Array<String>::class.java))
     }
 
     override fun timeout() {
