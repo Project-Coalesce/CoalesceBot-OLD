@@ -77,6 +77,6 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext) {
             nextTrack()
-        } else playing = Optional.empty()
+        }
     }
 }
