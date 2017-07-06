@@ -95,6 +95,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
     override fun onGuildMessageReactionAdd(event: GuildMessageReactionAddEvent) {
         val context = ReactionContext(event.user, event.messageIdLong, event, event.reactionEmote, Main.instance, event.channel, event.guild)
         reactionHandlers.forEach {
+            context.permission = "Reactions.${it.info.name}"
             context.info = it.info
             if (it.checks.any { !it(context) } || checks.any { !it(context) }) return@forEach
             try{
@@ -118,7 +119,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
                 System.err.println("An error occured while attempting to handle reaction from ${event.user.name}")
                 thrw.printStackTrace()
             }
-        }
+    }
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
@@ -149,7 +150,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         event.message.delete().queue()
 
         try {
-            if(!info.botCommand(cooldownHandler, args, context, info.instance, checks)) {
+            if(!info.botCommand(cooldownHandler, args, context, info.instance, checks, "Commands.${info.commandInfo.name}")) {
                 context(embed().apply {
                     embColor = Color(237, 45, 35)
                     embTitle = "Invalid Argumentation!"
@@ -335,9 +336,11 @@ class BotCommand(
         private val commandInfo: CommandFrameworkClass.CommandInfo
 ) {
 
-    operator fun invoke(cooldownHandler: CooldownHandler, args: List<String>, context: CommandContext, instance: Any, checks: List<(Context) -> Boolean>): Boolean {
+    operator fun invoke(cooldownHandler: CooldownHandler, args: List<String>, context: CommandContext, instance: Any,
+                        checks: List<(Context) -> Boolean>, permission: String): Boolean {
         if (args.isNotEmpty() && subCommands.containsKey(args.first().toLowerCase())) {
-            return subCommands[args.first().toLowerCase()]!!(cooldownHandler, args.subList(1), context, instance, checks)
+            val subCommand = subCommands[args.first().toLowerCase()]!!
+            return subCommand(cooldownHandler, args.subList(1), context, instance, checks, "$permission.${subCommand.commandInfo.name}")
         } else {
             methods.forEach {
                 if (args.size < it.paramCount) return@forEach
@@ -367,6 +370,7 @@ class BotCommand(
                         arguments = newArgs; paramters[kotlinParam] = obj
                     }
 
+                    context.permission = permission
                     context.info = commandInfo
                     if (checks.any { !it(context) }) return@invoke true
                     it.kCallable.callBy(paramters)
@@ -398,6 +402,7 @@ class BotCommand(
                     arguments = newArgs; objects.add(obj)
                 }
 
+                context.permission = permission
                 context.info = commandInfo
                 if (checks.any { !it(context) }) return@invoke true
                 it.invoke(instance, *(objects.toTypedArray()))
@@ -474,6 +479,7 @@ open class Context(
         val channel: TextChannel,
         val guild: Guild = channel.guild
 ) {
+    lateinit var permission: String
     lateinit var info: CommandFrameworkClass.CommandInfo
     fun mention(text: String) = invoke(author, text)
 
