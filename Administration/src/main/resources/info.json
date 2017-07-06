@@ -1,0 +1,6 @@
+{
+  "name": "Administration",
+  "packagesScan": [
+    "com.coalesce.bot.administration.commands"
+  ]
+}

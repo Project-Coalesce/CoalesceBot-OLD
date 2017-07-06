@@ -1,0 +1,7 @@
+{
+  "name": "Music",
+  "main": "com.coalesce.bot.music.MusicPlugin",
+  "packagesScan": [
+    "com.coalesce.bot.music.commands"
+  ]
+}

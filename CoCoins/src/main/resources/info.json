@@ -1,0 +1,6 @@
+{
+  "name": "CoCoins",
+  "packagesScan": [
+    "com.coalesce.bot.cocoins.commands"
+  ]
+}
