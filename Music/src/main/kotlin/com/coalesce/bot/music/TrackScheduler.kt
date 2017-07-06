@@ -65,7 +65,7 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
             }
             if (limit)
                 timeOutHandler(limitTime.first, limitTime.second) {
-                    channel.send(":fast_forward: Skipping song because it has been playing for too long.")
+                    channel.send("⏩ Skipping song because it has been playing for too long.")
                     nextTrack()
                 }
         }

@@ -23,6 +23,24 @@ internal val youtubeSearchURL = "https://www.googleapis.com/youtube/v3/search?pa
 class Music @Inject constructor(val musicBot: MusicBot, val executorService: ExecutorService): Embeddables {
     private val URL_REGEX = Regex("\\s*(https?|attachment):\\/\\/.+\\..{2,}\\s*")
 
+    enum class MusicSource(val vidURLProvider: Message.(String) -> String?): Embeddables {
+        YOUTUBE({
+            val searchURL = URL(youtubeSearchURL + it.replace(" ", "+"))
+            val items = gson.fromJson(searchURL.openConnection().getInputStream().readText(), JsonElement::class.java).asJsonObject["items"].asJsonArray
+            if (items.size() <= 0) {
+                null
+            } else {
+                val videoId = items.first().asJsonObject["id"].asJsonObject["videoId"].asString
+                editEmbed {
+                    embDescription = "Song found! Loading it.."
+                }
+                "https://youtube.com/watch?v=$videoId"
+            }
+        }), SOUNDCLOUD({
+            throw ArgsException("Soundcloud is not yet supported.")
+        }), TWITCH({ "https://twitch.tv/${it.replace(" ", "")}" })
+    }
+
     @CommandAlias("Add a song or playlist to the track queue")
     fun add(context: CommandContext, source: MusicSource = MusicSource.YOUTUBE, @VarArg song: String) {
         if (song.matches(URL_REGEX)) {
@@ -62,14 +80,10 @@ class Music @Inject constructor(val musicBot: MusicBot, val executorService: Exe
 
     @ReactionListener("SkipSong", arrayOf("skipCheck"))
     fun skipReaction(context: ReactionContext) {
-        if (context.author.isBot) return
         skip(context)
     }
 
-    fun skipCheck(event: ReactionContext): Boolean {
-        println("Check was called.")
-        return !event.author.isBot && event.emote.name == "⏩"
-    }
+    fun skipCheck(event: ReactionContext) = !event.author.isBot && event.emote.name == "⏩"
 
     @SubCommand("Skip", "next voteskip", "Skip the current song")
     fun skip(context: Context) {
@@ -82,24 +96,6 @@ class Music @Inject constructor(val musicBot: MusicBot, val executorService: Exe
         }
         if (!schdl.addSkipVote(context.author, context.channel))
             context("Voted to skip current song (${schdl.currentVotes.size}/${(context.guild.audioManager.connectedChannel.members.size * (SKIP_SONG_USERS_PERCENTAGE / 100.0)).toInt()})")
-    }
-
-    enum class MusicSource(val vidURLProvider: Message.(String) -> String?): Embeddables {
-        YOUTUBE({
-            val searchURL = URL(youtubeSearchURL + it.replace(" ", "+"))
-            val items = gson.fromJson(searchURL.openConnection().getInputStream().readText(), JsonElement::class.java).asJsonObject["items"].asJsonArray
-            if (items.size() <= 0) {
-                null
-            } else {
-                val videoId = items.first().asJsonObject["id"].asJsonObject["videoId"].asString
-                editEmbed {
-                    embDescription = "Song found! Loading it.."
-                }
-                "https://youtube.com/watch?v=$videoId"
-            }
-        }), SOUNDCLOUD({
-            throw ArgsException("Soundcloud is not yet supported.")
-        }), TWITCH({ "https://twitch.tv/${it.replace(" ", "")}" })
     }
 
     @SubCommand("Queue", "songqueue currentqueue q", "Shows the current song queue")
@@ -123,13 +119,25 @@ class Music @Inject constructor(val musicBot: MusicBot, val executorService: Exe
         })
     }
 
+    @SubCommand("Volume", "vol", "Change the playback volume")
+    fun volume(context: CommandContext, volume: Int) {
+        if (volume !in 0..100) throw ArgsException("Volume not in range (0-100%)")
+        musicBot[context.guild].player.volume = volume
+        context("Changed volume to $volume%.")
+    }
+
+    @SubCommand("Pause", "resume", "Toggle playback")
+    fun pause(context: CommandContext) {
+        val player = musicBot[context.guild].player
+        player.isPaused = !player.isPaused
+        context(if (player.isPaused) "Paused playback" else "Resumed playback")
+    }
+
     @JDAListener
     fun eventJoin(event: GuildVoiceLeaveEvent) {
         val schdl = musicBot[event.guild].scheduler
         if (schdl.current.isPresent) {
             schdl.skipVoteCheck(musicBot[event.guild].channel!!)
         }
-
-
     }
 }
