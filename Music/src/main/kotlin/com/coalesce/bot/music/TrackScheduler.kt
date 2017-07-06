@@ -10,28 +10,31 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
-import sun.audio.AudioPlayer.player
 import java.awt.Color
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
 class TrackScheduler(private val player: AudioPlayer, private val music: MusicBot, private val guild: Guild): AudioEventAdapter(), Embeddables {
     val queue = LinkedBlockingQueue<MusicTrack>()
-    var current = Optional.empty<MusicTrack>()
+    private var playing = Optional.empty<MusicTrack>()
     val currentVotes = mutableListOf<User>()
+
+    val current: Optional<MusicTrack>
+        get() = playing
 
     fun addSkipVote(user: User, channel: TextChannel): Boolean {
         if (currentVotes.contains(user)) throw ArgsException("You already voted to skip this song!")
-        if (!current.isPresent) throw ArgsException("No song is playing!")
+        if (!guild.audioManager.connectedChannel.members.contains(guild.getMember(user))) throw ArgsException("You must be on the music voice channel!")
+        if (!playing.isPresent) throw ArgsException("No song is playing!")
         currentVotes.add(user)
         return skipVoteCheck(channel)
     }
 
     fun skipVoteCheck(channel: TextChannel): Boolean {
-        if (!current.isPresent) throw ArgsException("No song is playing!")
+        if (!playing.isPresent) throw ArgsException("No song is playing!")
         val amountRequired = guild.audioManager.connectedChannel.members.size * (SKIP_SONG_USERS_PERCENTAGE / 100.0)
         if (currentVotes.size >= amountRequired) {
-            channel.send("⏩ Song '**${current.get().audioTrack.info.title}**' was skipped by popular vote.")
+            channel.send("⏩ Song '**${playing.get().audioTrack.info.title}**' was skipped by popular vote.")
             music.skipTrack(channel.guild)
             return true
         }
@@ -40,7 +43,7 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
 
     fun queue(track: MusicTrack) {
         if (player.startTrack(track.audioTrack, true)) {
-            current = Optional.of(track)
+            playing = Optional.of(track)
             currentVotes.clear()
         } else {
             queue.offer(track)
@@ -49,7 +52,7 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
 
     fun nextTrack() {
         val track = queue.poll()
-        current = Optional.ofNullable(track)
+        playing = Optional.ofNullable(track)
         currentVotes.clear()
         player.startTrack(track?.audioTrack, false)
 
@@ -74,6 +77,6 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext) {
             nextTrack()
-        } else current = Optional.empty()
+        } else playing = Optional.empty()
     }
 }

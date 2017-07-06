@@ -48,10 +48,8 @@ class MusicBot: Embeddables {
         val voiceChannel = state.channel
         val am = channel.guild.audioManager
         synchronized(am) {
-            if (am.connectedChannel != voiceChannel) {
-                if (am.isConnected || am.isAttemptingToConnect) channel.guild.controller.moveVoiceMember(member, am.connectedChannel).queue()
-                else am.openAudioConnection(voiceChannel)
-            }
+            if (am.isConnected && am.connectedChannel != voiceChannel) channel.guild.controller.moveVoiceMember(member, am.connectedChannel).queue()
+            else if(!am.isConnected && !am.isAttemptingToConnect) am.openAudioConnection(voiceChannel)
         }
         musicManager.channel = channel
 
