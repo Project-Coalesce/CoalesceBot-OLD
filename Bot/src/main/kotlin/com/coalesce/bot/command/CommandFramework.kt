@@ -96,7 +96,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         val context = ReactionContext(event.user, event.messageIdLong, event, event.reactionEmote, Main.instance, event.channel, event.guild)
         reactionHandlers.forEach {
             context.info = it.info
-            if ((checks and it.checks).any { c -> !c(context) })
+            if (it.checks.any { !it(context) } || checks.any { !it(context) })
                 try{
                     it.method.invoke(it.clazz.instance, *(arrayOf(context)))
                 } catch (ex: Exception) {
@@ -250,8 +250,8 @@ class CommandFrameworkClass(
 
                 val reactionHandler = ReactionHandler(it, this@CommandFrameworkClass, reactionInfo, anno.extraChecks.map {
                     val meth = clazz.getDeclaredMethod(it, *(arrayOf(ReactionContext::class.java)))
-                    Predicate<ReactionContext> { meth(it) as Boolean }
-                }.map(Predicate<ReactionContext>::toLambdaFunc))
+                    (Predicate<ReactionContext> { println("Calling method with $it"); meth(it) as Boolean }).toLambdaFunc()
+                })
 
                 commandHandler.reactionHandlers.add(reactionHandler)
             }

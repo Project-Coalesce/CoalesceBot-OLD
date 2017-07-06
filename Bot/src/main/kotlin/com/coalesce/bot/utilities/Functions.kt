@@ -23,6 +23,9 @@ var EmbedBuilder.embDescription: String?
     set(description) { setDescription(description) }
     get() = null
 
+val Pair<Long, TimeUnit>.millis: Long
+    get() = second.toMillis(first)
+
 infix fun <E> Iterable<E>.and(other: E): List<E> =
     listOf {
         addAll(this@and)
@@ -48,7 +51,7 @@ fun <E> tryOrNull(func: () -> E): E? {
 }
 
 fun EmbedBuilder.description(builder: StringBuilder.() -> Unit) {
-    embDescription = StringBuilder().apply(builder).toString()
+    embDescription = StringBuilder().apply(builder).toString().truncate(0, 1000)
 }
 
 fun <T> Iterable<T>.count(check: (T) -> Boolean): Int {

@@ -1,11 +1,10 @@
 package com.coalesce.bot.music
 
 import com.coalesce.bot.command.ArgsException
-import com.coalesce.bot.command.send
 import com.coalesce.bot.utilities.Embeddables
 import com.coalesce.bot.utilities.embColor
 import com.coalesce.bot.utilities.embDescription
-import com.coalesce.bot.utilities.embTitle
+import com.coalesce.bot.utilities.formatTimeDiff
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
@@ -31,7 +30,7 @@ class MusicBot: Embeddables {
     operator fun get(guild: Guild): GuildMusicManager {
         synchronized(musicManagers) {
             val musicManager = musicManagers[guild.idLong] ?: run {
-                val manager = GuildMusicManager(playerManager)
+                val manager = GuildMusicManager(playerManager, this@MusicBot, guild)
                 musicManagers.put(guild.idLong, manager)
                 manager
             }
@@ -43,31 +42,30 @@ class MusicBot: Embeddables {
 
     fun loadAndPlay(user: User, channel: TextChannel, trackUrl: String, message: Message) {
         val musicManager = this[channel.guild]
-        val voiceChannel = channel.guild.getMember(user).voiceState.channel ?: throw ArgsException("You must be in a voice channel.")
+        val member = channel.guild.getMember(user)
+        val state = member.voiceState
+        if (!state.inVoiceChannel()) throw ArgsException("You need to be in a voice channel.")
+        val voiceChannel = state.channel
         val am = channel.guild.audioManager
         if (am.connectedChannel != voiceChannel) {
-            if (am.isConnected || am.isAttemptingToConnect) channel.guild.controller.moveVoiceMember(channel.guild.getMember(user), am.connectedChannel).queue()
+            if (am.isConnected || am.isAttemptingToConnect) channel.guild.controller.moveVoiceMember(member, am.connectedChannel).queue()
             else am.openAudioConnection(voiceChannel)
         }
+        musicManager.channel = channel
 
         playerManager.loadItemOrdered(musicManager, trackUrl, object: AudioLoadResultHandler {
             override fun trackLoaded(track: AudioTrack) {
+                val mtrack = MusicTrack(track, user, System.currentTimeMillis())
                 message.editEmbed {
                     embColor = Color(112, 255, 45)
-                    embDescription = "Song added: **${track.info.title}** by **${track.info.author}**"
+                    embDescription = "Song added: ${mtrack.toString(am.connectedChannel.members.size > 1)}"
                 }
-                musicManager.scheduler.queue(MusicTrack(track, user, message.creationTime))
+                musicManager.scheduler.queue(mtrack)
+                if (musicManager.scheduler.current.get() == mtrack)
+                    message.addReaction("⏩").queue()
             }
 
-            override fun playlistLoaded(playlist: AudioPlaylist) {
-                val track = playlist.selectedTrack ?: playlist.tracks[0]
-
-                message.editEmbed {
-                    embColor = Color(112, 255, 45)
-                    embDescription = "Song added: **${track.info.title}** by **${track.info.author}**"
-                }
-                musicManager.scheduler.queue(MusicTrack(track, user, message.creationTime))
-            }
+            override fun playlistLoaded(playlist: AudioPlaylist) = trackLoaded(playlist.selectedTrack ?: playlist.tracks[0])
 
             override fun noMatches() {
                 message.editEmbed {
@@ -87,7 +85,7 @@ class MusicBot: Embeddables {
 
     fun stopPlaying(guild: Guild) {
         this[guild].scheduler.queue.clear()
-        guild.audioManager.closeAudioConnection()
+        this[guild].scheduler.nextTrack()
     }
 
     fun skipTrack(guild: Guild) {
