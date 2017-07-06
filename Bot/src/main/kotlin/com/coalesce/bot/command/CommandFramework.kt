@@ -96,28 +96,28 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
         val context = ReactionContext(event.user, event.messageIdLong, event, event.reactionEmote, Main.instance, event.channel, event.guild)
         reactionHandlers.forEach {
             context.info = it.info
-            if (it.checks.any { !it(context) } || checks.any { !it(context) })
-                try{
-                    it.method.invoke(it.clazz.instance, *(arrayOf(context)))
-                } catch (ex: Exception) {
-                    val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
+            if (it.checks.any { !it(context) } || checks.any { !it(context) }) return@forEach
+            try{
+                it.method.invoke(it.clazz.instance, *(arrayOf(context)))
+            } catch (ex: Exception) {
+                val thrw = if (ex is InvocationTargetException) ex.cause!! else ex
 
-                    if (thrw is ArgsException) {
-                        event.channel.sendMessage("${event.user.asMention} ❌: ${thrw.message}").queue()
-                        return
-                    }
-
-                    event.channel.sendMessage(embed().apply {
-                        embColor = Color(232, 46, 0)
-                        embTitle = "Error"
-                        description {
-                            appendln("An error occured with that command.")
-                            append("This has been reported to Coalesce developers.")
-                        }
-                    }.build()).queue()
-                    System.err.println("An error occured while attempting to handle reaction from ${event.user.name}")
-                    thrw.printStackTrace()
+                if (thrw is ArgsException) {
+                    event.channel.sendMessage("${event.user.asMention} ❌: ${thrw.message}").queue()
+                    return
                 }
+
+                event.channel.sendMessage(embed().apply {
+                    embColor = Color(232, 46, 0)
+                    embTitle = "Error"
+                    description {
+                        appendln("An error occured with that command.")
+                        append("This has been reported to Coalesce developers.")
+                    }
+                }.build()).queue()
+                System.err.println("An error occured while attempting to handle reaction from ${event.user.name}")
+                thrw.printStackTrace()
+            }
         }
     }
 

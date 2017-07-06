@@ -47,9 +47,11 @@ class MusicBot: Embeddables {
         if (!state.inVoiceChannel()) throw ArgsException("You need to be in a voice channel.")
         val voiceChannel = state.channel
         val am = channel.guild.audioManager
-        if (am.connectedChannel != voiceChannel) {
-            if (am.isConnected || am.isAttemptingToConnect) channel.guild.controller.moveVoiceMember(member, am.connectedChannel).queue()
-            else am.openAudioConnection(voiceChannel)
+        synchronized(am) {
+            if (am.connectedChannel != voiceChannel) {
+                if (am.isConnected || am.isAttemptingToConnect) channel.guild.controller.moveVoiceMember(member, am.connectedChannel).queue()
+                else am.openAudioConnection(voiceChannel)
+            }
         }
         musicManager.channel = channel
 
