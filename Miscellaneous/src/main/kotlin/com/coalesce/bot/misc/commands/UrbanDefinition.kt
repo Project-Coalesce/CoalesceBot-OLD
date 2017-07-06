@@ -1,9 +1,6 @@
 package com.coalesce.bot.misc.commands
 
-import com.coalesce.bot.command.Command
-import com.coalesce.bot.command.CommandAlias
-import com.coalesce.bot.command.CommandContext
-import com.coalesce.bot.command.VarArg
+import com.coalesce.bot.command.*
 import com.coalesce.bot.gson
 import com.coalesce.bot.utilities.*
 import com.google.gson.JsonElement
@@ -28,16 +25,16 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
                     val json = gson.fromJson(url.openConnection().getInputStream().readText(), JsonElement::class.java).asJsonObject
 
                     if (json.get("result_type").asString == "no_results") {
-                        editMessage(EmbedBuilder(embeds.first()).apply {
+                        editEmbed {
                             embTitle = "No definitions found!"
                             embColor = Color(206, 28, 28)
-                        }.build()).queue()
+                        }
                         return@submit
                     }
 
                     val result = json["list"].asJsonArray.first().asJsonObject
 
-                    editMessage(EmbedBuilder(embeds.first()).apply {
+                    editEmbed {
                         setTitle("Urban Dictionary Definition", result["permalink"].asString)
                         setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
                         embColor = Color(112, 255, 45)
@@ -47,9 +44,9 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
                         field("Examples", result["example"].asString.truncate(0, 1000), false)
 
                         setFooter("By ${result["author"].asString} 👍${result["thumbs_up"].asInt} 👎${result["thumbs_down"].asInt}", null)
-                    }.build()).queue()
+                    }
                 } catch (ex: Exception) {
-                    editMessage(EmbedBuilder(embeds.first()).apply {
+                    editEmbed {
                         embTitle = "Error"
                         embColor = Color(232, 46, 0)
 
@@ -58,7 +55,7 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
                             appendln("${ex.javaClass.name}: ${ex.message}")
                             appendln("This has been reported to coalesce developers.")
                         }
-                    }.build()).queue()
+                    }
                     ex.printStackTrace()
                 }
             }

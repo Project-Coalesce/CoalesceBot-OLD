@@ -24,6 +24,7 @@
         <module>Fun</module>
         <module>Administration</module>
         <module>Miscellaneous</module>
+        <module>Music</module>
     </modules>
 
     <build>

@@ -410,6 +410,10 @@ class BotCommand(
     }
 }
 
+fun Message.editEmbed(func: EmbedBuilder.() -> Unit) {
+    editMessage(EmbedBuilder(embeds.first()!!).apply(func).build()).queue()
+}
+
 fun MessageChannel.send(text: String, mention: IMentionable? = null, deleteAfter: Pair<Long, TimeUnit>? = null,
                         queueAfter: Pair<Long, TimeUnit>? = null, handler: (Message.() -> Unit)? = null) =
         sendTask(sendMessage(if (mention != null) "${mention.asMention}: $text" else text), deleteAfter, queueAfter, handler)

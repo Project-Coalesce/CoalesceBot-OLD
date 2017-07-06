@@ -25,7 +25,6 @@ class HastebinQuick @Inject constructor(val executorService: java.util.concurren
         conn.getInputStream().readText() // Ensure connection
         val cookies = conn.headerFields["Set-Cookie"]!!
         id = cookies.find { it.startsWith("__cfduid=") }!!.split(";").first()
-        println("Hastebin cookie: $id")
     }
 
     @CommandAlias("Creates a hastebin with the provided code")
@@ -76,14 +75,14 @@ class HastebinQuick @Inject constructor(val executorService: java.util.concurren
             }
             val json = gson.fromJson(conn.inputStream.readText(), JsonElement::class.java).asJsonObject
 
-            message.editMessage(EmbedBuilder(message.embeds.first()).apply {
+            message.editEmbed {
                 setTitle("Hastebin Link Generated", "https://hastebin.com/" + json["key"].asString)
                 setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
                 embColor = Color(112, 255, 45)
                 embDescription = "Click the title to view!"
-            }.build()).queue()
+            }
         } catch (ex: Exception) {
-            message.editMessage(EmbedBuilder(message.embeds.first()).apply {
+            message.editEmbed {
                 embTitle = "Error"
                 embColor = Color(232, 46, 0)
 
@@ -92,7 +91,7 @@ class HastebinQuick @Inject constructor(val executorService: java.util.concurren
                     appendln("${ex.javaClass.name}: ${ex.message}")
                     appendln("This has been reported to coalesce developers.")
                 }
-            }.build()).queue()
+            }
             ex.printStackTrace()
         }
     }

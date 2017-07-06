@@ -32,7 +32,7 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                         return@submit
                     }
 
-                    editMessage(EmbedBuilder(embeds.first()).apply {
+                    editEmbed {
                         embTitle = null
                         setAuthor("Google", url, "http://i.imgur.com/YE6Agjf.png")
                         embColor = Color(112, 255, 45)
@@ -40,7 +40,7 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                         for (section in sections) {
                             if (count >= 5) break
                             val list = section.select(".r>a")
-                            if (list.isEmpty()) return@submit
+                            if (list.isEmpty()) return@editEmbed
 
                             val entry = list.first()
                             val title = entry.text()
@@ -53,9 +53,9 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
 
                             ++count
                         }
-                    }.build()).queue()
+                    }
                 } catch (ex: Exception) {
-                    editMessage(EmbedBuilder(embeds.first()).apply {
+                    editEmbed {
                         embTitle = "Error"
                         embColor = Color(232, 46, 0)
 
@@ -64,7 +64,7 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                             appendln("${ex.javaClass.name}: ${ex.message}")
                             appendln("This has been reported to coalesce developers.")
                         }
-                    }.build()).queue()
+                    }
                     ex.printStackTrace()
                 }
             }

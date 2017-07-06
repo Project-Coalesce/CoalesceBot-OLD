@@ -57,15 +57,15 @@ class Imgur @Inject constructor(val executorService: ExecutorService): Embeddabl
             post.addHeader("Authorization", "Client-ID 5133141b12a8791")
             val json = gson.fromJson(client.execute(post).entity.content.readText(), JsonElement::class.java).asJsonObject
 
-            message.editMessage(EmbedBuilder(message.embeds.first()).apply {
+            message.editEmbed {
                 val lnk = json["data"].asJsonObject["link"].asString
                 embColor = Color(112, 255, 45)
                 setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
                 setTitle("Imgur Image Uploaded", lnk)
                 setImage(lnk)
-            }.build()).queue()
+            }
         } catch (ex: Exception) {
-            message.editMessage(EmbedBuilder(message.embeds.first()).apply {
+            message.editEmbed {
                 embTitle = "Error"
                 embColor = Color(232, 46, 0)
 
@@ -74,7 +74,7 @@ class Imgur @Inject constructor(val executorService: ExecutorService): Embeddabl
                     appendln("${ex.javaClass.name}: ${ex.message}")
                     appendln("This has been reported to coalesce developers.")
                 }
-            }.build()).queue()
+            }
             ex.printStackTrace()
         }
     }

@@ -77,7 +77,7 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
 
     @JDAListener
     fun messageReceive(event: MessageReceivedEvent) {
-        if (event.channel.idLong == memesChannel) {
+        if (event.channel.idLong == memesChannel && !event.author.isBot && event.message.attachments.any { it.isImage }) {
             event.channel.getMessageById(event.messageIdLong).queue { message ->
                 memeReactions.forEach {
                     if (it.stringEmote != null) message.addReaction(it.stringEmote).queue()
@@ -101,7 +101,7 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
     @ReactionListener("MemeReaction", arrayOf("memeReactionCheck"))
     fun reactionReceive(context: ReactionContext) {
         context.channel.getMessageById(context.message).queue {
-            if (it.author == context.author) return@queue
+            if (it.author == context.author || it.author.isBot || context.author.isBot) return@queue
             val coins = context.main.coCoinsManager[context.author]
             val reaction = memeReactions.find { (it.stringEmote ?: it.emote) == (context.emote.emote ?: context.emote.name) }!!
             coins.transaction(CoCoinsTransaction("Meme reaction (${context.author.name}): \"${reaction.message}\" - ${reaction.rating}",

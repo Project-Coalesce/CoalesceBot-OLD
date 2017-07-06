@@ -34,9 +34,9 @@ class Poll: Embeddables {
 
             timeOutHandler(time.timeInMillis - System.currentTimeMillis(), java.util.concurrent.TimeUnit.MILLISECONDS) {
                 context.channel.sendTyping().queue()
-                editMessage(EmbedBuilder(embeds.first()).apply {
+                editEmbed {
                     embDescription = "Voting has ended!"
-                }.build()).queue()
+                }
                 context(embed().apply {
                     embTitle = "Voting results (Poll: $title)"
                     embColor = java.awt.Color.YELLOW
