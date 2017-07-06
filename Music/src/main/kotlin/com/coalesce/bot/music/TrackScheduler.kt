@@ -2,10 +2,7 @@ package com.coalesce.bot.music
 
 import com.coalesce.bot.command.ArgsException
 import com.coalesce.bot.command.send
-import com.coalesce.bot.utilities.Embeddables
-import com.coalesce.bot.utilities.embDescription
-import com.coalesce.bot.utilities.embTitle
-import com.coalesce.bot.utilities.timeOutHandler
+import com.coalesce.bot.utilities.*
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
@@ -14,6 +11,7 @@ import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import sun.audio.AudioPlayer.player
+import java.awt.Color
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -51,23 +49,26 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
 
     fun nextTrack() {
         val track = queue.poll()
-        current = if (track == null) Optional.empty() else Optional.of(track)
+        current = Optional.ofNullable(track)
         currentVotes.clear()
         player.startTrack(track?.audioTrack, false)
 
-        val limit = guild.audioManager.connectedChannel.members.size > 1
-        val channel = music[guild].channel!!
-        channel.send(embed().apply {
-            embTitle = "Now playing"
-            embDescription = current.get().toString(limit)
-        }.build()) {
-            addReaction("⏩").queue()
-        }
-        if (limit)
-            timeOutHandler(limitTime.first, limitTime.second) {
-                channel.send(":fast_forward: Skipping song because it has been playing for too long.")
-                nextTrack()
+        if (track != null) {
+            val limit = limit5Min(guild)
+            val channel = music[guild].channel!!
+            channel.send(embed().apply {
+                embTitle = "Now playing"
+                embColor = Color(112, 255, 45)
+                embDescription = track.toString(limit)
+            }.build()) {
+                addReaction("⏩").queue()
             }
+            if (limit)
+                timeOutHandler(limitTime.first, limitTime.second) {
+                    channel.send(":fast_forward: Skipping song because it has been playing for too long.")
+                    nextTrack()
+                }
+        }
     }
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {

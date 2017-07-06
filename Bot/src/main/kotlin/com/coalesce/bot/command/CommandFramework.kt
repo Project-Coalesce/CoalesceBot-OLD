@@ -250,7 +250,7 @@ class CommandFrameworkClass(
 
                 val reactionHandler = ReactionHandler(it, this@CommandFrameworkClass, reactionInfo, anno.extraChecks.map {
                     val meth = clazz.getDeclaredMethod(it, *(arrayOf(ReactionContext::class.java)))
-                    (Predicate<ReactionContext> { println("Calling method with $it"); meth(it) as Boolean }).toLambdaFunc()
+                    (Predicate<ReactionContext> { meth(instance, it) as Boolean }).toLambdaFunc()
                 })
 
                 commandHandler.reactionHandlers.add(reactionHandler)

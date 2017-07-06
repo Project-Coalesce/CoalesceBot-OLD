@@ -5,6 +5,7 @@ import com.coalesce.bot.gson
 import com.coalesce.bot.music.MusicBot
 import com.coalesce.bot.music.SKIP_SONG_USERS_PERCENTAGE
 import com.coalesce.bot.music.editEmbed
+import com.coalesce.bot.music.limit5Min
 import com.coalesce.bot.utilities.*
 import com.google.gson.JsonElement
 import com.google.inject.Inject
@@ -105,7 +106,7 @@ class Music @Inject constructor(val musicBot: MusicBot, val executorService: Exe
     fun queue(context: CommandContext) {
         context(embed().apply {
             val queue = musicBot[context.guild].scheduler.queue
-            val limit = context.guild.audioManager.connectedChannel.members.size > 1
+            val limit = limit5Min(context.guild)
             embColor = Color(112, 255, 45)
 
             if (queue.isEmpty()) {
@@ -115,7 +116,7 @@ class Music @Inject constructor(val musicBot: MusicBot, val executorService: Exe
                 description {
                     queue.forEachIndexed { index, it ->
                         appendln("#${index + 1}: ${it.toString(limit)} " +
-                                "[Added by ${it.adder.asMention} ${it.addTime.formatTimeDiff()} ago]")
+                                "[Added by ${it.adder.asMention} ${(System.currentTimeMillis() - it.addTime).formatTimeDiff()} ago]")
                     }
                 }
             }

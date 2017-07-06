@@ -58,7 +58,7 @@ class MusicBot: Embeddables {
                 val mtrack = MusicTrack(track, user, System.currentTimeMillis())
                 message.editEmbed {
                     embColor = Color(112, 255, 45)
-                    embDescription = "Song added: ${mtrack.toString(am.connectedChannel.members.size > 1)}"
+                    embDescription = "Song added: ${mtrack.toString(limit5Min(channel.guild))}"
                 }
                 musicManager.scheduler.queue(mtrack)
                 if (musicManager.scheduler.current.get() == mtrack)
