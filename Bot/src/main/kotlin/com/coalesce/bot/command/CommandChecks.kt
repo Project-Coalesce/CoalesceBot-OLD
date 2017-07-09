@@ -19,13 +19,13 @@ class CooldownHandler: Embeddables {
     private val userCooldown = mutableMapOf<User, MutableMap<CommandFrameworkClass.CommandInfo, Long>>()
 
     fun doGlobalCooldown(info: CommandFrameworkClass.CommandInfo) {
-        globalCooldown.put(info, System.currentTimeMillis())
+        globalCooldown.put(info, System.currentTimeMillis() + info.globalCooldown)
         timeOutHandler(info.globalCooldown, TimeUnit.MILLISECONDS) { globalCooldown.remove(info) }
     }
 
     fun doUserCooldown(user: User, info: CommandFrameworkClass.CommandInfo) {
-        userCooldown[user] = (userCooldown[user] ?: mutableMapOf()).apply { put(info, System.currentTimeMillis()) }
-        timeOutHandler(info.globalCooldown, TimeUnit.MILLISECONDS) { (userCooldown[user] ?: return@timeOutHandler).remove(info) }
+        userCooldown[user] = (userCooldown[user] ?: mutableMapOf()).apply { put(info, System.currentTimeMillis() + info.userCooldown) }
+        timeOutHandler(info.userCooldown, TimeUnit.MILLISECONDS) { (userCooldown[user] ?: return@timeOutHandler).remove(info) }
     }
 
     fun cooldownCheck(context: Context): Boolean {
