@@ -2,7 +2,6 @@ package com.coalesce.bot.command
 
 import com.coalesce.bot.Main
 import com.coalesce.bot.command.handlers.Help
-import com.coalesce.bot.command.language.LanguageManager
 import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.commandPrefixLen
 import com.coalesce.bot.utilities.*
