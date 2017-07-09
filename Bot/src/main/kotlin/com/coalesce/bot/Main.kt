@@ -116,7 +116,7 @@ class Injects(val main: Main) : AbstractModule() {
 
     fun <T> addGuiceInjection(clazz: Class<T>, obj: Any) = bind(clazz).toInstance(obj as T)
 }
-const val COALESCE_GUILD = 268187052753944576L
+
 const val commandPrefix = "!"
 const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
