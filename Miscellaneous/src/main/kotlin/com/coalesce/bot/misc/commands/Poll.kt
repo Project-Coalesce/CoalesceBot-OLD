@@ -9,7 +9,7 @@ class Poll: Embeddables {
     /*
      * TARGETED TO USER POLLS, NOT ADMINISTRATION ONES
      */
-    @Usage("!poll <Time> <Title>|<Answers separated in |>")
+    @Usage("<Time> <Title>|<Answers separated in |>")
     @CommandAlias("Create a quick poll")
     fun execute(context: CommandContext, time: java.util.Calendar, @VarArg message: String) {
         if (time.timeInMillis <= System.currentTimeMillis()) throw ArgsException("Invalid time.")

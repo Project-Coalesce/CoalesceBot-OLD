@@ -16,8 +16,8 @@ private val characters = listOf("⚫", "🔵", "🔴","⚪")
 
 @Command("Connect4", "connectfour")
 class Connect4 {
-    private val game = object: CoGame("ConnectFour", 3, 1, characters.size - 2) {
-        override fun match(channel: TextChannel, @VarArg players: List<User>, resultHandler: (Map<User, Int>) -> Unit) =
+    private val game = object: CoGame("ConnectFour", 6, 1, characters.size - 2) {
+        override fun match(channel: TextChannel, @VarArg players: List<User>, resultHandler: (User?) -> Unit) =
                 Connect4Match(channel, this, players, resultHandler)
     }
 
@@ -36,7 +36,7 @@ class Connect4Match(
         channel: TextChannel,
         chatGame: CoGame,
         players: List<User>,
-        resultHandler: (Map<User, Int>) -> Unit
+        resultHandler: (User?) -> Unit
 ): CoTurnMatch(channel, chatGame, players, resultHandler) {
     private val columns = 6
     private val rows = 5
@@ -51,10 +51,11 @@ class Connect4Match(
     private fun detectVictory(): Boolean {
         val result = winDetection(board, rows - 1, columns - 1, 4)
         if (result != null) {
-            val winner = emotes.entries.find { it.value == result }!!.key
-            val map = mutableMapOf<User, Int>()
-            players.forEach { map[it] = if (winner == it) 1 else 0 }
-            invoke(map)
+            invoke(emotes.entries.find { it.value == result }!!.key, "We have a winner!")
+            return true
+        }
+        if (board.any { it.none { it == null } }) {
+            invoke(null, "Nobody matched 4, it's a tie!")
             return true
         }
         return false

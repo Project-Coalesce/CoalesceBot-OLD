@@ -22,8 +22,8 @@ private val playerCountForSize = mapOf(
 
 @Command("TicTacToe", "ttt")
 class TicTacToe {
-    private val game = object: CoGame("TicTacToe", 3, 1, characters.size - 2) {
-        override fun match(channel: TextChannel, @VarArg players: List<User>, resultHandler: (Map<User, Int>) -> Unit) =
+    private val game = object: CoGame("TicTacToe", 4, 1, characters.size - 2) {
+        override fun match(channel: TextChannel, @VarArg players: List<User>, resultHandler: (User?) -> Unit) =
                 TicTacToeMatch(channel, this, players, resultHandler)
     }
 
@@ -42,7 +42,7 @@ class TicTacToeMatch(
         channel: TextChannel,
         chatGame: CoGame,
         players: List<User>,
-        resultHandler: (Map<User, Int>) -> Unit
+        resultHandler: (User?) -> Unit
 ): CoTurnMatch(channel, chatGame, players, resultHandler) {
     private val boardSize = (playerCountForSize[players.size] ?: throw IOException("Illegal amount of players!"))
     private val tileCount = boardSize * boardSize
@@ -69,11 +69,11 @@ class TicTacToeMatch(
 
         val result = winDetection(reorganizedBoard, boardSize - 1, boardSize - 1, if (boardSize == 3) 3 else 4)
         if (result != null) {
-            val winner = emotes.entries.find { it.value == result }!!.key
-            val map = mutableMapOf<User, Int>()
-            players.forEach { map[it] = if (winner == it) 1 else 0 }
-            invoke(map)
+            invoke(emotes.entries.find { it.value == result }!!.key, "We have a winner!")
             return true
+        }
+        if (board.none { it == null })  {
+            invoke(null, "The board is full of no matches, it's a tie!")
         }
         return false
     }
