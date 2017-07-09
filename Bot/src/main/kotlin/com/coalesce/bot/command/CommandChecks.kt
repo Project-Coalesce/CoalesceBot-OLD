@@ -34,7 +34,7 @@ class CooldownHandler: Embeddables {
             context(embed().apply {
                 embColor = Color(232, 46, 0)
                 embTitle = "Wait before you can do this again!"
-                embDescription = "⏰ Cooldown for: **${(System.currentTimeMillis() - userCooldown[context.author]!![info]!!).formatTimeDiff()}**"
+                embDescription = "⏰ Cooldown for: **${(userCooldown[context.author]!![info]!! - System.currentTimeMillis()).formatTimeDiff()}**"
             }, deleteAfter = 8L to TimeUnit.SECONDS)
             return false
         }
@@ -42,7 +42,7 @@ class CooldownHandler: Embeddables {
             context(embed().apply {
                 embColor = Color(232, 46, 0)
                 embTitle = "Wait before you can do this again!"
-                embDescription = "⏰ Global Cooldown for: **${(System.currentTimeMillis() - globalCooldown[info]!!).formatTimeDiff()}**"
+                embDescription = "⏰ Global Cooldown for: **${(globalCooldown[info]!! - System.currentTimeMillis()).formatTimeDiff()}**"
             }, deleteAfter = 8L to TimeUnit.SECONDS)
             return false
         }
