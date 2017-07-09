@@ -31,7 +31,7 @@ import java.util.regex.Pattern
  *  Second number - Minor version
  *  Third number - Patch
  * */
-val VERSION = "1.6.0"
+val VERSION = "1.6.1"
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -116,16 +116,13 @@ class Injects(val main: Main) : AbstractModule() {
 
     fun <T> addGuiceInjection(clazz: Class<T>, obj: Any) = bind(clazz).toInstance(obj as T)
 }
-const val COALESCE_GUILD = 268187052753944576L
+
 const val commandPrefix = "!"
 const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
 val dataDirectory = File(".${File.separatorChar}data")
 val pluginsFolder = File("plugins")
 val usingPluginsFolder = File("using-plugins")
-val globalPermissionsFile = File(dataDirectory, "global.dat")
 val coCoinsFile = File(dataDirectory, "cocoins.dat")
-val blacklistFile = File(dataDirectory, "blacklist.json")
-val rulesMessageFile = File(dataDirectory, "rulesMessage.dat")
 val gson: Gson = GsonBuilder().apply {
     enableComplexMapKeySerialization()
     setPrettyPrinting()
@@ -134,10 +131,6 @@ val gson: Gson = GsonBuilder().apply {
     registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance))
 }.create()
 typealias Colour = java.awt.Color
-val temperatureKelvin = Pattern.compile("K*", Pattern.CASE_INSENSITIVE)!!
-val temperatureCelsius = Pattern.compile("C*", Pattern.CASE_INSENSITIVE)!!
-val temperatureFahrenheit = Pattern.compile("F*", Pattern.CASE_INSENSITIVE)!!
-val canDelete: (Guild) -> Boolean = { it.selfMember.hasPermission(Permission.MESSAGE_MANAGE) }
 //val chatbot = ChatbotBrain()
 
 /*fun getChatbotMessage(message: Message, jda: JDA): String? {
