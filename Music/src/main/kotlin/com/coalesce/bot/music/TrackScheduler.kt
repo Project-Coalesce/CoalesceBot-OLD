@@ -18,6 +18,7 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
     val queue = LinkedBlockingQueue<MusicTrack>()
     private var playing = Optional.empty<MusicTrack>()
     val currentVotes = mutableListOf<User>()
+    val pendingTimeouts = mutableListOf<Timeout>()
 
     val current: Optional<MusicTrack>
         get() = playing
@@ -32,7 +33,7 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
 
     fun skipVoteCheck(channel: TextChannel): Boolean {
         if (!playing.isPresent) throw ArgsException("No song is playing!")
-        val amountRequired = guild.audioManager.connectedChannel.members.size * (SKIP_SONG_USERS_PERCENTAGE / 100.0)
+        val amountRequired = (channel.guild.audioManager.connectedChannel.members.size * (SKIP_SONG_USERS_PERCENTAGE / 100.0)).toInt()
         if (currentVotes.size >= amountRequired) {
             channel.send("⏩ Song '**${playing.get().audioTrack.info.title}**' was skipped by popular vote.")
             music.skipTrack(channel.guild)
@@ -51,6 +52,11 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
     }
 
     fun nextTrack() {
+        pendingTimeouts.forEach {
+            it.stopTimeout()
+        }
+        pendingTimeouts.clear()
+
         val track = queue.poll()
         playing = Optional.ofNullable(track)
         currentVotes.clear()
@@ -67,10 +73,10 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
                 addReaction("⏩").queue()
             }
             if (limit)
-                timeOutHandler(limitTime.first, limitTime.second) {
+                pendingTimeouts.add(timeOutHandler(limitTime.first, limitTime.second) {
                     channel.send("⏩ Skipping song because it has been playing for too long.")
                     nextTrack()
-                }
+                })
         }
     }
 

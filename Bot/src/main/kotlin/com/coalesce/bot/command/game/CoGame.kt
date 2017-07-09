@@ -19,7 +19,7 @@ abstract class CoGame(val name: String, val winCount: Int, val minPlayers: Int, 
     internal val inMatch = mutableMapOf<Long, CoGameMatch>()
     internal val inFinder = mutableListOf<Long>()
 
-    abstract fun match(channel: TextChannel, players: List<User>, resultHandler: (Map<User, Int>) -> Unit): CoGameMatch
+    abstract fun match(channel: TextChannel, players: List<User>, resultHandler: (User?) -> Unit): CoGameMatch
 
     fun matchfinding(context: CommandContext, target: List<User>, targetAmount: Int, bid: Int?) {
         if (bid != null && bid > context.main.coCoinsManager[context.author].total) throw ArgsException("You don't have enough money to bid that.")
@@ -55,11 +55,10 @@ abstract class CoGame(val name: String, val winCount: Int, val minPlayers: Int, 
                         delete().queue()
                         val players = entered and context.author
                         inFinder.removeAll(players.map(User::getIdLong))
-                        val match = match(context.channel, players) { results ->
+                        val match = match(context.channel, players) { winner ->
                             val coins = context.main.coCoinsManager
                             players.forEach {
-                                val pos = results[it]
-                                if (pos == 1) {
+                                if (it == winner) {
                                     coins[it].transaction(CoCoinsTransaction("Congratulations, you won!", (bid ?: winCount).toDouble()),
                                             context.channel, context.author)
                                 } else if (bid != null) {
@@ -93,13 +92,12 @@ abstract class CoGameMatch(
         val channel: TextChannel,
         val game: CoGame,
         val players: List<User>,
-        val resultHandler: (Map<User, Int>) -> Unit
+        val resultHandler: (winner: User?) -> Unit
 ): Timeout(3L, TimeUnit.MINUTES) {
     private val addedReactionsOf = mutableListOf<Long>()
 
     override fun timeout() {
-        channel.send(players.joinToString(separator = ", ") { it.asMention } + ": Nothing happened for the last 2 minutes, so the match will be tied.")
-        invoke(mutableMapOf())
+        invoke(null, "Nothing happened for the last 2 minutes, so the match will automatically be tied.")
     }
 
     abstract fun reaction(from: User, emote: MessageReaction.ReactionEmote, message: Message)
@@ -114,10 +112,11 @@ abstract class CoGameMatch(
         addedReactionsOf.add(message.idLong)
     }
 
-    operator fun invoke(positions: Map<User, Int>) {
+    operator fun invoke(winner: User?, message: String) {
+        channel.send("**Game Over!**\n$message")
         game.reactionListeners.removeAll(addedReactionsOf)
         players.forEach { game.inMatch.remove(it.idLong) }
-        resultHandler(positions)
+        resultHandler(winner)
         stopTimeout()
     }
 }
@@ -126,7 +125,7 @@ abstract class CoTurnMatch(
         channel: TextChannel,
         chatGame: CoGame,
         players: List<User>,
-        resultHandler: (positions: Map<User, Int>) -> Unit
+        resultHandler: (winner: User?) -> Unit
 ): CoGameMatch(channel, chatGame, players, resultHandler) {
     private var turnQueue = mutableListOf<User>().apply { addAll(players) }
 

@@ -134,10 +134,14 @@ class Music @Inject constructor(val musicBot: MusicBot, val executorService: Exe
     }
 
     @JDAListener
-    fun eventJoin(event: GuildVoiceLeaveEvent) {
+    fun eventLeave(event: GuildVoiceLeaveEvent) {
         val schdl = musicBot[event.guild].scheduler
         if (schdl.current.isPresent) {
             schdl.skipVoteCheck(musicBot[event.guild].channel!!)
+        }
+        if (event.channelLeft.members.count { !it.user.isBot } == 0) {
+            musicBot.stopPlaying(event.guild)
+            event.guild.audioManager.closeAudioConnection()
         }
     }
 }

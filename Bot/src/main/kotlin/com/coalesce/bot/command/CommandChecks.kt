@@ -8,6 +8,7 @@ import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.User
+import java.awt.Color
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -31,14 +32,16 @@ class CooldownHandler: Embeddables {
         val info = context.info
         if (userCooldown.containsKey(context.author) && userCooldown[context.author]!!.containsKey(info)) {
             context(embed().apply {
-                embTitle = "Wait before you can run this command again!"
+                embColor = Color(232, 46, 0)
+                embTitle = "Wait before you can do this again!"
                 embDescription = "⏰ Cooldown for: **${(System.currentTimeMillis() - userCooldown[context.author]!![info]!!).formatTimeDiff()}**"
             }, deleteAfter = 8L to TimeUnit.SECONDS)
             return false
         }
         if (globalCooldown.containsKey(info)) {
             context(embed().apply {
-                embTitle = "Wait before you can run this command again!"
+                embColor = Color(232, 46, 0)
+                embTitle = "Wait before you can do this again!"
                 embDescription = "⏰ Global Cooldown for: **${(System.currentTimeMillis() - globalCooldown[info]!!).formatTimeDiff()}**"
             }, deleteAfter = 8L to TimeUnit.SECONDS)
             return false
@@ -133,10 +136,11 @@ class PermHandler private constructor(private val guildDataFolder: File, private
 }
 
 fun permCheck(context: Context): Boolean {
-    if (!PermHandler[context.guild](context.author, "Commands.${context.info.name}") && context.channel.idLong != 315934590109745154L) {
+    if (!PermHandler[context.guild](context.author, context.permission) && context.channel.idLong != 315934590109745154L) {
         context(EmbedBuilder().apply {
+            embColor = Color(232, 46, 0)
             embTitle = "Access Denied!"
-            embDescription = "🚫 You lack permission to run this command."
+            embDescription = "🚫 You lack permission to do this."
         }, deleteAfter = 8L to TimeUnit.SECONDS)
         return false
     }

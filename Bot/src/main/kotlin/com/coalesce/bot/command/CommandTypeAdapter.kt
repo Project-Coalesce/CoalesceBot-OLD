@@ -84,11 +84,11 @@ class AdaptationArgsChecker(val jda: JDA) {
 
     fun userAdapter(str: String): User? {
         if (!str.matches(Regex("<@[0-9]+>"))) return null
-        return jda.getUserById(str.matching(Regex("[0-9]")))
+        return jda.getUserById(str.substring(2, str.length - 1))
     }
 
     fun roleAdapter(str: String): Role? {
         if (!str.matches(Regex("<@&[0-9]+>"))) return null
-        return jda.getRoleById(str.matching(Regex("[0-9]")))
+        return jda.getRoleById(str.substring(3, str.length - 1))
     }
 }
