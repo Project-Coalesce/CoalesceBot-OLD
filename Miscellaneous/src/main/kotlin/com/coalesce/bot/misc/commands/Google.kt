@@ -21,7 +21,11 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
         }) {
             executorService.submit {
                 try {
-                    val url = URIBuilder("https://www.google.com/search").addParameter("q", query.replace(" ", "+")).build().toString()
+                    val url = URIBuilder("https://www.google.com/search")
+                            .addParameter("q", query.replace(" ", "+"))
+                            .addParameter("glp", "1")
+                            .addParameter("hl", "EN")
+                            .build().toString()
                     val sections = Jsoup.connect(url).userAgent(AGENT).get().select(".g")
 
                     if (sections.isEmpty()) {
@@ -62,7 +66,7 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                         description {
                             appendln("Failed to provide results!")
                             appendln("${ex.javaClass.name}: ${ex.message}")
-                            appendln("This has been reported to coalesce developers.")
+                            appendln("This has been reported to Coalesce developers.")
                         }
                     }
                     ex.printStackTrace()
