@@ -1,9 +1,6 @@
 package com.coalesce.bot.misc.commands
 
-import com.coalesce.bot.command.Command
-import com.coalesce.bot.command.CommandAlias
-import com.coalesce.bot.command.CommandContext
-import com.coalesce.bot.command.editEmbed
+import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.*
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
@@ -15,6 +12,8 @@ import java.util.concurrent.ExecutorService
 class CyanideAndHappiness @Inject constructor(val executorService: ExecutorService): Embeddables  {
 
     @CommandAlias("Cyanide and Happiness random comic")
+    @UserCooldown(20L)
+    @GlobalCooldown(10L)
     fun execute(context: CommandContext) {
         context(embed().apply {
             embTitle = "Cyanide and Happiness"

@@ -69,10 +69,10 @@ fun tryLog(message: String, func: () -> Unit) =
         ex.printStackTrace()
     }
 
-val HTTP_REGEX = "((http:\\/\\/|https:\\/\\/)?(www.)?(([a-zA-Z0-9-]){2,}\\.){1,4}([a-zA-Z]){2,6}(\\/([a-zA-Z-_\\/\\.0-9#:?=&;,]*)?)?)"
+val HTTP_REGEX = Regex("((http:\\/\\/|https:\\/\\/)?(www.)?(([a-zA-Z0-9-]){2,}\\.){1,4}([a-zA-Z]){2,6}(\\/([a-zA-Z-_\\/\\.0-9#:?=&;,]*)?)?)")
 
 fun String.containsUrl(): Boolean {
-    return this.contains(HTTP_REGEX)
+    return this.matches(HTTP_REGEX)
 }
 
 fun String.smallTimeUnit(): TimeUnit? {
