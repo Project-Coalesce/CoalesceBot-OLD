@@ -77,7 +77,8 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
 
     @JDAListener
     fun messageReceive(event: MessageReceivedEvent) {
-        if (event.channel.idLong == memesChannel && !event.author.isBot && event.message.attachments.any { it.isImage }) {
+        if (event.channel.idLong == memesChannel && !event.author.isBot &&
+                event.message.attachments.any { it.isImage } || event.message.rawContent.containsUrl()) {
             event.channel.getMessageById(event.messageIdLong).queue { message ->
                 memeReactions.forEach {
                     if (it.stringEmote != null) message.addReaction(it.stringEmote).queue()

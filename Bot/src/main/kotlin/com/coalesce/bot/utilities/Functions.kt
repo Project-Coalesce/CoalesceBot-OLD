@@ -5,6 +5,7 @@ import net.dv8tion.jda.core.entities.MessageEmbed
 import java.awt.Color
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.URL
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
@@ -67,6 +68,12 @@ fun tryLog(message: String, func: () -> Unit) =
         System.err.println(message)
         ex.printStackTrace()
     }
+
+val HTTP_REGEX = "((http:\\/\\/|https:\\/\\/)?(www.)?(([a-zA-Z0-9-]){2,}\\.){1,4}([a-zA-Z]){2,6}(\\/([a-zA-Z-_\\/\\.0-9#:?=&;,]*)?)?)"
+
+fun String.containsUrl(): Boolean {
+    return this.contains(HTTP_REGEX)
+}
 
 fun String.smallTimeUnit(): TimeUnit? {
     TimeUnit.values().forEach {
