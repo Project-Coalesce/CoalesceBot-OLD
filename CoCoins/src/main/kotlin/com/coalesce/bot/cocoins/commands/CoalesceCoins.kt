@@ -102,11 +102,12 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
     @UserCooldown(10L, TimeUnit.MINUTES)
     fun reactionReceive(context: ReactionContext) {
         context.channel.getMessageById(context.message).queue {
-            if (it.author == context.author || it.author.isBot || context.author.isBot) return@queue
+            if (it.author == context.author || it.author.isBot || context.author.isBot
+                    || context.channel.idLong != memesChannel) return@queue
             val coins = context.main.coCoinsManager[it.author]
             val reaction = memeReactions.find { (it.stringEmote ?: it.emote) == (context.emote.emote ?: context.emote.name) }!!
             coins.transaction(CoCoinsTransaction("Meme reaction (${context.author.name}): \"${reaction.message}\" - ${reaction.rating}",
-                    reaction.amount), context.channel, context.author)
+                    reaction.amount), context.channel, it.author)
         }
     }
 
