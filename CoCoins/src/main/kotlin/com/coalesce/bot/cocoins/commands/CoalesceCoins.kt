@@ -19,7 +19,7 @@ import java.awt.Color
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
-@Command("CoalesceCoins", "balance bal money cocoins coins coc")
+@Command("CoalesceCoins", "balance bal money cocoins coins coc cocs coccs")
 @UserCooldown(12L)
 class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
     private val messageDataManager = CachedDataManager(messagesSentFile, MessagesSentSerializer(messagesSentFile), { 0 })
