@@ -25,6 +25,7 @@ class Ping: Embeddables {
             val ping = System.currentTimeMillis() - time
             editMessage(EmbedBuilder(embeds.first()).apply {
                 embDescription = null
+                embColor = Color.cyan
                 addField("Response Time", "$ping ms", true)
                 addField("Discord API", "${context.main.jda.ping} ms", true)
             }.build()).queue()
