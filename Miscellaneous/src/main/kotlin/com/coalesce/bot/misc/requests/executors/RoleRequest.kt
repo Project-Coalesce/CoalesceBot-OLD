@@ -5,11 +5,9 @@ import com.coalesce.bot.command.*
 import com.coalesce.bot.gson
 import com.coalesce.bot.misc.requests.Request
 import com.coalesce.bot.utilities.embDescription
-import com.coalesce.bot.utilities.embTitle
 import com.coalesce.bot.utilities.readText
 import com.coalesce.bot.utilities.writeText
 import com.google.inject.Inject
-import com.sun.management.jmx.Trace.send
 import net.dv8tion.jda.core.entities.MessageEmbed
 import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent
@@ -25,7 +23,9 @@ class RoleRequest @Inject constructor(val bot: Main): Request {
             bot.jda.getRoleById("299358012500606976"), //Spigot
             bot.jda.getRoleById("300819659404345346"), //Python
             bot.jda.getRoleById("275473304268177421"), //Java
-            bot.jda.getRoleById("300377111728881664") //Project Coalesce
+            bot.jda.getRoleById("300377111728881664"), //Project Coalesce
+            bot.jda.getRoleById("335209106556321803"), //Sponge
+            bot.jda.getRoleById("332530519248207873") //Forge
     )
 
     @CommandAlias("Request a role.")
@@ -41,7 +41,7 @@ class RoleRequest @Inject constructor(val bot: Main): Request {
                 embDescription =
                         "We need to verify your ability to code in the respective language by looking at your GitHub profile." +
                         "\nIt's also needed to make sure the GitHub account belongs to you, and so we request a one-time authentication" +
-                        "(Click on the title of this box).\n" +
+                        "(click on the title of this box).\n" +
                         "You can remove the authorization at any time in your GitHub profile."
             }.build())
             context("Your request for the role ${role.name} is almost ready, but we need to verify your GitHub profile first. " +

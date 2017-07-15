@@ -31,7 +31,7 @@ import java.util.regex.Pattern
  *  Second number - Minor version
  *  Third number - Patch
  * */
-val VERSION = "1.6.1"
+val VERSION = "1.7.0"
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -76,7 +76,7 @@ class Main private constructor() {
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
         jda.presence.game = Game.of(GAMES[ThreadLocalRandom.current().nextInt(GAMES.size)])
-        jda.presence.status = OnlineStatus.ONLINE
+        jda.presence.status = OnlineStatus.DO_NOT_DISTURB
 
         githubSecret = secret
 
@@ -130,12 +130,3 @@ val gson: Gson = GsonBuilder().apply {
     disableHtmlEscaping()
     registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance))
 }.create()
-typealias Colour = java.awt.Color
-//val chatbot = ChatbotBrain()
-
-/*fun getChatbotMessage(message: Message, jda: JDA): String? {
-    val stripped = message.strippedContent.replace(jda.selfUser.asMention, "")
-    chatbot.decay()
-    chatbot.digestSentence(stripped)
-    return chatbot.buildSentence()
-}*/

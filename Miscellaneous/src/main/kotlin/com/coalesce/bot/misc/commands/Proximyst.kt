@@ -8,9 +8,8 @@ import com.coalesce.bot.command.CommandContext
 class Proximyst {
 
     @CommandAlias("You will be remembered")
-    fun exectue(context: CommandContext) {
-        context("Proximyst was a good gal. She helped out a bunch of people, and created this bot." +
+    fun exectue(context: CommandContext) =
+            context("Proximyst was a good gal. She helped out a bunch of people, and created this bot." +
                 "\nWe will miss you, we hope you rest in peace." +
                 "\nhttp://i.imgur.com/lAkpLgC.png")
-    }
 }
