@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
+import java.util.regex.Pattern
 
 var EmbedBuilder.embColor: Color?
     set(color) { setColor(color) }
@@ -69,10 +70,11 @@ fun tryLog(message: String, func: () -> Unit) =
         ex.printStackTrace()
     }
 
-val HTTP_REGEX = Regex("((http:\\/\\/|https:\\/\\/)?(www.)?(([a-zA-Z0-9-]){2,}\\.){1,4}([a-zA-Z]){2,6}(\\/([a-zA-Z-_\\/\\.0-9#:?=&;,]*)?)?)")
+val urlRegex = Pattern.compile("((http:\\/\\/|https:\\/\\/)?(www.)?(([a-zA-Z0-9-]){2,}\\.){1,4}([a-zA-Z]){2,6}(\\/([a-zA-Z-_\\/\\.0-9#:?=&;,]*)?)?)")
 
 fun String.containsUrl(): Boolean {
-    return this.matches(HTTP_REGEX)
+    val matcher = urlRegex.matcher(this)
+    return matcher.find()
 }
 
 fun String.smallTimeUnit(): TimeUnit? {
