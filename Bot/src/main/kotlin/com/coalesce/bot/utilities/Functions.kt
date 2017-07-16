@@ -5,7 +5,6 @@ import net.dv8tion.jda.core.entities.MessageEmbed
 import java.awt.Color
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.URL
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
