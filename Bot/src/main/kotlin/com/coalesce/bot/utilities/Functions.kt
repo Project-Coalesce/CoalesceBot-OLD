@@ -11,6 +11,9 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 import java.util.regex.Pattern
+import java.text.NumberFormat
+
+
 
 var EmbedBuilder.embColor: Color?
     set(color) { setColor(color) }
@@ -278,4 +281,42 @@ abstract class Timeout(time: Long, unit: TimeUnit) {
     fun startTimeout() = timeoutTask.addTask(this)
     fun stopTimeout() = timeoutTask.removeTask(this)
     abstract fun timeout()
+}
+
+object ColorBlender {
+    fun blendColors(fractions: FloatArray, colors: Array<Color>, progress: Float): Color {
+        val indicies = getFractionIndicies(fractions, progress)
+        val range = floatArrayOf(fractions[indicies[0]], fractions[indicies[1]])
+        val colorRange = arrayOf(colors[indicies[0]], colors[indicies[1]])
+        val max = range[1] - range[0]
+        val value = progress - range[0]
+        val weight = value / max
+
+        return blend(colorRange[0], colorRange[1], (1.0f - weight).toDouble())
+    }
+
+    fun getFractionIndicies(fractions: FloatArray, progress: Float): IntArray {
+        val range = IntArray(2)
+
+        var startPoint: Int
+        startPoint = 0
+        while (startPoint < fractions.size && fractions[startPoint] <= progress) startPoint ++
+        if (startPoint >= fractions.size) startPoint = fractions.size - 1
+
+        range[0] = startPoint - 1
+        range[1] = startPoint
+
+        return range
+    }
+
+    fun blend(color1: Color, color2: Color, ratio: Double): Color {
+        val r = ratio.toFloat()
+        val ir = 1.0f - r
+        val red = (color1.red.toFloat() * r + color2.red.toFloat() * ir).toInt()
+        val green = (color1.green.toFloat() * r + color2.green.toFloat() * ir).toInt()
+        val blue = (color1.blue.toFloat() * r + color2.blue.toFloat() * ir).toInt()
+        val alpha = (color1.alpha.toFloat() * r + color2.alpha.toFloat() * ir).toInt()
+
+        return Color(red, green, blue, alpha)
+    }
 }

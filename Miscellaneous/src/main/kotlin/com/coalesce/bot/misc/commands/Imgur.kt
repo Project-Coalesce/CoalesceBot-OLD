@@ -54,7 +54,6 @@ class Imgur @Inject constructor(val executorService: ExecutorService): Embeddabl
             post.addHeader("Authorization", "Client-ID 5133141b12a8791")
 
             val response = client.execute(post).entity.content.readText()
-            println(response)
             return gson.fromJson(response, JsonElement::class.java).asJsonObject["data"]
                     .asJsonObject["link"].asString
         }

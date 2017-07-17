@@ -1,10 +1,7 @@
 package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.command.*
-import com.coalesce.bot.utilities.Embeddables
-import com.coalesce.bot.utilities.embColor
-import com.coalesce.bot.utilities.embDescription
-import com.coalesce.bot.utilities.embTitle
+import com.coalesce.bot.utilities.*
 import com.google.inject.Inject
 import java.awt.Color
 import java.net.InetSocketAddress
@@ -19,6 +16,8 @@ class ServerListPing @Inject constructor(val executorService: ExecutorService): 
             SocketTimeoutException::class.java to "Connection timed out.",
             UnknownHostException::class.java to "Failed to resolve IP address."
     )
+    private val colors = arrayOf(Color(112, 255, 45), Color.YELLOW, Color(232, 46, 0))
+    private val fractions = floatArrayOf(0F, 0.5F, 1F)
 
     @CommandAlias("Gets the MOTD of a minecraft server.")
     @UserCooldown(30L)
@@ -31,11 +30,12 @@ class ServerListPing @Inject constructor(val executorService: ExecutorService): 
                 try {
                     val info = serverListPingHandler.fetchData(serverIP)
                     editEmbed {
-                        embColor = Color(112, 255, 45)
+                        embColor = ColorBlender.blendColors(fractions, colors, Math.max(Math.min(info.time / 400F, 0F), 1F))
                         setThumbnail(Imgur.upload(info.favicon.substring(info.favicon.indexOf(",") + 1), "base64"))
                         embTitle = "Minecraft Server MOTD (${serverIP.hostString})"
-                        embDescription = info.textDescription.split(Regex("§[0-9]")).joinToString(separator = "")
+                        embDescription = info.textDescription.split(Regex("§[0-9|a-f|k-r]")).joinToString(separator = "")
                         field("Players", "${info.players.online}/${info.players.max}", true)
+                        field("Ping", "${info.time}ms", true)
 
                         setFooter("Version: ${info.version.name} (Protocol ${info.version.protocol})", null)
                     }

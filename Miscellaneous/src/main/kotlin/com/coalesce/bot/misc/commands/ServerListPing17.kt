@@ -1,6 +1,7 @@
 package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.gson
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import java.io.*
 import java.net.InetSocketAddress
@@ -75,7 +76,6 @@ class ServerListPing17 {
             dataInputStream.readFully(`in`) // Read JSON String
             val json = String(`in`)
 
-
             val now = System.currentTimeMillis()
             dataOutputStream.writeByte(0x09) // Packet Size
             dataOutputStream.writeByte(0x01) // Ping Packet ID (0x01)
@@ -84,10 +84,10 @@ class ServerListPing17 {
             readVarInt(dataInputStream)
             id = readVarInt(dataInputStream)
             if (id != 0x01) throw IOException("Invalid Packet ID (Found $id, expected 1)")
-            val pingtime = dataInputStream.readLong() //read response
-            println(json)
+            dataInputStream.readLong() // Echoed time
+
             val response = gson.fromJson(json, StatusResponse::class.java)
-            response.time = (now - pingtime).toInt()
+            response.time = (System.currentTimeMillis() - now).toInt()
 
             toClose.forEach(Closeable::close)
             return response
@@ -98,7 +98,7 @@ class ServerListPing17 {
     }
 
     data class StatusResponse(
-        val description: JsonObject,
+        val description: JsonElement,
         val players: Players,
         val version: Version,
         val favicon: String,
@@ -106,11 +106,14 @@ class ServerListPing17 {
     ) {
         val textDescription: String
             get() = StringBuilder().apply {
-                if (description.has("text")) append(description["text"])
-                if (description.has("extra")) description["extra"].asJsonArray.forEach {
-                    val obj = it.asJsonObject
-                    if (obj.has("text")) append(obj["text"].asString)
-                }
+                if (description.isJsonObject) {
+                    val desc = description.asJsonObject
+                    if (desc.has("text")) append(desc["text"])
+                    if (desc.has("extra")) desc["extra"].asJsonArray.forEach {
+                        val obj = it.asJsonObject
+                        if (obj.has("text")) append(obj["text"].asString)
+                    }
+                } else append(description.asString)
             }.toString()
     }
 
