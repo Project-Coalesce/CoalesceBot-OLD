@@ -203,14 +203,14 @@ class SingleThreadedTimeout: Thread() {
                 } else {
                     val timeout = timeouts[0]
                     if (System.currentTimeMillis() >= actualTime[timeout]!!) {
-                        timeout.timeout()
+                        runTimeout(timeout)
                         timeouts.remove(timeout)
                         actualTime.remove(timeout)
                         return@synchronized
                     }
 
                     lock.wait(actualTime[timeout]!! - System.currentTimeMillis())
-                    timeout.timeout()
+                    runTimeout(timeout)
                     timeouts.remove(timeout)
                     actualTime.remove(timeout)
                 }
@@ -220,6 +220,15 @@ class SingleThreadedTimeout: Thread() {
         }
 
         interruptableCycle()
+    }
+
+    private fun runTimeout(timeout: Timeout) {
+        Thread {
+            tryLog("Failed to run timeout task") { timeout.timeout() }
+        }.apply {
+            name = "Timeout task"
+            start()
+        }
     }
 
     fun removeTask(timeout: Timeout) {
