@@ -26,7 +26,8 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                             .addParameter("glp", "1")
                             .addParameter("hl", "EN")
                             .build().toString()
-                    val sections = Jsoup.connect(url).userAgent(AGENT).get().select(".g")
+                    val jsoup = Jsoup.connect(url).userAgent(AGENT).get()
+                    val sections = jsoup.select(".g")
 
                     if (sections.isEmpty()) {
                         editMessage(EmbedBuilder(embeds.first()).apply {
@@ -37,20 +38,27 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                     }
 
                     editEmbed {
+                        embColor = Color(112, 255, 45)
                         embTitle = null
                         setAuthor("Google", url, "http://i.imgur.com/YE6Agjf.png")
-                        embColor = Color(112, 255, 45)
+                        val infoObjects = jsoup.select("._OKe")
+                        if (infoObjects.isNotEmpty()) {
+                            val obj = infoObjects.first()
+                            description {
+                                appendln("**${obj.select("._Q1n").joinToString(separator = "\n") { it.select("span").text() }}**")
+                                append(obj.select("._RBg>.mod").select("span").joinToString(separator = "\n") { it.text() })
+                            }
+                        }
                         var count = 0
-                        for (section in sections) {
-                            if (count >= 5) break
-                            val list = section.select(".r>a")
+                        sections.subList(0, Math.max(sections.size, 5)).forEach {
+                            val list = it.select(".r>a")
                             if (list.isEmpty()) return@editEmbed
 
                             val entry = list.first()
                             val title = entry.text()
                             val linkURL = entry.absUrl("href").replace(")", "\\)")
 
-                            val fetch = section.select(".st")
+                            val fetch = it.select(".st")
                             val description = if (!fetch.isEmpty()) fetch.first().text() else "*No description*"
 
                             addField("**$title** ($linkURL)", description, false)

@@ -16,9 +16,9 @@ class CyanideAndHappiness @Inject constructor(val executorService: ExecutorServi
     @GlobalCooldown(10L)
     fun execute(context: CommandContext) {
         context(embed().apply {
-            embTitle = "Cyanide and Happiness"
-            embDescription = "Loading..."
             embColor = Color.YELLOW
+            setTitle("Cyanide and Happiness", "http://explosm.net/")
+            embDescription = "Loading..."
         }) {
             executorService.submit {
                 try {
@@ -27,11 +27,11 @@ class CyanideAndHappiness @Inject constructor(val executorService: ExecutorServi
                             .getElementsByTag("img")
                             .first()
                             .absUrl("src")
-                    editMessage(EmbedBuilder(embeds.first()).apply {
+                    editEmbed {
                         embDescription = "**Random Comic**"
                         setImage(url)
                         setThumbnail("http://explosm.net/img/logo.png")
-                    }.build()).queue()
+                    }
                 } catch (ex: Exception) {
                     editEmbed {
                         embTitle = "Error"
