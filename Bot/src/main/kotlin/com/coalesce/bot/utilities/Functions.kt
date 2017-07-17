@@ -231,6 +231,8 @@ class SingleThreadedTimeout: Thread() {
         }
     }
 
+    fun contains(timeout: Timeout) = timeouts.contains(timeout)
+
     fun removeTask(timeout: Timeout) {
         timeouts.remove(timeout)
         actualTime.remove(timeout)
@@ -261,14 +263,19 @@ abstract class Timeout(time: Long, unit: TimeUnit) {
 
     val millis: Long
         get() = time
+    val waiting: Boolean
+        get() = timeoutTask.contains(this)
 
     init {
         timeoutTask.addTask(this)
     }
+
     fun keepAlive() {
         timeoutTask.removeTask(this)
         timeoutTask.addTask(this)
     }
+
+    fun startTimeout() = timeoutTask.addTask(this)
     fun stopTimeout() = timeoutTask.removeTask(this)
     abstract fun timeout()
 }

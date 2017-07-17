@@ -25,6 +25,7 @@
         <module>Administration</module>
         <module>Miscellaneous</module>
         <module>Music</module>
+        <module>StatsAnalyser</module>
     </modules>
 
     <build>

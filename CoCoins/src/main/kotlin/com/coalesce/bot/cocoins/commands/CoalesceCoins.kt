@@ -90,10 +90,10 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
         val user = event.author
         if (user.isBot || event.channel !is MessageChannel) return
         val messageCount = (messageDataManager[user.idLong]) + 1
-        val nextAchievement = 25 + Math.min((Math.max(0.0, main.coCoinsManager[user].total) * 1.5).toInt(), 1000)
+        val nextAchievement = 30 + Math.min((Math.max(0.0, main.coCoinsManager[user].total) * 3.5).toInt(), 1000)
         if (messageCount >= nextAchievement) {
             val targetValue = main.coCoinsManager[user]
-            targetValue.transaction(CoCoinsTransaction("Award for sending $nextAchievement messages", 2.0),
+            targetValue.transaction(CoCoinsTransaction("Award for sending $nextAchievement messages since last award", 3.0),
                     event.channel as TextChannel, user)
             messageDataManager.save(user.idLong, 0)
         } else messageDataManager.save(user.idLong, messageCount)

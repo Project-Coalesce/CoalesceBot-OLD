@@ -15,7 +15,9 @@ abstract class BinarySerializer<T>(val file: File, val fallback: () -> T) {
             try {
                 byteArray = it.readBytes()
             } catch (ex: Exception) {
-
+                System.err.println("Failed to read file.")
+                ex.printStackTrace()
+                return fallback()
             }
         }
 
