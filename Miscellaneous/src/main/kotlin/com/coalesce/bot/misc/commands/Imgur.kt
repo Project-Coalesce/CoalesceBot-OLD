@@ -5,21 +5,17 @@ import com.coalesce.bot.gson
 import com.coalesce.bot.utilities.*
 import com.google.gson.JsonElement
 import com.google.inject.Inject
-import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.message.BasicNameValuePair
-import sun.management.resources.agent
 import java.awt.Color
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.concurrent.ExecutorService
 
+internal val client = HttpClients.createDefault()
 @Command("Imgur", "uploadimage image img uploadimg")
 class Imgur @Inject constructor(val executorService: ExecutorService): Embeddables {
-    private val client = HttpClients.createDefault()
 
     @CommandAlias("Uploads image to imgur, gets the first message with image in the history if none are found.")
     fun previousMessages(context: CommandContext) {
@@ -48,21 +44,26 @@ class Imgur @Inject constructor(val executorService: ExecutorService): Embeddabl
         }
     }
 
-    private fun upload(context: Context, message: Message, image: String) {
-        try {
+    companion object {
+        fun upload(image: String): String {
             val post = HttpPost("https://api.imgur.com/3/image")
             post.entity = UrlEncodedFormEntity(listOf(
                     "image" to image
             ).map { BasicNameValuePair(it.first, it.second) })
             post.addHeader("Authorization", "Client-ID 5133141b12a8791")
-            val json = gson.fromJson(client.execute(post).entity.content.readText(), JsonElement::class.java).asJsonObject
 
+            return gson.fromJson(client.execute(post).entity.content.readText(), JsonElement::class.java).asJsonObject["data"]
+                    .asJsonObject["link"].asString
+        }
+    }
+    private fun upload(context: Context, message: Message, image: String) {
+        try {
+            val link = Companion.upload(image)
             message.editEmbed {
-                val lnk = json["data"].asJsonObject["link"].asString
                 embColor = Color(112, 255, 45)
                 setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
-                setTitle("Imgur Image Uploaded", lnk)
-                setImage(lnk)
+                setTitle("Imgur Image Uploaded", link)
+                setImage(link)
             }
         } catch (ex: Exception) {
             message.editEmbed {

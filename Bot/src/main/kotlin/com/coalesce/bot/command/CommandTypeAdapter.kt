@@ -9,6 +9,7 @@ import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.entities.VoiceChannel
+import java.net.InetSocketAddress
 import java.util.*
 import kotlin.reflect.KParameter
 import kotlin.reflect.jvm.kotlinFunction
@@ -19,6 +20,7 @@ class AdaptationArgsChecker(val jda: JDA) {
             User::class.java to this::userAdapter,
             Role::class.java to this::roleAdapter,
             TextChannel::class.java to this::channelAdapter,
+            InetSocketAddress::class.java to this::ipAdapter,
             Calendar::class.java to this::timeAdapter,
             Int::class.java to String::toIntOrNull,
             Long::class.java to String::toIntOrNull,
@@ -73,6 +75,12 @@ class AdaptationArgsChecker(val jda: JDA) {
     }
 
     fun stringAdapter(str: String) = str
+
+    fun ipAdapter(str: String): InetSocketAddress? {
+        val split = str.split(":")
+        if (split.size > 2) return null
+        return InetSocketAddress(split[0], split[1]?.toIntOrNull() ?: 25565)
+    }
 
     fun timeAdapter(str: String): Calendar? {
         val cal = Calendar.getInstance()
