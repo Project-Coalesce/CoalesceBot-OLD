@@ -79,7 +79,7 @@ class AdaptationArgsChecker(val jda: JDA) {
     fun ipAdapter(str: String): InetSocketAddress? {
         val split = str.split(":")
         if (split.size > 2) return null
-        return InetSocketAddress(split[0], split[1]?.toIntOrNull() ?: 25565)
+        return InetSocketAddress(split.first(), if (split.size == 1) 25565 else split[1].toIntOrNull() ?: 25565)
     }
 
     fun timeAdapter(str: String): Calendar? {

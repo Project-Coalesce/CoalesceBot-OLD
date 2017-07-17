@@ -45,14 +45,17 @@ class Imgur @Inject constructor(val executorService: ExecutorService): Embeddabl
     }
 
     companion object {
-        fun upload(image: String): String {
+        fun upload(image: String, type: String = "URL"): String {
             val post = HttpPost("https://api.imgur.com/3/image")
             post.entity = UrlEncodedFormEntity(listOf(
-                    "image" to image
+                    "image" to image,
+                    "type" to type
             ).map { BasicNameValuePair(it.first, it.second) })
             post.addHeader("Authorization", "Client-ID 5133141b12a8791")
 
-            return gson.fromJson(client.execute(post).entity.content.readText(), JsonElement::class.java).asJsonObject["data"]
+            val response = client.execute(post).entity.content.readText()
+            println(response)
+            return gson.fromJson(response, JsonElement::class.java).asJsonObject["data"]
                     .asJsonObject["link"].asString
         }
     }
