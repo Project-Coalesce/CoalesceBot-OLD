@@ -1,10 +1,14 @@
 package com.coalesce.bot.utilities
 
+import com.coalesce.bot.AGENT
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.MessageEmbed
 import java.awt.Color
 import java.io.InputStream
 import java.io.OutputStream
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.net.URLConnection
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
@@ -251,6 +255,26 @@ class SingleThreadedTimeout: Thread() {
     }
 
     private fun order() = timeouts.orderSelf { o1, o2 -> ((o1.millis - o2.millis) / 1000).toInt() }
+}
+
+fun URLConnection.readText(): String {
+    setRequestProperty("User-Agent", AGENT)
+    return getInputStream().readText()
+}
+
+fun Double.round(decimals: Int = 0, roundingMode: Int = BigDecimal.ROUND_HALF_UP) = BigDecimal(this).setScale(decimals, roundingMode).toString()
+
+fun String.insertDashUUID(): String {
+    var sb = StringBuffer(this)
+    sb.insert(8, "-")
+    sb = StringBuffer(sb.toString())
+    sb.insert(13, "-")
+    sb = StringBuffer(sb.toString())
+    sb.insert(18, "-")
+    sb = StringBuffer(sb.toString())
+    sb.insert(23, "-")
+
+    return sb.toString()
 }
 
 private val timeoutTask = SingleThreadedTimeout()

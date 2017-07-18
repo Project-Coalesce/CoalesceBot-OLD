@@ -1,8 +1,11 @@
 package com.coalesce.bot.misc.commands
 
+import com.coalesce.bot.AGENT
 import com.coalesce.bot.command.*
-import com.coalesce.bot.misc.AGENT
-import com.coalesce.bot.utilities.*
+import com.coalesce.bot.utilities.Embeddables
+import com.coalesce.bot.utilities.description
+import com.coalesce.bot.utilities.embColor
+import com.coalesce.bot.utilities.embTitle
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import org.apache.http.client.utils.URIBuilder

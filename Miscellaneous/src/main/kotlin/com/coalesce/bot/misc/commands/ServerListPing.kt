@@ -36,8 +36,8 @@ class ServerListPing @Inject constructor(val executorService: ExecutorService): 
                         embDescription = info.textDescription.split(Regex("§[0-9|a-f|k-r]")).joinToString(separator = "")
                         field("Players", "${info.players.online}/${info.players.max}", true)
                         field("Ping", "${info.time}ms", true)
-
-                        setFooter("Version: ${info.version.name} (Protocol ${info.version.protocol})", null)
+                        field("Version", "${info.version.name} (Protocol Number: ${info.version.protocol}, learn more " +
+                                "at http://wiki.vg/Protocol_version_numbers)", false)
                     }
                 } catch (ex: Exception) {
                     editEmbed {

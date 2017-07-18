@@ -1,14 +1,12 @@
 package com.coalesce.bot.misc.commands
 
+import com.coalesce.bot.AGENT
 import com.coalesce.bot.command.*
 import com.coalesce.bot.gson
-import com.coalesce.bot.misc.AGENT
 import com.coalesce.bot.utilities.*
 import com.google.gson.JsonElement
 import com.google.inject.Inject
-import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
-import sun.management.resources.agent
 import java.awt.Color
 import java.net.HttpURLConnection
 import java.net.URL
