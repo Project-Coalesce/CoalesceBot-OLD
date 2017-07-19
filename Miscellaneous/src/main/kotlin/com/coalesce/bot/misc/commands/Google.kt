@@ -8,7 +8,6 @@ import com.coalesce.bot.utilities.embColor
 import com.coalesce.bot.utilities.embTitle
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
-import org.apache.http.client.utils.URIBuilder
 import org.jsoup.Jsoup
 import java.awt.Color
 import java.util.concurrent.ExecutorService
@@ -24,11 +23,7 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
         }) {
             executorService.submit {
                 try {
-                    val url = URIBuilder("https://www.google.com/search")
-                            .addParameter("q", query.replace(" ", "+"))
-                            .addParameter("glp", "1")
-                            .addParameter("hl", "EN")
-                            .build().toString()
+                    val url = "www.google.com/search?q=${query.replace(" ", "+")}&glp=1&hl=EN"
                     val jsoup = Jsoup.connect(url).userAgent(userAgent).get()
                     val sections = jsoup.select(".g")
 

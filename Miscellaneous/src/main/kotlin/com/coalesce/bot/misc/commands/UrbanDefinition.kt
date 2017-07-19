@@ -53,7 +53,7 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
                         description {
                             appendln("Failed to provide results!")
                             appendln("${ex.javaClass.name}: ${ex.message}")
-                            appendln("This has been reported to coalesce developers.")
+                            appendln("This has been reported to Coalesce developers.")
                         }
                     }
                     ex.printStackTrace()

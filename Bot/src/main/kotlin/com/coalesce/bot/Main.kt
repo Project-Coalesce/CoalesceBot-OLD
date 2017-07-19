@@ -1,6 +1,5 @@
 package com.coalesce.bot
 
-//import com.coalesce.bot.chatbot.ChatbotBrain
 import com.coalesce.bot.command.AdaptationArgsChecker
 import com.coalesce.bot.command.Listener
 import com.coalesce.bot.command.PluginManager
@@ -15,15 +14,16 @@ import com.google.gson.GsonBuilder
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Injector
-import net.dv8tion.jda.core.*
+import net.dv8tion.jda.core.AccountType
+import net.dv8tion.jda.core.JDA
+import net.dv8tion.jda.core.JDABuilder
+import net.dv8tion.jda.core.OnlineStatus
 import net.dv8tion.jda.core.entities.Game
-import net.dv8tion.jda.core.entities.Guild
 import java.io.File
 import java.io.PrintStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadLocalRandom
-import java.util.regex.Pattern
 
 /**
  *  VERSION
@@ -56,7 +56,6 @@ class Main private constructor() {
         if (!dataDirectory.exists()) {
             dataDirectory.mkdirs()
         }
-
         jda = JDABuilder(AccountType.BOT).apply {
             setToken(token)
             setCorePoolSize(6)
