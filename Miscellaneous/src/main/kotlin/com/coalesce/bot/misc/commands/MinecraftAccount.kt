@@ -2,6 +2,7 @@ package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.command.*
 import com.coalesce.bot.gson
+import com.coalesce.bot.misc.readText
 import com.coalesce.bot.utilities.*
 import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
@@ -24,7 +25,7 @@ class MinecraftAccount: Embeddables {
         val nameHist = mojangAPI.nameHistory(uuid).joinToString(separator = "\n") { "**${it.name}** (${if(it.changedToAt == 0L)
                 "Original" else "Changed at ${it.changedToAt.formatTime()}"})" }
         val hypixelInfo = tryOrNull { gson.fromJson(URL("https://api.hypixel.net/player?key=$hypixelAPIKey&uuid=$uuid").openConnection().readText(), HypixelPlayerRequest::class.java) }
-        val hiveMCInfo = /*tryOrNull {*/ gson.fromJson(URL("http://api.hivemc.com/v1/player/$uuid").openConnection().readText(), HiveMCPlayer::class.java)// }
+        val hiveMCInfo = tryOrNull { gson.fromJson(URL("http://api.hivemc.com/v1/player/${uuid.toString().replace("-", "")}").openConnection().readText(), HiveMCPlayer::class.java) }
 
         context(embed().apply {
             embColor = Color(112, 255, 45)
@@ -39,19 +40,25 @@ class MinecraftAccount: Embeddables {
                     appendln("Rank: ${player.packageRank}, level ${player.networkLevel}.")
                     appendln("**Game Statistics (Not all of them, type `!mc hypixel <name>` for that)**")
                     val quake = player.stats.quake
-                    appendln("**Quake** " +
-                            "K/D Ratio: ${(quake["kills"].asInt.toDouble() / quake["deaths"].asInt.toDouble()).round(3)}, " +
-                            "Wins: ${quake["wins"].asInt}")
+                    append("**Quake** ")
+                    if (quake.has("kills") && quake.has("deaths")) append("K/D Ratio: " +
+                            "${(quake["kills"].asInt.toDouble() / quake["deaths"].asInt.toDouble()).round(3)}, ")
+                    if (quake.has("wins")) append("Wins: ${quake["wins"].asInt}")
+                    appendln()
                     val skywars = player.stats.skywars
-                    appendln("**SkyWars** " +
-                            "K/D Ratio: ${(skywars["kills"].asInt.toDouble() / skywars["deaths"].asInt.toDouble()).round(3)}, " +
-                            "Wins: ${skywars["wins"].asInt}, " +
-                            "Win Streak: ${skywars["win_streak"].asInt}")
+                    append("**SkyWars** ")
+                    if (skywars.has("kills") && skywars.has("deaths")) append("K/D Ratio: " +
+                            "${(skywars["kills"].asInt.toDouble() / skywars["deaths"].asInt.toDouble()).round(3)}, ")
+                    if (skywars.has("wins")) append("Wins: ${skywars["wins"].asInt}, ")
+                    if (skywars.has("win_streak")) append("Win Streak: ${skywars["win_streak"].asInt}")
+                    appendln()
                     val bedwars = player.stats.bedwars
-                    appendln("**BedWars** " +
-                            "K/D Ratio: ${(bedwars["kills_bedwars"].asInt.toDouble() / bedwars["deaths_bedwars"].asInt.toDouble()).round(3)}, " +
-                            "W/L Ratio: ${(bedwars["wins_bedwars"].asInt.toDouble() / bedwars["games_played_bedwars"].asInt.toDouble()).round(3)}, " +
-                            "Beds :b:roken: ${bedwars["beds_broken_bedwars"].asInt}")
+                    append("**BedWars** ")
+                    if (bedwars.has("kills_bedwars") && bedwars.has("deatjs_bedwars")) append("K/D Ratio: " +
+                            "${(bedwars["kills_bedwars"].asInt.toDouble() / bedwars["deaths_bedwars"].asInt.toDouble()).round(3)}, ")
+                    if (bedwars.has("wins_bedwars") && bedwars.has("games_played_bedwars")) append("W/L Ratio:" +
+                            " ${(bedwars["wins_bedwars"].asInt.toDouble() / bedwars["games_played_bedwars"].asInt.toDouble()).round(3)}, ")
+                    if (bedwars.has("beds_broken_bedwars")) append("Beds :b:roken: ${bedwars["beds_broken_bedwars"].asInt}")
                 }.toString(), false)
             }
             if (hiveMCInfo != null) {
@@ -60,21 +67,21 @@ class MinecraftAccount: Embeddables {
                     appendln("Tokens: ${hiveMCInfo.tokens}, Credits: ${hiveMCInfo.credits}, Medals: ${hiveMCInfo.medals}, Rank: ${hiveMCInfo.rankName}.")
                     appendln("${hiveMCInfo.status.description} ${hiveMCInfo.status.game}")
 
-                    fun getGameStats(type: String) = gson.fromJson(URL("http://api.hivemc.com/v1/player/$uuid/$type").openConnection().readText(),
-                            JsonObject::class.java)
+                    fun getGameStats(type: String) = tryOrNull { gson.fromJson(URL("http://api.hivemc.com/v1/player/${uuid.toString().replace("-", "")}/$type").openConnection().readText(),
+                            JsonObject::class.java) }
 
                     appendln("**Game Statistics (Not all of them, type `!mc hivemc <name>` for that)**")
                     val skywars = getGameStats("SKY")
-                    appendln("**Skywars** " +
+                    if (skywars != null) appendln("**Skywars** " +
                             "K/D Ratio: ${(skywars["kills"].asInt.toDouble() / skywars["deaths"].asInt.toDouble()).round(3)}, " +
-                            "Wins: ${skywars["wins"].asInt}, " +
+                            "Wins: ${skywars["victories"].asInt}, " +
                             "Time Alive: ${skywars["timealive"].asInt.toLong().formatTimeDiff()}")
                     val heroesSG = getGameStats("HERO")
-                    appendln("**Heroes** " +
+                    if (heroesSG != null) appendln("**Heroes** " +
                             "K/D Ratio: ${(heroesSG["kills"].asInt.toDouble() / heroesSG["deaths"].asInt.toDouble()).round(3)}, " +
                             "W/L Ratio: ${(heroesSG["victories"].asInt.toDouble() / heroesSG["deaths"].asInt.toDouble()).round(3)}")
                     val skyGiants = getGameStats("GNT")
-                    appendln("**Sky Giants** " +
+                    if (skyGiants != null) appendln("**Sky Giants** " +
                             "K/D Ratio: ${(skyGiants["kills"].asInt.toDouble() / skyGiants["deaths"].asInt.toDouble()).round(3)}, " +
                             "W/L Ratio: ${(skyGiants["victories"].asInt.toDouble() / skyGiants["deaths"].asInt.toDouble()).round(3)}, " +
                             "Giants killed: ${skyGiants["beasts_slain"].asInt}")

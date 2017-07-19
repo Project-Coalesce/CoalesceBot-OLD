@@ -15,21 +15,21 @@ import java.util.concurrent.TimeUnit
 // Cooldown
 
 class CooldownHandler: Embeddables {
-    private val globalCooldown = mutableMapOf<CommandFrameworkClass.CommandInfo, Long>()
-    private val userCooldown = mutableMapOf<User, MutableMap<CommandFrameworkClass.CommandInfo, Long>>()
+    private val globalCooldown = mutableMapOf<String, Long>()
+    private val userCooldown = mutableMapOf<User, MutableMap<String, Long>>()
 
-    fun doGlobalCooldown(info: CommandFrameworkClass.CommandInfo) {
-        globalCooldown.put(info, System.currentTimeMillis() + info.globalCooldown)
-        timeOutHandler(info.globalCooldown, TimeUnit.MILLISECONDS) { globalCooldown.remove(info) }
+    fun doGlobalCooldown(info: CommandFrameworkClass.CommandInfo, perm: String) {
+        globalCooldown.put(perm, System.currentTimeMillis() + info.globalCooldown)
+        timeOutHandler(info.globalCooldown, TimeUnit.MILLISECONDS) { globalCooldown.remove(perm) }
     }
 
-    fun doUserCooldown(user: User, info: CommandFrameworkClass.CommandInfo) {
-        userCooldown[user] = (userCooldown[user] ?: mutableMapOf()).apply { put(info, System.currentTimeMillis() + info.userCooldown) }
-        timeOutHandler(info.userCooldown, TimeUnit.MILLISECONDS) { (userCooldown[user] ?: return@timeOutHandler).remove(info) }
+    fun doUserCooldown(user: User, info: CommandFrameworkClass.CommandInfo, perm: String) {
+        userCooldown[user] = (userCooldown[user] ?: mutableMapOf()).apply { put(perm, System.currentTimeMillis() + info.userCooldown) }
+        timeOutHandler(info.userCooldown, TimeUnit.MILLISECONDS) { (userCooldown[user] ?: return@timeOutHandler).remove(perm) }
     }
 
     fun cooldownCheck(context: Context): Boolean {
-        val info = context.info
+        val info = context.permission
         if (userCooldown.containsKey(context.author) && userCooldown[context.author]!!.containsKey(info)) {
             context(embed().apply {
                 embColor = Color(232, 46, 0)

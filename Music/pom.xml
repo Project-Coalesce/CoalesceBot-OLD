@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.coalesce</groupId>
             <artifactId>coalescebot</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${coalescebot-version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

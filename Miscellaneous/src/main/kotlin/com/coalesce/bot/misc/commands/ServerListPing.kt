@@ -31,7 +31,8 @@ class ServerListPing @Inject constructor(val executorService: ExecutorService): 
                     val info = serverListPingHandler.fetchData(serverIP)
                     editEmbed {
                         embColor = ColorBlender.blendColors(fractions, colors, Math.max(Math.min(info.time / 400F, 0F), 1F))
-                        setThumbnail(Imgur.upload(info.favicon.substring(info.favicon.indexOf(",") + 1), "base64"))
+                        if (!info.favicon.isBlank() && info.favicon.isNotEmpty())
+                            setThumbnail(Imgur.upload(info.favicon.substring(info.favicon.indexOf(",") + 1), "base64"))
                         embTitle = "Minecraft Server MOTD (${serverIP.hostString})"
                         embDescription = info.textDescription.split(Regex("§[0-9|a-f|k-r]")).joinToString(separator = "")
                         field("Players", "${info.players.online}/${info.players.max}", true)

@@ -1,7 +1,7 @@
 package com.coalesce.bot.misc.commands
 
-import com.coalesce.bot.AGENT
 import com.coalesce.bot.command.*
+import com.coalesce.bot.misc.userAgent
 import com.coalesce.bot.utilities.Embeddables
 import com.coalesce.bot.utilities.description
 import com.coalesce.bot.utilities.embColor
@@ -29,7 +29,7 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                             .addParameter("glp", "1")
                             .addParameter("hl", "EN")
                             .build().toString()
-                    val jsoup = Jsoup.connect(url).userAgent(AGENT).get()
+                    val jsoup = Jsoup.connect(url).userAgent(userAgent).get()
                     val sections = jsoup.select(".g")
 
                     if (sections.isEmpty()) {

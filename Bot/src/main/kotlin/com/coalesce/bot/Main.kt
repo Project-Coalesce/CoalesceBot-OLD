@@ -7,6 +7,7 @@ import com.coalesce.bot.command.PluginManager
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
+import com.coalesce.bot.utilities.readText
 import com.coalesce.bot.utilities.tryLog
 import com.google.common.base.Preconditions
 import com.google.gson.Gson
@@ -31,7 +32,7 @@ import java.util.regex.Pattern
  *  Second number - Minor version
  *  Third number - Patch
  * */
-val VERSION = "1.7.1"
+val VERSION = Main::class.java.getResourceAsStream("/.properties").readText()
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -130,4 +131,3 @@ val gson: Gson = GsonBuilder().apply {
     disableHtmlEscaping()
     registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance))
 }.create()
-val AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"

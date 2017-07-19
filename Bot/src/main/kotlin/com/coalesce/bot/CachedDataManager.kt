@@ -13,7 +13,6 @@ open class CachedDataManager<U, A>(file: File,
     private val cache = mutableMapOf<U, A>()
 
     init {
-        stopTimeout()
         if (!file.parentFile.exists()) file.parentFile.mkdirs()
         if (!file.exists()) file.apply {
             createNewFile()

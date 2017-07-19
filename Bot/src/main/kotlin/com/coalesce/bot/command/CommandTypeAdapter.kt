@@ -1,6 +1,5 @@
 package com.coalesce.bot.command
 
-import com.coalesce.bot.utilities.matching
 import com.coalesce.bot.utilities.smallTimeUnit
 import com.coalesce.bot.utilities.subList
 import com.coalesce.bot.utilities.tryOrNull
@@ -8,7 +7,6 @@ import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
-import net.dv8tion.jda.core.entities.VoiceChannel
 import java.net.InetSocketAddress
 import java.util.*
 import kotlin.reflect.KParameter
@@ -21,6 +19,7 @@ class AdaptationArgsChecker(val jda: JDA) {
             Role::class.java to this::roleAdapter,
             TextChannel::class.java to this::channelAdapter,
             InetSocketAddress::class.java to this::ipAdapter,
+            UUID::class.java to this::uuidAdapter,
             Calendar::class.java to this::timeAdapter,
             Int::class.java to String::toIntOrNull,
             Long::class.java to String::toIntOrNull,
@@ -75,6 +74,8 @@ class AdaptationArgsChecker(val jda: JDA) {
     }
 
     fun stringAdapter(str: String) = str
+
+    fun uuidAdapter(str: String) = tryOrNull { UUID.fromString(str) }
 
     fun ipAdapter(str: String): InetSocketAddress? {
         val split = str.split(":")
