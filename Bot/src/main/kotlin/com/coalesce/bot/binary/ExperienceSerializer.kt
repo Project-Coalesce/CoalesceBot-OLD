@@ -1,9 +1,8 @@
-package com.coalesce.bot.cocoins
+package com.coalesce.bot.binary
 
-import com.coalesce.bot.binary.BinarySerializer
 import java.io.File
 
-class MessagesSentSerializer(file: File): BinarySerializer<MutableMap<Long, Int>>(file, { mutableMapOf() }) {
+class ExperienceSerializer(file: File): BinarySerializer<MutableMap<Long, Int>>(file, { mutableMapOf() }) {
     override fun serializeOut(data: MutableMap<Long, Int>) {
         data.forEach { k, v ->
             outputStream.writeLong(k)

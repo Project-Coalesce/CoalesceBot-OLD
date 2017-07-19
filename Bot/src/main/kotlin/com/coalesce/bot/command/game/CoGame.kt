@@ -14,7 +14,7 @@ import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEv
 import java.util.concurrent.TimeUnit
 
 // Dank Command Framework
-abstract class CoGame(val name: String, val winCount: Int, val minPlayers: Int, val maxPlayers: Int): Embeddables {
+abstract class CoGame(val name: String, val winCount: Int, val xp: Int, val minPlayers: Int, val maxPlayers: Int): Embeddables {
     internal val reactionListeners = mutableMapOf<Long, (GuildMessageReactionAddEvent) -> Unit>()
     internal val inMatch = mutableMapOf<Long, CoGameMatch>()
     internal val inFinder = mutableListOf<Long>()
@@ -65,6 +65,7 @@ abstract class CoGame(val name: String, val winCount: Int, val minPlayers: Int, 
                                     coins[it].transaction(CoCoinsTransaction("You lost the bet!", (-bid).toDouble()),
                                             context.channel, context.author)
                                 }
+                                context.main.experienceCachedDataManager.expAdd(it, xp, coins[it], context.channel)
                             }
 
                         }
@@ -113,7 +114,7 @@ abstract class CoGameMatch(
     }
 
     operator fun invoke(winner: User?, message: String) {
-        channel.send("**Game Over!**\n$message")
+        channel.send("**Game Over!**\n$message\nEveryone earnt **+${game.xp} Experience** as a reward!")
         game.reactionListeners.removeAll(addedReactionsOf)
         players.forEach { game.inMatch.remove(it.idLong) }
         resultHandler(winner)

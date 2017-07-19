@@ -6,6 +6,7 @@ import java.awt.Color
 import java.io.InputStream
 import java.io.OutputStream
 import java.math.BigDecimal
+import java.net.URLConnection
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
@@ -133,6 +134,11 @@ fun String.matching(regx: Regex): String {
         str.append((matchList ?: break).next() ?: break)
     }
     return str.toString()
+}
+
+fun URLConnection.readBytes(): ByteArray {
+    setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36")
+    return getInputStream().readBytes()
 }
 
 fun OutputStream.writeText(text: String, charset: Charset = kotlin.text.Charsets.UTF_8): Unit = write(text.toByteArray(charset))

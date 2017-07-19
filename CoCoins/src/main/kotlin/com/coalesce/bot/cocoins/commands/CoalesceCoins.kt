@@ -1,17 +1,14 @@
 package com.coalesce.bot.cocoins.commands
 
-import com.coalesce.bot.CachedDataManager
 import com.coalesce.bot.CoCoinsTransaction
+import com.coalesce.bot.ExperienceCachedDataManager
 import com.coalesce.bot.Main
-import com.coalesce.bot.cocoins.MessagesSentSerializer
 import com.coalesce.bot.cocoins.memesChannel
-import com.coalesce.bot.cocoins.messagesSentFile
 import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.*
 import com.google.inject.Inject
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Emote
-import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
@@ -21,9 +18,7 @@ import java.util.concurrent.TimeUnit
 
 @Command("CoalesceCoins", "balance bal money cocoins coins coc cocs coccs")
 @UserCooldown(12L)
-class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
-    private val messageDataManager = CachedDataManager(messagesSentFile, MessagesSentSerializer(messagesSentFile), { 0 })
-
+class CoalesceCoins @Inject constructor(jda: JDA, val main: Main, val experienceDataManager: ExperienceCachedDataManager): Embeddables {
     data class MemeReaction(val message: String,
                              val amount: Double,
                              val delay: Double,
@@ -88,15 +83,8 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
         }
 
         val user = event.author
-        if (user.isBot || event.channel !is MessageChannel) return
-        val messageCount = (messageDataManager[user.idLong]) + 1
-        val nextAchievement = 30 + Math.min((Math.max(0.0, main.coCoinsManager[user].total) * 3.5).toInt(), 1000)
-        if (messageCount >= nextAchievement) {
-            val targetValue = main.coCoinsManager[user]
-            targetValue.transaction(CoCoinsTransaction("Award for sending $nextAchievement messages since last award", 3.0),
-                    event.channel as TextChannel, user)
-            messageDataManager.save(user.idLong, 0)
-        } else messageDataManager.save(user.idLong, messageCount)
+        if (user.isBot || event.channel !is TextChannel) return
+        experienceDataManager.expAdd(user, 1, main.coCoinsManager[user.idLong], event.channel as TextChannel)
     }
 
     @ReactionListener("MemeReaction", arrayOf("memeReactionCheck"))

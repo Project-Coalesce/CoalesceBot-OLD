@@ -49,6 +49,7 @@ class Main private constructor() {
     lateinit var commandTypeAdapter: AdaptationArgsChecker
     lateinit var commandHandler: Listener
     lateinit var pluginManager: PluginManager
+    lateinit var experienceCachedDataManager: ExperienceCachedDataManager
     val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String, logOnConsole: Boolean) {
@@ -89,6 +90,7 @@ class Main private constructor() {
         tryLog("Failed to load plugins") { pluginManager = PluginManager() }
         tryLog("Failed to load CoCoins Manager") { coCoinsManager = CoCoinsManager() }
         tryLog("Failed to load Command Type Adapters") { commandTypeAdapter = AdaptationArgsChecker(jda) }
+        tryLog("Failed to load Experience Manager") { experienceCachedDataManager = ExperienceCachedDataManager() }
 
         tryLog("Failed to load Command Handler") {
             injector = Guice.createInjector(Injects(this))
@@ -113,6 +115,7 @@ class Injects(val main: Main) : AbstractModule() {
         bind(PunishmentManager::class.java).toInstance(main.punishments)
         bind(CoCoinsManager::class.java).toInstance(main.coCoinsManager)
         bind(ExecutorService::class.java).toInstance(main.executor)
+        bind(ExperienceCachedDataManager::class.java).toInstance(main.experienceCachedDataManager)
     }
 
     fun <T> addGuiceInjection(clazz: Class<T>, obj: Any) = bind(clazz).toInstance(obj as T)
@@ -124,6 +127,7 @@ val dataDirectory = File(".${File.separatorChar}data")
 val pluginsFolder = File("plugins")
 val usingPluginsFolder = File("using-plugins")
 val coCoinsFile = File(dataDirectory, "cocoins.dat")
+val experienceFile = File(dataDirectory, "messagesSent.dat")
 val gson: Gson = GsonBuilder().apply {
     enableComplexMapKeySerialization()
     setPrettyPrinting()
