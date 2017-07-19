@@ -21,7 +21,7 @@
 
     <modules>
         <module>Bot</module>
-        <module>CoCoins</module>
+        <module>Currencies</module>
         <module>Fun</module>
         <module>Administration</module>
         <module>Miscellaneous</module>

@@ -1,9 +1,9 @@
-package com.coalesce.bot.cocoins.commands
+package com.coalesce.bot.currencies.commands
 
 import com.coalesce.bot.CoCoinsTransaction
 import com.coalesce.bot.ExperienceCachedDataManager
 import com.coalesce.bot.Main
-import com.coalesce.bot.cocoins.memesChannel
+import com.coalesce.bot.currencies.memesChannel
 import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.*
 import com.google.inject.Inject

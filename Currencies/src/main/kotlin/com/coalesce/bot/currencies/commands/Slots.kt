@@ -1,4 +1,4 @@
-package com.coalesce.bot.cocoins.commands
+package com.coalesce.bot.currencies.commands
 
 import com.coalesce.bot.CoCoinsTransaction
 import com.coalesce.bot.command.*

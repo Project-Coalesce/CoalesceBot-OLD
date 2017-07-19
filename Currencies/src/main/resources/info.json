@@ -1,0 +1,6 @@
+{
+  "name": "Currencies",
+  "packagesScan": [
+    "com.coalesce.bot.currencies.commands"
+  ]
+}
