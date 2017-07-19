@@ -2,37 +2,31 @@ package com.coalesce.bot.misc.requests.executors
 
 import com.coalesce.bot.Main
 import com.coalesce.bot.command.*
+import com.coalesce.bot.dataDirectory
 import com.coalesce.bot.gson
 import com.coalesce.bot.misc.requests.Request
 import com.coalesce.bot.utilities.embDescription
 import com.coalesce.bot.utilities.readText
 import com.coalesce.bot.utilities.writeText
+import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.entities.MessageEmbed
 import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent
+import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
 @Command("RoleRequest", "role getrole request")
 class RoleRequest @Inject constructor(val bot: Main): Request {
-    private val acceptableRoles = arrayOf(
-            bot.jda.getRoleById("275473393325703179"), //Kotlin
-            bot.jda.getRoleById("311314320006971393"), //Web
-            bot.jda.getRoleById("299358012500606976"), //Spigot
-            bot.jda.getRoleById("300819659404345346"), //Python
-            bot.jda.getRoleById("275473304268177421"), //Java
-            bot.jda.getRoleById("300377111728881664"), //Project Coalesce
-            bot.jda.getRoleById("335209106556321803"), //Sponge
-            bot.jda.getRoleById("332530519248207873") //Forge
-    )
+    private val file = File(dataDirectory, "requestableRoleIDs.json")
+    private val acceptableRoles = gson.fromJson<List<Long>>(file.readText(), object: TypeToken<List<Long>>() {}.type).toMutableList()
 
     @CommandAlias("Request a role.")
     fun request(context: CommandContext, role: Role) {
         val member = context.guild.getMember(context.author)
-        if (!acceptableRoles.contains(role) || member.roles.contains(role)) throw ArgsException("You need to provide one of: "
-            + acceptableRoles.filter { !member.roles.contains(role) }.joinToString(separator = ", ") { it.name })
+        if (!acceptableRoles.contains(role.idLong) || member.roles.contains(role)) throw ArgsException("That role cannot be requested.")
 
         context.usePCh {
             send(embed().apply {
@@ -111,5 +105,11 @@ class RoleRequest @Inject constructor(val bot: Main): Request {
                      "Make sure you have code of the respective language in your GitHub account.")
             }
         }
+    }
+
+    @SubCommand("ToggleRoleRequestability", "togglerole addrole removerole", "Toggles the ability to request a role")
+    fun roleRequestabilityToggle(context: CommandContext, role: Role) {
+        if (acceptableRoles.contains(role.idLong)) acceptableRoles.remove(role.idLong) else acceptableRoles.add(role.idLong)
+        file.writeText(gson.toJson(acceptableRoles))
     }
 }
