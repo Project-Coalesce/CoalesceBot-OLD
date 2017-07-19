@@ -36,7 +36,7 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
 
                     editEmbed {
                         setTitle("Urban Dictionary Definition", result["permalink"].asString)
-                        setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
+                        setThumbnail("http://i.imgur.com/6kyyWvq.png")
                         embColor = Color(112, 255, 45)
 
                         field("Term", term, false)
