@@ -141,6 +141,11 @@ fun URLConnection.readBytes(): ByteArray {
     return getInputStream().readBytes()
 }
 
+fun <E> Collection<E>.allWhere(handler: (E) -> Boolean) = listOf<E> {
+    this@allWhere.forEach {
+        if (handler(it)) add(it)
+    }
+}
 fun OutputStream.writeText(text: String, charset: Charset = kotlin.text.Charsets.UTF_8): Unit = write(text.toByteArray(charset))
 
 fun <T> List<T>.order(comp: Comparator<T>): MutableList<T> {

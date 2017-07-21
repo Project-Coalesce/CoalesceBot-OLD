@@ -26,6 +26,7 @@ class Supporter @Inject constructor(val jda: JDA, val executorService: ExecutorS
     @CommandAlias("Get the supporter role by inserting your profile URL")
     fun execute(context: CommandContext, url: String) {
         if (!url.startsWith("https://www.spigotmc.org/members/")) throw ArgsException("Please provide a Spigot profile URL.")
+        if (context.guild.getMember(context.author).roles.contains(supporterRole)) throw ArgsException("You already have supporter role.")
         executorService.submit {
             val page = webClient.getPage<HtmlPage>(url)
             webClient.waitForBackgroundJavaScript(10000)

@@ -1,7 +1,7 @@
 package com.coalesce.bot.currencies.commands
 
 import com.coalesce.bot.CoCoinsTransaction
-import com.coalesce.bot.ExperienceCachedDataManager
+import com.coalesce.bot.experience.ExperienceCachedDataManager
 import com.coalesce.bot.Main
 import com.coalesce.bot.currencies.memesChannel
 import com.coalesce.bot.command.*
