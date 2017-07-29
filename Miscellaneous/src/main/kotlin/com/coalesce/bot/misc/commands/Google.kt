@@ -1,8 +1,11 @@
 package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.command.*
-import com.coalesce.bot.misc.AGENT
-import com.coalesce.bot.utilities.*
+import com.coalesce.bot.misc.userAgent
+import com.coalesce.bot.utilities.Embeddables
+import com.coalesce.bot.utilities.description
+import com.coalesce.bot.utilities.embColor
+import com.coalesce.bot.utilities.embTitle
 import com.google.inject.Inject
 import net.dv8tion.jda.core.EmbedBuilder
 import org.apache.http.client.utils.URIBuilder
@@ -21,8 +24,13 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
         }) {
             executorService.submit {
                 try {
-                    val url = URIBuilder("https://www.google.com/search").addParameter("q", query.replace(" ", "+")).build().toString()
-                    val sections = Jsoup.connect(url).userAgent(AGENT).get().select(".g")
+                    val url = URIBuilder("https://www.google.com/search")
+                            .addParameter("q", query.replace(" ", "+"))
+                            .addParameter("glp", "1")
+                            .addParameter("hl", "EN")
+                            .build().toString()
+                    val jsoup = Jsoup.connect(url).userAgent(userAgent).get()
+                    val sections = jsoup.select(".g")
 
                     if (sections.isEmpty()) {
                         editMessage(EmbedBuilder(embeds.first()).apply {
@@ -33,20 +41,27 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                     }
 
                     editEmbed {
+                        embColor = Color(112, 255, 45)
                         embTitle = null
                         setAuthor("Google", url, "http://i.imgur.com/YE6Agjf.png")
-                        embColor = Color(112, 255, 45)
+                        val infoObjects = jsoup.select("._OKe")
+                        if (infoObjects.isNotEmpty()) {
+                            val obj = infoObjects.first()
+                            description {
+                                appendln("**${obj.select("._Q1n").joinToString(separator = "\n") { it.select("span").text() }}**")
+                                append(obj.select("._RBg>.mod").select("span").joinToString(separator = "\n") { it.text() })
+                            }
+                        }
                         var count = 0
-                        for (section in sections) {
-                            if (count >= 5) break
-                            val list = section.select(".r>a")
+                        sections.subList(0, Math.max(sections.size, 5)).forEach {
+                            val list = it.select(".r>a")
                             if (list.isEmpty()) return@editEmbed
 
                             val entry = list.first()
                             val title = entry.text()
                             val linkURL = entry.absUrl("href").replace(")", "\\)")
 
-                            val fetch = section.select(".st")
+                            val fetch = it.select(".st")
                             val description = if (!fetch.isEmpty()) fetch.first().text() else "*No description*"
 
                             addField("**$title** ($linkURL)", description, false)
@@ -62,7 +77,7 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                         description {
                             appendln("Failed to provide results!")
                             appendln("${ex.javaClass.name}: ${ex.message}")
-                            appendln("This has been reported to coalesce developers.")
+                            appendln("This has been reported to Coalesce developers.")
                         }
                     }
                     ex.printStackTrace()

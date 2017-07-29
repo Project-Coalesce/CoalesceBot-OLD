@@ -374,8 +374,8 @@ class BotCommand(
                     context.info = commandInfo
                     if (checks.any { !it(context) }) return@invoke true
                     it.kCallable.callBy(paramters)
-                    if (commandInfo.userCooldown > 0L) cooldownHandler.doUserCooldown(context.author, commandInfo)
-                    if (commandInfo.globalCooldown > 0L) cooldownHandler.doGlobalCooldown(commandInfo)
+                    if (commandInfo.userCooldown > 0L) cooldownHandler.doUserCooldown(context.author, commandInfo, context.permission)
+                    if (commandInfo.globalCooldown > 0L) cooldownHandler.doGlobalCooldown(commandInfo, context.permission)
                     return@invoke true
                 }
 
@@ -406,8 +406,8 @@ class BotCommand(
                 context.info = commandInfo
                 if (checks.any { !it(context) }) return@invoke true
                 it.invoke(instance, *(objects.toTypedArray()))
-                if (commandInfo.userCooldown > 0L) cooldownHandler.doUserCooldown(context.author, commandInfo)
-                if (commandInfo.globalCooldown > 0L) cooldownHandler.doGlobalCooldown(commandInfo)
+                if (commandInfo.userCooldown > 0L) cooldownHandler.doUserCooldown(context.author, commandInfo, context.permission)
+                if (commandInfo.globalCooldown > 0L) cooldownHandler.doGlobalCooldown(commandInfo, context.permission)
             }
 
             return false

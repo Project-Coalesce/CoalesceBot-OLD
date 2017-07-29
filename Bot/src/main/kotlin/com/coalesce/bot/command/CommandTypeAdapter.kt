@@ -1,12 +1,13 @@
 package com.coalesce.bot.command
 
-import com.coalesce.bot.utilities.matching
 import com.coalesce.bot.utilities.smallTimeUnit
 import com.coalesce.bot.utilities.subList
 import com.coalesce.bot.utilities.tryOrNull
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Role
+import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
+import java.net.InetSocketAddress
 import java.util.*
 import kotlin.reflect.KParameter
 import kotlin.reflect.jvm.kotlinFunction
@@ -16,6 +17,9 @@ class AdaptationArgsChecker(val jda: JDA) {
             String::class.java to this::stringAdapter,
             User::class.java to this::userAdapter,
             Role::class.java to this::roleAdapter,
+            TextChannel::class.java to this::channelAdapter,
+            InetSocketAddress::class.java to this::ipAdapter,
+            UUID::class.java to this::uuidAdapter,
             Calendar::class.java to this::timeAdapter,
             Int::class.java to String::toIntOrNull,
             Long::class.java to String::toIntOrNull,
@@ -71,6 +75,14 @@ class AdaptationArgsChecker(val jda: JDA) {
 
     fun stringAdapter(str: String) = str
 
+    fun uuidAdapter(str: String) = tryOrNull { UUID.fromString(str) }
+
+    fun ipAdapter(str: String): InetSocketAddress? {
+        val split = str.split(":")
+        if (split.size > 2) return null
+        return InetSocketAddress(split.first(), if (split.size == 1) 25565 else split[1].toIntOrNull() ?: 25565)
+    }
+
     fun timeAdapter(str: String): Calendar? {
         val cal = Calendar.getInstance()
         if (str.matches(Regex("[0-9]+[dhms]"))) {
@@ -80,6 +92,11 @@ class AdaptationArgsChecker(val jda: JDA) {
         }
 
         return cal
+    }
+
+    fun channelAdapter(str: String): TextChannel? {
+        if (!str.matches(Regex("<#[0-9]+>"))) return null
+        return jda.getTextChannelById(str.substring(2, str.length - 1))
     }
 
     fun userAdapter(str: String): User? {

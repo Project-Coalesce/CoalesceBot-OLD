@@ -22,7 +22,7 @@ private val playerCountForSize = mapOf(
 
 @Command("TicTacToe", "ttt")
 class TicTacToe {
-    private val game = object: CoGame("TicTacToe", 4, 1, characters.size - 2) {
+    private val game = object: CoGame("TicTacToe", 4, 1, characters.size - 2, 10) {
         override fun match(channel: TextChannel, @VarArg players: List<User>, resultHandler: (User?) -> Unit) =
                 TicTacToeMatch(channel, this, players, resultHandler)
     }

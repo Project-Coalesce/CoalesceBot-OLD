@@ -4,9 +4,11 @@ package com.coalesce.bot
 import com.coalesce.bot.command.AdaptationArgsChecker
 import com.coalesce.bot.command.Listener
 import com.coalesce.bot.command.PluginManager
+import com.coalesce.bot.experience.ExperienceCachedDataManager
 import com.coalesce.bot.punishmentals.Punishment
 import com.coalesce.bot.punishmentals.PunishmentManager
 import com.coalesce.bot.punishmentals.PunishmentSerializer
+import com.coalesce.bot.utilities.readText
 import com.coalesce.bot.utilities.tryLog
 import com.google.common.base.Preconditions
 import com.google.gson.Gson
@@ -16,13 +18,11 @@ import com.google.inject.Guice
 import com.google.inject.Injector
 import net.dv8tion.jda.core.*
 import net.dv8tion.jda.core.entities.Game
-import net.dv8tion.jda.core.entities.Guild
 import java.io.File
 import java.io.PrintStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadLocalRandom
-import java.util.regex.Pattern
 
 /**
  *  VERSION
@@ -31,7 +31,7 @@ import java.util.regex.Pattern
  *  Second number - Minor version
  *  Third number - Patch
  * */
-val VERSION = "1.6.1"
+val VERSION = Main::class.java.getResourceAsStream("/.properties").readText()
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
 
 fun main(args: Array<String>) {
@@ -48,6 +48,7 @@ class Main private constructor() {
     lateinit var commandTypeAdapter: AdaptationArgsChecker
     lateinit var commandHandler: Listener
     lateinit var pluginManager: PluginManager
+    lateinit var experienceCachedDataManager: ExperienceCachedDataManager
     val executor = Executors.newFixedThreadPool(6)!!
 
     internal fun boot(token: String, secret: String, logOnConsole: Boolean) {
@@ -76,7 +77,7 @@ class Main private constructor() {
         // Finished loading.
         @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // cause it's still fucking driving me nuts
         jda.presence.game = Game.of(GAMES[ThreadLocalRandom.current().nextInt(GAMES.size)])
-        jda.presence.status = OnlineStatus.ONLINE
+        jda.presence.status = OnlineStatus.DO_NOT_DISTURB
 
         githubSecret = secret
 
@@ -88,6 +89,7 @@ class Main private constructor() {
         tryLog("Failed to load plugins") { pluginManager = PluginManager() }
         tryLog("Failed to load CoCoins Manager") { coCoinsManager = CoCoinsManager() }
         tryLog("Failed to load Command Type Adapters") { commandTypeAdapter = AdaptationArgsChecker(jda) }
+        tryLog("Failed to load Experience Manager") { experienceCachedDataManager = ExperienceCachedDataManager() }
 
         tryLog("Failed to load Command Handler") {
             injector = Guice.createInjector(Injects(this))
@@ -112,6 +114,7 @@ class Injects(val main: Main) : AbstractModule() {
         bind(PunishmentManager::class.java).toInstance(main.punishments)
         bind(CoCoinsManager::class.java).toInstance(main.coCoinsManager)
         bind(ExecutorService::class.java).toInstance(main.executor)
+        bind(ExperienceCachedDataManager::class.java).toInstance(main.experienceCachedDataManager)
     }
 
     fun <T> addGuiceInjection(clazz: Class<T>, obj: Any) = bind(clazz).toInstance(obj as T)
@@ -123,6 +126,7 @@ val dataDirectory = File(".${File.separatorChar}data")
 val pluginsFolder = File("plugins")
 val usingPluginsFolder = File("using-plugins")
 val coCoinsFile = File(dataDirectory, "cocoins.dat")
+val experienceFile = File(dataDirectory, "messagesSent.dat")
 val gson: Gson = GsonBuilder().apply {
     enableComplexMapKeySerialization()
     setPrettyPrinting()
@@ -130,12 +134,3 @@ val gson: Gson = GsonBuilder().apply {
     disableHtmlEscaping()
     registerTypeAdapter(Punishment::class.java, PunishmentSerializer(Main.instance))
 }.create()
-typealias Colour = java.awt.Color
-//val chatbot = ChatbotBrain()
-
-/*fun getChatbotMessage(message: Message, jda: JDA): String? {
-    val stripped = message.strippedContent.replace(jda.selfUser.asMention, "")
-    chatbot.decay()
-    chatbot.digestSentence(stripped)
-    return chatbot.buildSentence()
-}*/

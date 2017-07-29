@@ -20,7 +20,7 @@ class CoCoinsValue(var total: Double, var transactions: MutableList<CoCoinsTrans
         if (transactions.size > 10) transactions = transactions.subList(0, 10)
 
         channel.sendMessage("${member.asMention}: ${transaction.message}\n" +
-                "**${if (transaction.amount >= 0) "+" else ""}${transaction.amount.toInt()} CoCoins!**").queue()
+                "**You ${if (transaction.amount >= 0) "earnt" else "lost"}${transaction.amount.toInt()} CoCoins**").queue()
         total += transaction.amount
 
         Main.instance.coCoinsManager.save(user, this)

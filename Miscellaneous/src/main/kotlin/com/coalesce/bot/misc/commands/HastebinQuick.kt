@@ -2,13 +2,11 @@ package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.command.*
 import com.coalesce.bot.gson
-import com.coalesce.bot.misc.AGENT
+import com.coalesce.bot.misc.userAgent
 import com.coalesce.bot.utilities.*
 import com.google.gson.JsonElement
 import com.google.inject.Inject
-import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Message
-import sun.management.resources.agent
 import java.awt.Color
 import java.net.HttpURLConnection
 import java.net.URL
@@ -21,7 +19,7 @@ class HastebinQuick @Inject constructor(val executorService: java.util.concurren
     init {
         val url = URL("https://hastebin.com")
         val conn = url.openConnection()
-        conn.addRequestProperty("User-Agent", AGENT)
+        conn.addRequestProperty("User-Agent", userAgent)
         conn.getInputStream().readText() // Ensure connection
         val cookies = conn.headerFields["Set-Cookie"]!!
         id = cookies.find { it.startsWith("__cfduid=") }!!.split(";").first()
@@ -58,7 +56,7 @@ class HastebinQuick @Inject constructor(val executorService: java.util.concurren
     private val properties: Map<String, String>
         get() = mapOf(
                 "Cookie" to id,
-                "User-Agent" to AGENT,
+                "User-Agent" to userAgent,
                 "Content-Type" to "application/json; charset=utf-8"
         )
 

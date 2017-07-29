@@ -1,6 +1,7 @@
 package com.coalesce.bot
 
 import com.coalesce.bot.binary.BinarySerializer
+import com.coalesce.bot.utilities.Timeout
 import com.coalesce.bot.utilities.timeOutHandler
 import java.io.DataOutputStream
 import java.io.File
@@ -8,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 open class CachedDataManager<U, A>(file: File,
                                 private val serializer: BinarySerializer<MutableMap<U, A>>,
-                                private val creator: () -> A) {
+                                private val creator: () -> A): Timeout(1L, TimeUnit.MINUTES) {
     private val cache = mutableMapOf<U, A>()
 
     init {
@@ -35,11 +36,12 @@ open class CachedDataManager<U, A>(file: File,
     }
 
     fun save(user: U, value: A) {
-        synchronized(serializer) {
-            val map = rawData
-            map[user] = value
-            cache[user] = value
-            rawData = map
-        }
+        cache[user] = value
+        if (!waiting) startTimeout()
+    }
+
+    override fun timeout() {
+        rawData = rawData.apply { putAll(cache) }
+        cache.clear()
     }
 }

@@ -1,17 +1,14 @@
-package com.coalesce.bot.cocoins.commands
+package com.coalesce.bot.currencies.commands
 
-import com.coalesce.bot.CachedDataManager
 import com.coalesce.bot.CoCoinsTransaction
+import com.coalesce.bot.experience.ExperienceCachedDataManager
 import com.coalesce.bot.Main
-import com.coalesce.bot.cocoins.MessagesSentSerializer
-import com.coalesce.bot.cocoins.memesChannel
-import com.coalesce.bot.cocoins.messagesSentFile
+import com.coalesce.bot.currencies.memesChannel
 import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.*
 import com.google.inject.Inject
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.Emote
-import net.dv8tion.jda.core.entities.MessageChannel
 import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
@@ -19,11 +16,9 @@ import java.awt.Color
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
-@Command("CoalesceCoins", "balance bal money cocoins coins coc")
+@Command("CoalesceCoins", "balance bal money cocoins coins coc cocs coccs")
 @UserCooldown(12L)
-class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
-    private val messageDataManager = CachedDataManager(messagesSentFile, MessagesSentSerializer(messagesSentFile), { 0 })
-
+class CoalesceCoins @Inject constructor(jda: JDA, val main: Main, val experienceDataManager: ExperienceCachedDataManager): Embeddables {
     data class MemeReaction(val message: String,
                              val amount: Double,
                              val delay: Double,
@@ -77,7 +72,8 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
 
     @JDAListener
     fun messageReceive(event: MessageReceivedEvent) {
-        if (event.channel.idLong == memesChannel && !event.author.isBot && event.message.attachments.any { it.isImage }) {
+        if (event.channel.idLong == memesChannel && !event.author.isBot &&
+                (event.message.attachments.any() || event.message.rawContent.containsUrl())) {
             event.channel.getMessageById(event.messageIdLong).queue { message ->
                 memeReactions.forEach {
                     if (it.stringEmote != null) message.addReaction(it.stringEmote).queue()
@@ -87,26 +83,20 @@ class CoalesceCoins @Inject constructor(jda: JDA, val main: Main): Embeddables {
         }
 
         val user = event.author
-        if (user.isBot || event.channel !is MessageChannel) return
-        val messageCount = (messageDataManager[user.idLong]) + 1
-        val nextAchievement = 25 + Math.min((Math.max(0.0, main.coCoinsManager[user].total) * 1.5).toInt(), 1000)
-        if (messageCount >= nextAchievement) {
-            val targetValue = main.coCoinsManager[user]
-            targetValue.transaction(CoCoinsTransaction("Award for sending $nextAchievement messages", 2.0),
-                    event.channel as TextChannel, user)
-            messageDataManager.save(user.idLong, 0)
-        } else messageDataManager.save(user.idLong, messageCount)
+        if (user.isBot || event.channel !is TextChannel) return
+        experienceDataManager.expAdd(user, 1, main.coCoinsManager[user.idLong], event.channel as TextChannel)
     }
 
     @ReactionListener("MemeReaction", arrayOf("memeReactionCheck"))
     @UserCooldown(10L, TimeUnit.MINUTES)
     fun reactionReceive(context: ReactionContext) {
         context.channel.getMessageById(context.message).queue {
-            if (it.author == context.author || it.author.isBot || context.author.isBot) return@queue
+            if (it.author == context.author || it.author.isBot || context.author.isBot
+                    || context.channel.idLong != memesChannel) return@queue
             val coins = context.main.coCoinsManager[it.author]
             val reaction = memeReactions.find { (it.stringEmote ?: it.emote) == (context.emote.emote ?: context.emote.name) }!!
             coins.transaction(CoCoinsTransaction("Meme reaction (${context.author.name}): \"${reaction.message}\" - ${reaction.rating}",
-                    reaction.amount), context.channel, context.author)
+                    reaction.amount), context.channel, it.author)
         }
     }
 

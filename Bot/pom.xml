@@ -10,6 +10,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>coalescebot</artifactId>
+    <version>${coalescebot-version}</version>
     <packaging>jar</packaging>
 
     <repositories>
@@ -72,6 +73,17 @@
 
     <build>
         <finalName>CoalesceBot</finalName>
+
+        <resources>
+            <resource>
+                <targetPath>.</targetPath>
+                <directory>src/main/maven</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>*</include>
+                </includes>
+            </resource>
+        </resources>
 
         <plugins>
             <plugin>

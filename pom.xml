@@ -16,11 +16,12 @@
         <kotlin.version>1.1.2-2</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <main>com.coalesce.bot.MainKt</main>
+        <coalescebot-version>1.7.1</coalescebot-version>
     </properties>
 
     <modules>
         <module>Bot</module>
-        <module>CoCoins</module>
+        <module>Currencies</module>
         <module>Fun</module>
         <module>Administration</module>
         <module>Miscellaneous</module>
