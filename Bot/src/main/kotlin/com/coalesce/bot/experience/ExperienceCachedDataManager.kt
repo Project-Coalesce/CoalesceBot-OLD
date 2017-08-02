@@ -1,7 +1,12 @@
-package com.coalesce.bot
+package com.coalesce.bot.experience
 
+import com.coalesce.bot.CachedDataManager
+import com.coalesce.bot.CoCoinsTransaction
+import com.coalesce.bot.CoCoinsValue
 import com.coalesce.bot.binary.ExperienceSerializer
+import com.coalesce.bot.experienceFile
 import com.coalesce.bot.utilities.readBytes
+import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
 import java.awt.Font
@@ -24,7 +29,12 @@ class ExperienceCachedDataManager: CachedDataManager<Long, Int>(experienceFile, 
         if (this[user.idLong] + amount >= nextAchievement) {
             channel.sendFile(ByteArrayOutputStream().apply { ImageIO.write(generateLevelUpImage(level + 1,
                     ImageIO.read(ByteArrayInputStream(URL(user.effectiveAvatarUrl).openConnection().readBytes()))), "jpg",
-                    this) }.toByteArray(), "levelUp", null)
+                    this) }.toByteArray(), "levelUp", MessageBuilder().apply {
+                        appendln(user.asMention + ": LEVEL UP!")
+                        ExperienceRewards.checkRewards(level + 1).forEach {
+                            appendln(it.handleAchieving(channel, user))
+                        }
+                    }.build())
             wrappedUser.transaction(CoCoinsTransaction("Reward for level up", 3.0), channel, user)
         }
         save(user.idLong, this[user.idLong] + amount)
@@ -42,6 +52,8 @@ class ExperienceCachedDataManager: CachedDataManager<Long, Int>(experienceFile, 
 
         graphics.drawString(level.toString(), 250 / 2 + metrics.stringWidth(level.toString()) / 2, 168)
         graphics.drawString("LEVEL UP!", 250 / 2 + metrics.stringWidth("LEVEL UP!") / 2, 15)
+
+        graphics.dispose()
 
         return image
     }
