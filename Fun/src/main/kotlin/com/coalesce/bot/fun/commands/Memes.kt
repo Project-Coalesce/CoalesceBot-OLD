@@ -65,15 +65,6 @@ class EggsD {
     }
 }
 
-@Command("Hillary", "ctrlalthillary")
-@GlobalCooldown(20L)
-class CtrlAltHillary {
-    @CommandAlias("Meme command (Ctrl + Alt + Hillary)")
-    fun execute(context: CommandContext) {
-        context("http://i.imgur.com/DYl2RX3.jpg", deleteAfter = 20L to TimeUnit.SECONDS)
-    }
-}
-
 @Command("Enough", "proxisreaction")
 @GlobalCooldown(20L)
 class Enough {
