@@ -78,7 +78,7 @@
             <resource>
                 <targetPath>.</targetPath>
                 <directory>src/main/maven</directory>
-                <filtering>true</filtering>
+                <filtering>false</filtering>
                 <includes>
                     <include>*</include>
                 </includes>
