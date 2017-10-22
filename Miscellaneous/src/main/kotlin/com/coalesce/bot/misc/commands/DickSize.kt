@@ -1,21 +1,11 @@
 package com.coalesce.bot.misc.commands
 
-import com.coalesce.bot.command.*
-import com.coalesce.bot.gson
-import com.coalesce.bot.utilities.*
-import com.google.inject.Inject
+import com.coalesce.bot.command.Command
+import com.coalesce.bot.command.CommandAlias
+import com.coalesce.bot.command.CommandContext
+import com.coalesce.bot.utilities.Embeddables
 import net.dv8tion.jda.core.entities.User
-import java.awt.Color
-import java.io.*
-import java.net.InetSocketAddress
-import java.net.Socket
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import java.util.*
-import java.util.concurrent.ExecutorService
-import javax.imageio.ImageIO
-import javax.xml.bind.DatatypeConverter
-import kotlin.experimental.and
 
 @Command("DickSize", "dicc dick penis penissize")
 class DickSize: Embeddables {

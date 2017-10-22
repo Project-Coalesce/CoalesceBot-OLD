@@ -25,23 +25,23 @@ class ExperienceCachedDataManager: CachedDataManager<Long, Int>(experienceFile, 
     fun expAdd(user: User, amount: Int, wrappedUser: CoCoinsValue, channel: TextChannel) {
         val xp = this[user.idLong]
         val level = ((xp - 30) / 33.5).toInt()
-        val nextAchievement = 30 + (level + 1) * 60
+        val nextAchievement = 30 + (level + 1) * 2
         if (this[user.idLong] + amount >= nextAchievement) {
             channel.sendFile(ByteArrayOutputStream().apply { ImageIO.write(generateLevelUpImage(level + 1,
                     ImageIO.read(ByteArrayInputStream(URL(user.effectiveAvatarUrl).openConnection().readBytes()))), "jpg",
-                    this) }.toByteArray(), "levelUp", MessageBuilder().apply {
+                    this) }.toByteArray(), "levelUp.jpg", MessageBuilder().apply {
                         appendln(user.asMention + ": LEVEL UP!")
                         ExperienceRewards.checkRewards(level + 1).forEach {
                             appendln(it.handleAchieving(channel, user))
                         }
-                    }.build())
-            wrappedUser.transaction(CoCoinsTransaction("Reward for level up", 3.0), channel, user)
+                    }.build()).queue()
+            wrappedUser.transaction(CoCoinsTransaction("Reward for Leveling Up!", 3.0), channel, user)
         }
         save(user.idLong, this[user.idLong] + amount)
     }
 
     private fun generateLevelUpImage(level: Int, avatar: Image): BufferedImage {
-        val image = BufferedImage(250, 250, BufferedImage.TYPE_INT_ARGB)
+        val image = BufferedImage(250, 250, BufferedImage.TYPE_INT_RGB)
         val graphics = image.createGraphics()
         graphics.font = imageFont
         val metrics = graphics.getFontMetrics(imageFont)

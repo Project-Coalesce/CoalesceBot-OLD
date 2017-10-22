@@ -7,9 +7,7 @@ import com.coalesce.bot.utilities.embColor
 import com.coalesce.bot.utilities.embDescription
 import com.coalesce.bot.utilities.embTitle
 import com.google.inject.Inject
-import com.sun.corba.se.impl.protocol.giopmsgheaders.MessageBase.createRequest
 import net.dv8tion.jda.core.entities.MessageEmbed
-import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent
 import java.awt.Color
 

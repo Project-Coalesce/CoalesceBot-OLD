@@ -52,9 +52,7 @@ class TrackScheduler(private val player: AudioPlayer, private val music: MusicBo
     }
 
     fun nextTrack() {
-        pendingTimeouts.forEach {
-            it.stopTimeout()
-        }
+        pendingTimeouts.forEach(Timeout::stopTimeout)
         pendingTimeouts.clear()
 
         val track = queue.poll()

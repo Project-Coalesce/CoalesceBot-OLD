@@ -1,8 +1,11 @@
 package com.coalesce.bot.administration.commands
 
-import com.coalesce.bot.command.*
-import com.sun.jna.Memory.purge
-import net.dv8tion.jda.core.entities.*
+import com.coalesce.bot.command.Command
+import com.coalesce.bot.command.CommandAlias
+import com.coalesce.bot.command.CommandContext
+import com.coalesce.bot.command.PermHandler
+import net.dv8tion.jda.core.entities.Role
+import net.dv8tion.jda.core.entities.User
 
 @Command("Permission", "permissions perm perms")
 class Permission {

@@ -5,8 +5,6 @@ import com.coalesce.bot.dataDirectory
 import com.coalesce.bot.gson
 import net.dv8tion.jda.core.entities.User
 import java.io.File
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 class PunishmentManager internal constructor(bot: Main) {
     val punishmentsFile = File(dataDirectory, "punishments.json")

@@ -19,7 +19,6 @@ class Broadcast @Inject constructor(val jda: JDA): Embeddables {
             embDescription = message
             embColor = Color(0x5ea81e)
         }.build()
-
-        context.main.jda.guilds.forEach { it.publicChannel.send(embed) }
+        jda.guilds.forEach { it.publicChannel.send(embed) }
     }
 }

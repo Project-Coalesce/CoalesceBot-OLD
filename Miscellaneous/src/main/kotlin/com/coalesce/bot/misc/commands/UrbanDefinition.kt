@@ -5,7 +5,6 @@ import com.coalesce.bot.gson
 import com.coalesce.bot.utilities.*
 import com.google.gson.JsonElement
 import com.google.inject.Inject
-import net.dv8tion.jda.core.EmbedBuilder
 import java.awt.Color
 import java.net.URL
 

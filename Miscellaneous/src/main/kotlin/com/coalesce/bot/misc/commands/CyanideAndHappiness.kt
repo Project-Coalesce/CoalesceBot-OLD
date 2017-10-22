@@ -3,7 +3,6 @@ package com.coalesce.bot.misc.commands
 import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.*
 import com.google.inject.Inject
-import net.dv8tion.jda.core.EmbedBuilder
 import org.jsoup.Jsoup
 import java.awt.Color
 import java.util.concurrent.ExecutorService

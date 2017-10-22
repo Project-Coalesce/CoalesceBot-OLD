@@ -12,6 +12,9 @@ gradle
 .gradle
 LICENSe
 
+### JRebel ###
+rebel.xml
+
 ### Eclipse ###
 
 .metadata

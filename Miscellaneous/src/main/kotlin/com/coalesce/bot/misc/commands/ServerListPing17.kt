@@ -2,7 +2,6 @@ package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.gson
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import java.io.*
 import java.net.InetSocketAddress
 import java.net.Socket
