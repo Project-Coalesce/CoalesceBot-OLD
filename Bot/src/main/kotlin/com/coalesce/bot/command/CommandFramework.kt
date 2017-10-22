@@ -434,8 +434,7 @@ fun MessageChannel.send(embed: EmbedBuilder, mention: User, deleteAfter: Pair<Lo
 }
 
 fun User.usePCh(handler: PrivateChannel.() -> Unit) {
-    if (hasPrivateChannel()) handler(privateChannel)
-    else openPrivateChannel().queue(handler)
+    openPrivateChannel().queue(handler)
 }
 
 private fun sendTask(task: RestAction<Message>, deleteAfter: Pair<Long, TimeUnit>? = null,
