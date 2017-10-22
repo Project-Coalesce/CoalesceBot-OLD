@@ -1,5 +1,6 @@
 package com.coalesce.bot.command
 
+import com.coalesce.bot.SYS_IN_CHANNEL
 import com.coalesce.bot.dataDirectory
 import com.coalesce.bot.gson
 import com.coalesce.bot.utilities.*
@@ -136,7 +137,7 @@ class PermHandler private constructor(private val guildDataFolder: File, private
 }
 
 fun permCheck(context: Context): Boolean {
-    if (!PermHandler[context.guild](context.author, context.permission) && context.channel.idLong != 315934590109745154L) {
+    if (!PermHandler[context.guild](context.author, context.permission) && context.channel.idLong != SYS_IN_CHANNEL) {
         context(EmbedBuilder().apply {
             embColor = Color(232, 46, 0)
             embTitle = "Access Denied!"
