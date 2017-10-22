@@ -1,9 +1,9 @@
 package com.coalesce.bot.command
 
+import com.coalesce.bot.COMMAND_PREFIX
+import com.coalesce.bot.COMMAND_PREFIX_LENGHT
 import com.coalesce.bot.Main
 import com.coalesce.bot.command.handlers.Help
-import com.coalesce.bot.commandPrefix
-import com.coalesce.bot.commandPrefixLen
 import com.coalesce.bot.utilities.*
 import com.google.inject.Injector
 import net.dv8tion.jda.core.EmbedBuilder
@@ -123,14 +123,14 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
-        if (!event.message.rawContent.startsWith(commandPrefix)) {
+        if (!event.message.rawContent.startsWith(COMMAND_PREFIX)) {
             return
         }
         if (event.channel !is TextChannel) {
             event.channel.sendMessage("Commands are not allowed in private messages.").queue()
             return
         }
-        val command = event.message.rawContent.substring(commandPrefixLen)
+        val command = event.message.rawContent.substring(COMMAND_PREFIX_LENGHT)
         val split = command.split(" ")
         if (split.isEmpty()) {
             event.message.addReaction("❔").queue()
@@ -260,7 +260,7 @@ class CommandFrameworkClass(
 
         info.usage = StringBuilder().apply {
             fun addMethod(method: UsableMethod, name: String) =
-                    appendln("$commandPrefix${name.toLowerCase()} ${method.info}: ${method.usage}")
+                    appendln("$COMMAND_PREFIX${name.toLowerCase()} ${method.info}: ${method.usage}")
 
             methods.forEach { addMethod(it, info.name) }
             subCommands.forEach { subCmd ->

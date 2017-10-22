@@ -33,7 +33,8 @@ import java.util.concurrent.ThreadLocalRandom
  *  Second number - Minor version
  *  Third number - Patch
  * */
-val VERSION = Main::class.java.getResourceAsStream("/.properties").readText()
+val VERSION = Main::class.java.getResourceAsStream("/.properties").readText() //TODO: Don't forget to update version
+
 val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot",
         "with spoopy skeletons", "with PI", "against humanity", "blame @deprilula28#3609 if anything borks",
         "on a third world server")

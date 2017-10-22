@@ -1,12 +1,10 @@
 package com.coalesce.bot.command.handlers
 
+import com.coalesce.bot.COMMAND_PREFIX
 import com.coalesce.bot.command.*
-import com.coalesce.bot.commandPrefix
 import com.coalesce.bot.utilities.*
-import org.reflections.util.Utils.name
 import java.awt.Color
 import java.util.concurrent.TimeUnit
-import kotlin.reflect.KParameter
 
 @Command("Help", "? hlp")
 @UserCooldown(30L)
@@ -27,7 +25,7 @@ class Help: Embeddables {
 
             handler.commands.forEach {
                 val alias = it.commandInfo.aliases[0]
-                fun name(method: UsableMethod) = "$commandPrefix${alias.toLowerCase()} " + method.info
+                fun name(method: UsableMethod) = "$COMMAND_PREFIX${alias.toLowerCase()} " + method.info
 
                 it.botCommand.methods.forEach {
                     val usageString = name(it)
