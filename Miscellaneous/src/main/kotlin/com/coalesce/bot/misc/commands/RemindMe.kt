@@ -9,9 +9,9 @@ import java.util.concurrent.TimeUnit
 class RemindMe {
     @CommandAlias("Reminds you after a while")
     fun execute(context: CommandContext, time: Calendar, @VarArg message: String) {
-        if (System.currentTimeMillis() <= time.timeInMillis) throw ArgsException("Invalid time.")
+        if (time.timeInMillis <= System.currentTimeMillis()) throw ArgsException("Invalid time.")
         context("I'll be reminding you!")
-        timeOutHandler(System.currentTimeMillis() - time.timeInMillis, TimeUnit.MILLISECONDS) {
+        timeOutHandler(System.currentTimeMillis() + time.timeInMillis, TimeUnit.MILLISECONDS) {
             context.usePCh { send("Reminder: $message") }
         }
     }

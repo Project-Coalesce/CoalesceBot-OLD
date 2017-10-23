@@ -37,7 +37,7 @@ class HastebinQuick @Inject constructor(val executorService: java.util.concurren
         }
     }
 
-    @CommandAlias("Creates hastebin with previous messages")
+    @CommandAlias("Creates Hastebin with previous messages")
     fun previousMessages(context: CommandContext) {
         context.channel.history.retrievePast(10).queue {
             val message = it.firstOrNull { it.rawContent.contains(codeBlock) } ?: throw ArgsException("No messages found!\nYou can use !hastebin <code> instead.")

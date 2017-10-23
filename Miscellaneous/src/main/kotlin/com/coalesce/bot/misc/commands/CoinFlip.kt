@@ -9,6 +9,6 @@ import com.coalesce.bot.utilities.Embeddables
 class CoinFlip: Embeddables {
     @CommandAlias("Flip a coin")
     fun eightBall(context: CommandContext) {
-        context("You flipped: ${if (Math.random() < 0.5) "Heads <:heads:324331949961248778>!" else "Tails <:tails:324331963072643073>!"}")
+        context("You flipped: ${if (Math.random() < 0.5) "Heads <:heads:371848960282853387>!" else "Tails <:tails:371848970713956366>!"}")
     }
 }

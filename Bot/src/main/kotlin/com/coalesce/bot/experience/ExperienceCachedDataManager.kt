@@ -50,8 +50,8 @@ class ExperienceCachedDataManager: CachedDataManager<Long, Int>(experienceFile, 
         graphics.drawImage(avatar, 41, 21, 171, 171, null)
         graphics.drawImage(imageStar, 73, 120, 110, 110, null)
 
-        graphics.drawString(level.toString(), ((250 - metrics.stringWidth(level.toString())) / 2), 172)
-        graphics.drawString("LEVEL UP!", ((250 - metrics.stringWidth("LEVEL UP!")) / 2), 15)
+        graphics.drawString(level.toString(), ((250 - metrics.stringWidth(level.toString())) / 2), 200)
+        graphics.drawString("LEVEL UP!", ((250 - metrics.stringWidth("LEVEL UP!")) / 2), 25)
 
         graphics.dispose()
 

@@ -92,10 +92,10 @@ class Bork {
 @Command("Rules")
 @GlobalCooldown(20L)
 class Rules {
-    @CommandAlias("Shows you ruless")
+    @CommandAlias("Shows you rulezzzz")
     fun execute(context: CommandContext) {
-        context("Psst, you... Head over to <#269178364483338250>. They got memes such as this one.")
-        context("http://i.imgur.com/B50EQKp.png", deleteAfter = 20L to TimeUnit.SECONDS)
+        context("Psst, you... Head over to <#269178364483338250>. They got memes such as this one. " +
+                "\nhttp://i.imgur.com/B50EQKp.png", deleteAfter = 20L to TimeUnit.SECONDS)
     }
 }
 
