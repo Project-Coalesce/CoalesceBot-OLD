@@ -1,11 +1,20 @@
 package com.coalesce.bot.`fun`.commands
 
+import com.coalesce.bot.`fun`.GifSequenceWriter
 import com.coalesce.bot.command.Command
 import com.coalesce.bot.command.CommandAlias
 import com.coalesce.bot.command.CommandContext
 import com.coalesce.bot.command.GlobalCooldown
+import com.coalesce.bot.tempDirectory
+import com.coalesce.bot.utilities.readBytes
+import net.dv8tion.jda.core.MessageBuilder
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.net.URL
 import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
+import javax.imageio.ImageIO
 
 @Command("Boi", "njsblessing")
 @GlobalCooldown(20L)
@@ -36,13 +45,47 @@ class Kys {
 @Command("Bork", "depcries")
 @GlobalCooldown(20L)
 class Bork {
-    private val images = arrayOf("http://i.imgur.com/PTCUXDQ.png", "http://i.imgur.com/SRG3pYh.png", "http://i.imgur.com/LHP4Ypo.png",
-            "http://i.imgur.com/NCWGumn.png", "http://i.imgur.com/sMmzyZP.png", "http://i.imgur.com/UFKYtZZ.png",
-            "http://i.imgur.com/sDUPGrO.png")
+
+    private val bar = ImageIO.read(javaClass.getResourceAsStream("/triggeredBar.png"))
 
     @CommandAlias("Meme command (Bork)")
     fun execute(context: CommandContext) {
-        context("Bork ${images[ThreadLocalRandom.current().nextInt(images.size)]}", deleteAfter = 20L to TimeUnit.SECONDS)
+        val frames = mutableListOf<BufferedImage>()
+        val frameCount = 10
+        val random = ThreadLocalRandom.current()
+
+        val shakeAmount = 10
+        val barShakeAmount = 7
+        val frameSize = 368
+        val image = ImageIO.read(ByteArrayInputStream(URL(context.author.effectiveAvatarUrl).openConnection().readBytes()))
+
+        (0 .. frameCount).forEach {
+            val frame = BufferedImage(frameSize, frameSize, BufferedImage.TYPE_INT_RGB)
+            val g2d = frame.createGraphics()
+
+            val (shakeX, shakeY) = (random.nextFloat() * shakeAmount).toInt() to (random.nextFloat() * shakeAmount).toInt()
+            val (barShakeX, barShakeY) = (random.nextFloat() * barShakeAmount).toInt() to (random.nextFloat() * barShakeAmount).toInt()
+
+            g2d.drawImage(image, -shakeX, -shakeY, frameSize + shakeAmount, frameSize + shakeAmount, null)
+            g2d.drawImage(bar, -barShakeX, -barShakeY, frameSize + barShakeAmount, frameSize + barShakeAmount, null)
+
+            frames.add(frame)
+        }
+
+        val file = File(tempDirectory, "tempGif_${System.currentTimeMillis()}.gif")
+        if (!file.parentFile.exists()) file.parentFile.mkdirs()
+        if (file.exists()) file.delete()
+        file.createNewFile()
+        val writer = GifSequenceWriter(ImageIO.createImageOutputStream(file), BufferedImage.TYPE_INT_RGB,
+                10, true)
+        frames.forEach(writer::writeToSequence)
+        writer.close()
+
+        context.channel.sendFile(file, "triggered.gif", MessageBuilder().apply {
+            appendln("Looks like ${context.author.asMention} is butthurt :(")
+        }.build()).queue {
+            file.delete()
+        }
     }
 }
 

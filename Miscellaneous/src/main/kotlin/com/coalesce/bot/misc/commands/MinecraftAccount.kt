@@ -38,7 +38,7 @@ class MinecraftAccount: Embeddables {
                     appendln("First login at ${player.firstLogin.formatTime()}, last login at ${player.lastLogin.formatTime()}, " +
                             "Minecraft version ${player.mcVersionRp}, ${player.timePlaying} hours played.")
                     appendln("Rank: ${player.packageRank}, level ${player.networkLevel}.")
-                    appendln("**Game Statistics (Not all of them, type `!mc hypixel <name>` for that)**")
+                    appendln("**Game Statistics (Not all of them)**")
                     val quake = player.stats.quake
                     append("**Quake** ")
                     if (quake.has("kills") && quake.has("deaths")) append("K/D Ratio: " +
@@ -70,7 +70,7 @@ class MinecraftAccount: Embeddables {
                     fun getGameStats(type: String) = tryOrNull { gson.fromJson(URL("http://api.hivemc.com/v1/player/${uuid.toString().replace("-", "")}/$type").openConnection().readText(),
                             JsonObject::class.java) }
 
-                    appendln("**Game Statistics (Not all of them, type `!mc hivemc <name>` for that)**")
+                    appendln("**Game Statistics (Not all of them)**")
                     val skywars = getGameStats("SKY")
                     if (skywars != null) appendln("**Skywars** " +
                             "K/D Ratio: ${(skywars["kills"].asInt.toDouble() / skywars["deaths"].asInt.toDouble()).round(3)}, " +

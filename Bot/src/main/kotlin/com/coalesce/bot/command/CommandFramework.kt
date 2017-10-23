@@ -1,7 +1,7 @@
 package com.coalesce.bot.command
 
 import com.coalesce.bot.COMMAND_PREFIX
-import com.coalesce.bot.COMMAND_PREFIX_LENGHT
+import com.coalesce.bot.COMMAND_PREFIX_LENGTH
 import com.coalesce.bot.Main
 import com.coalesce.bot.command.handlers.Help
 import com.coalesce.bot.utilities.*
@@ -130,7 +130,7 @@ class Listener constructor(jda: JDA, adaptationArgsChecker: AdaptationArgsChecke
             event.channel.sendMessage("Commands are not allowed in private messages.").queue()
             return
         }
-        val command = event.message.rawContent.substring(COMMAND_PREFIX_LENGHT)
+        val command = event.message.rawContent.substring(COMMAND_PREFIX_LENGTH)
         val split = command.split(" ")
         if (split.isEmpty()) {
             event.message.addReaction("❔").queue()

@@ -14,6 +14,7 @@ class Reload: Embeddables {
     @CommandAlias("Reloads all commands and plugins.")
     fun execute(context: CommandContext) {
         context.main.apply {
+
             @Suppress("INTERFACE_STATIC_METHOD_CALL_FROM_JAVA6_TARGET") // yay
             jda.presence.game = Game.of("reloading")
             jda.presence.status = OnlineStatus.DO_NOT_DISTURB
