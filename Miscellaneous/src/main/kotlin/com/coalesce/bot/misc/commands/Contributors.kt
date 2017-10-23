@@ -20,6 +20,6 @@ class Dep {
             "http://i.imgur.com/sDUPGrO.png")
     @CommandAlias("You will be remembered")
     fun exectute(context: CommandContext) = context("🅱ep contributed more than anyone to this bot," +
-            " we are thankful for everything he has done (even if some of them were kind of borked)" +
+            " we are thankful for everything he has done (even if some of the things he made were kind of borked)" +
             "\n${images[ThreadLocalRandom.current().nextInt(images.size)]}")
 }
