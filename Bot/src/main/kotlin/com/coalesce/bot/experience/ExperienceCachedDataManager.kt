@@ -25,22 +25,19 @@ class ExperienceCachedDataManager: CachedDataManager<Long, Int>(experienceFile, 
     fun expAdd(user: User, amount: Int, wrappedUser: CoCoinsValue, channel: TextChannel) {
         val xp = this[user.idLong]
         val level = ((xp - 30) / 33.5).toInt()
-        val nextAchievement = 30 + (level + 1) * 2
+        val nextAchievement = 30 + (level + 1) * 3
         if (this[user.idLong] + amount >= nextAchievement) {
             channel.sendFile(ByteArrayOutputStream().apply { ImageIO.write(generateLevelUpImage(level + 1,
                     ImageIO.read(ByteArrayInputStream(URL(user.effectiveAvatarUrl).openConnection().readBytes()))), "png",
                     this) }.toByteArray(), "levelUp_${user.idLong}_${System.currentTimeMillis()}.png", MessageBuilder().apply {
                         appendln(user.asMention + ": LEVEL UP!")
-                        ExperienceRewards.checkRewards(level + 1).forEach {
-                            appendln(it.handleAchieving(channel, user))
-                        }
                     }.build()).queue()
             wrappedUser.transaction(CoCoinsTransaction("Reward for Leveling Up!", 3.0), channel, user)
         }
         save(user.idLong, this[user.idLong] + amount)
     }
     //TODO: PLACE THE PRIVATE
-    /*private*/ fun generateLevelUpImage(level: Int, avatar: Image): BufferedImage {
+    private fun generateLevelUpImage(level: Int, avatar: Image): BufferedImage {
         val image = BufferedImage(250, 250, BufferedImage.TYPE_INT_RGB)
         val graphics = image.createGraphics()
         graphics.font = imageFont
@@ -50,7 +47,7 @@ class ExperienceCachedDataManager: CachedDataManager<Long, Int>(experienceFile, 
         graphics.drawImage(avatar, 41, 21, 171, 171, null)
         graphics.drawImage(imageStar, 73, 120, 110, 110, null)
 
-        graphics.drawString(level.toString(), ((250 - metrics.stringWidth(level.toString())) / 2), 200)
+        graphics.drawString(level.toString(), ((250 - metrics.stringWidth(level.toString())) / 2), 190)
         graphics.drawString("LEVEL UP!", ((250 - metrics.stringWidth("LEVEL UP!")) / 2), 25)
 
         graphics.dispose()
