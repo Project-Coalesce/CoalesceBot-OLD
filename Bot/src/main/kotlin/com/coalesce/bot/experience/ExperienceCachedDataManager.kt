@@ -18,16 +18,50 @@ import java.net.URL
 import javax.imageio.ImageIO
 
 class ExperienceCachedDataManager: CachedDataManager<Long, Int>(experienceFile, ExperienceSerializer(experienceFile), { 0 }) {
+
+    /* IMAGE STUFF */
     private val imageBackground = ImageIO.read(javaClass.getResourceAsStream("/levelupbackground.png"))
     private val imageStar = ImageIO.read(javaClass.getResourceAsStream("/levelupstar.png"))
     private val imageFont = Font.createFont(Font.TRUETYPE_FONT, javaClass.getResourceAsStream("/8-Bit Madness.ttf")).deriveFont(Font.PLAIN, 42F)
 
+    /* VALUE STUFF */
+    private val exponent = 1.04
+    private val baseXp = 30
+
+    /* EXP FUNCTIONS */
+    fun getExp(user: User): Int = this[user.idLong]
+
+    fun getLevel(exp: Int): Int {
+        var level = 0
+        var maxExp = getExpToLevel(level)
+        do {
+            maxExp += getExpToLevel(++level)
+        } while (maxExp < exp)
+        return level
+    }
+
+    fun getExpInLevel(level: Int): Int {
+        var requieredExp = 0
+        for (i in 0 until level) {
+            requieredExp += getExpToLevel(i)
+        }
+        return requieredExp
+    }
+
+    fun getExpToLevel(level: Int): Int = (baseXp + (baseXp * Math.pow(level.toDouble(), exponent))).toInt()
+
+    /* BLAH BLAH BLAH */
     fun expAdd(user: User, amount: Int, wrappedUser: CoCoinsValue, channel: TextChannel) {
-        val xp = this[user.idLong]
-        val level = ((xp - 30) / 33.5).toInt()
-        val nextAchievement = 30 + (level + 1) * 3
-        if (this[user.idLong] + amount >= nextAchievement) {
-            channel.sendFile(ByteArrayOutputStream().apply { ImageIO.write(generateLevelUpImage(level + 1,
+
+        val exp = getExp(user)
+        println("EXP: $exp")
+        val level = getLevel(exp)
+        println("EXP IN LEVEL: ${getExpInLevel(level)}")
+        println("EXP TO NEXT LEVEL: ${getExpToLevel(level)}")
+
+
+        if (getExpToLevel(level) <= 0) {
+            channel.sendFile(ByteArrayOutputStream().apply { ImageIO.write(generateLevelUpImage(level,
                     ImageIO.read(ByteArrayInputStream(URL(user.effectiveAvatarUrl).openConnection().readBytes()))), "png",
                     this) }.toByteArray(), "levelUp_${user.idLong}_${System.currentTimeMillis()}.png", MessageBuilder().apply {
                         appendln(user.asMention + ": LEVEL UP!")
@@ -36,7 +70,7 @@ class ExperienceCachedDataManager: CachedDataManager<Long, Int>(experienceFile, 
         }
         save(user.idLong, this[user.idLong] + amount)
     }
-    //TODO: PLACE THE PRIVATE
+
     private fun generateLevelUpImage(level: Int, avatar: Image): BufferedImage {
         val image = BufferedImage(250, 250, BufferedImage.TYPE_INT_RGB)
         val graphics = image.createGraphics()
@@ -47,7 +81,7 @@ class ExperienceCachedDataManager: CachedDataManager<Long, Int>(experienceFile, 
         graphics.drawImage(avatar, 41, 21, 171, 171, null)
         graphics.drawImage(imageStar, 73, 120, 110, 110, null)
 
-        graphics.drawString(level.toString(), ((250 - metrics.stringWidth(level.toString())) / 2), 190)
+        graphics.drawString(level.toString(), ((250 - metrics.stringWidth(level.toString())) / 2), 185)
         graphics.drawString("LEVEL UP!", ((250 - metrics.stringWidth("LEVEL UP!")) / 2), 25)
 
         graphics.dispose()

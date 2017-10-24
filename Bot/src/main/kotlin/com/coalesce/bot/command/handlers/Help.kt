@@ -2,7 +2,10 @@ package com.coalesce.bot.command.handlers
 
 import com.coalesce.bot.COMMAND_PREFIX
 import com.coalesce.bot.command.*
-import com.coalesce.bot.utilities.*
+import com.coalesce.bot.utilities.Embeddables
+import com.coalesce.bot.utilities.embColor
+import com.coalesce.bot.utilities.embDescription
+import com.coalesce.bot.utilities.embTitle
 import java.awt.Color
 import java.util.concurrent.TimeUnit
 
@@ -32,13 +35,13 @@ class Help: Embeddables {
                     val desc = it.usage
                     addLine("`$usageString`: $desc")
                 }
-                it.botCommand.subCommands.forEach {
+                /*it.botCommand.subCommands.forEach {
                     it.value.methods.forEach {
                         val usageString = name(it)
                         val desc = it.usage
                         addLine("`$usageString`: $desc")
                     }
-                }
+                }*/
             }
 
             pages.add(builder.toString())
