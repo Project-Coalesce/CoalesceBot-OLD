@@ -15,13 +15,13 @@ class Experience {
     fun execute(context: CommandContext) {
         val manager = context.main.experienceCachedDataManager
 
-        val xp = manager.getExp(context.author)
+        /*val xp = manager.getExp(context.author)
         val level = manager.getLevel(xp)
 
         val nextLevel = manager.getExpInLevel(level)
 
         val bar = "╡${getProgressBar(xp, nextLevel)}╞"
-        context("**Level $level**\n$bar\n${manager.getExpToLevel(level)} exp for next level!")
+        context("**Level $level**\n$bar\n${manager.getExpToLevel(level)} exp for next level!")*/
     }
 
     fun getProgressBar(current: Int, max: Int): String {
