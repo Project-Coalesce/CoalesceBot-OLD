@@ -2,7 +2,6 @@ package com.coalesce.bot.misc.commands
 
 import com.coalesce.bot.command.*
 import com.coalesce.bot.utilities.*
-import net.dv8tion.jda.core.EmbedBuilder
 
 @Command("Poll")
 class Poll: Embeddables {

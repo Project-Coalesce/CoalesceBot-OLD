@@ -4,7 +4,6 @@ import com.coalesce.bot.command.ArgsException
 import com.coalesce.bot.utilities.Embeddables
 import com.coalesce.bot.utilities.embColor
 import com.coalesce.bot.utilities.embDescription
-import com.coalesce.bot.utilities.formatTimeDiff
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers

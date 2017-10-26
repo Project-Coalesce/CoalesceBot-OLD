@@ -25,7 +25,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.0.0_191</version>
+            <version>3.3.1_293</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -78,7 +78,7 @@
             <resource>
                 <targetPath>.</targetPath>
                 <directory>src/main/maven</directory>
-                <filtering>true</filtering>
+                <filtering>false</filtering>
                 <includes>
                     <include>*</include>
                 </includes>

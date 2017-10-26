@@ -3,16 +3,31 @@ package com.coalesce.bot.currencies.commands
 import com.coalesce.bot.command.Command
 import com.coalesce.bot.command.CommandAlias
 import com.coalesce.bot.command.CommandContext
+import com.google.common.base.Strings
+
+
 
 @Command("Experience", "exp xp")
 class Experience {
+    private val totalBars = 50
+
     @CommandAlias("Shows your current experience and the needed to level up")
     fun execute(context: CommandContext) {
-        val xp = context.main.experienceCachedDataManager[context.author.idLong]
-        val level = ((xp - 30) / 33.5).toInt()
-        val xpInLevel = xp - (30 + (level) * 60)
-        val nextLevel = 30 + (level + 1) * 60
-        val bar = "╡${StringBuilder().apply { (1..nextLevel).forEach { if (it > xp) append("܅܅") else append("═") } }}╞"
-        context("**Level $level**\n$bar\n$xpInLevel/$nextLevel")
+        val manager = context.main.experienceCachedDataManager
+
+        /*val xp = manager.getExp(context.author)
+        val level = manager.getLevel(xp)
+
+        val nextLevel = manager.getExpInLevel(level)
+
+        val bar = "╡${getProgressBar(xp, nextLevel)}╞"
+        context("**Level $level**\n$bar\n${manager.getExpToLevel(level)} exp for next level!")*/
+    }
+
+    fun getProgressBar(current: Int, max: Int): String {
+        val percent = current.toFloat() / max
+        val progressBars = (totalBars * percent).toInt()
+
+        return Strings.repeat("=", progressBars) + Strings.repeat("-", totalBars - progressBars)
     }
 }

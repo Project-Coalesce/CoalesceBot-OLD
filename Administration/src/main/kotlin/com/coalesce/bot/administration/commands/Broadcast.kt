@@ -1,6 +1,9 @@
 package com.coalesce.bot.administration.commands
 
-import com.coalesce.bot.command.*
+import com.coalesce.bot.command.Command
+import com.coalesce.bot.command.CommandAlias
+import com.coalesce.bot.command.CommandContext
+import com.coalesce.bot.command.VarArg
 import com.coalesce.bot.utilities.Embeddables
 import com.coalesce.bot.utilities.embColor
 import com.coalesce.bot.utilities.embDescription
@@ -19,7 +22,9 @@ class Broadcast @Inject constructor(val jda: JDA): Embeddables {
             embDescription = message
             embColor = Color(0x5ea81e)
         }.build()
-
-        context.main.jda.guilds.forEach { it.publicChannel.send(embed) }
+        jda.guilds.forEach {
+            val channel = it.getTextChannelsByName("general", true)[0] ?: it.textChannels[0]
+            channel.sendMessage(embed).queue()
+        }
     }
 }

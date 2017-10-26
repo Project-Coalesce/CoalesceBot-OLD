@@ -1,4 +1,4 @@
-package com.coalesce.bot.stats;
+package com.coalesce.bot.stats
 
 import com.coalesce.bot.command.JDAEventHandler
 import com.coalesce.bot.command.JDAListener

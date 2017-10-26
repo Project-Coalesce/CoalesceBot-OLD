@@ -5,7 +5,6 @@ import com.coalesce.bot.gson
 import com.coalesce.bot.utilities.*
 import com.google.gson.JsonElement
 import com.google.inject.Inject
-import net.dv8tion.jda.core.EmbedBuilder
 import java.awt.Color
 import java.net.URL
 
@@ -36,7 +35,7 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
 
                     editEmbed {
                         setTitle("Urban Dictionary Definition", result["permalink"].asString)
-                        setAuthor(context.author.name, null, context.author.effectiveAvatarUrl)
+                        setThumbnail("http://i.imgur.com/6kyyWvq.png")
                         embColor = Color(112, 255, 45)
 
                         field("Term", term, false)
@@ -53,7 +52,7 @@ class UrbanDefinition @Inject constructor(val executorService: java.util.concurr
                         description {
                             appendln("Failed to provide results!")
                             appendln("${ex.javaClass.name}: ${ex.message}")
-                            appendln("This has been reported to coalesce developers.")
+                            appendln("This has been reported to Coalesce developers.")
                         }
                     }
                     ex.printStackTrace()

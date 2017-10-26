@@ -5,12 +5,18 @@
 plugins/
 using-plugins/
 
+## SOMETHING I USE TO RUN ##
+run.bat
+
 ## I accidentally added gralde and dont know how to get rid of it :\
 gradlew
 gradlew.bat
 gradle
 .gradle
 LICENSe
+
+### JRebel ###
+rebel.xml
 
 ### Eclipse ###
 

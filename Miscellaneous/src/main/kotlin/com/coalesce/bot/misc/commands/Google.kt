@@ -27,8 +27,7 @@ class Google @Inject constructor(val executorService: ExecutorService): Embeddab
                     val url = URIBuilder("https://www.google.com/search")
                             .addParameter("q", query.replace(" ", "+"))
                             .addParameter("glp", "1")
-                            .addParameter("hl", "EN")
-                            .build().toString()
+                            .addParameter("hl", "EN").build().toString()
                     val jsoup = Jsoup.connect(url).userAgent(userAgent).get()
                     val sections = jsoup.select(".g")
 

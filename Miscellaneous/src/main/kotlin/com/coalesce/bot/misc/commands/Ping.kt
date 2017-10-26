@@ -8,7 +8,6 @@ import com.coalesce.bot.utilities.Embeddables
 import com.coalesce.bot.utilities.embColor
 import com.coalesce.bot.utilities.embDescription
 import com.coalesce.bot.utilities.embTitle
-import net.dv8tion.jda.core.EmbedBuilder
 import java.awt.Color
 
 @Command("Ping", "pong peeng")

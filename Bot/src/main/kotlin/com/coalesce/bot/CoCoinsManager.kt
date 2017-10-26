@@ -1,12 +1,8 @@
 package com.coalesce.bot
 
 import com.coalesce.bot.binary.CoCoinsSerializer
-import com.coalesce.bot.utilities.timeOutHandler
 import net.dv8tion.jda.core.entities.TextChannel
 import net.dv8tion.jda.core.entities.User
-import java.io.DataOutputStream
-import java.io.File
-import java.util.concurrent.TimeUnit
 
 class CoCoinsManager: CachedDataManager<Long, CoCoinsValue>(coCoinsFile, CoCoinsSerializer(coCoinsFile), { CoCoinsValue(0.0, mutableListOf()) }) {
     operator fun get(from: User) = get(from.idLong)
@@ -20,7 +16,7 @@ class CoCoinsValue(var total: Double, var transactions: MutableList<CoCoinsTrans
         if (transactions.size > 10) transactions = transactions.subList(0, 10)
 
         channel.sendMessage("${member.asMention}: ${transaction.message}\n" +
-                "**You ${if (transaction.amount >= 0) "earnt" else "lost"}${transaction.amount.toInt()} CoCoins**").queue()
+                "**You ${if (transaction.amount >= 0) "earnt" else "lost"} ${transaction.amount.toInt()} CoCoins**").queue()
         total += transaction.amount
 
         Main.instance.coCoinsManager.save(user, this)

@@ -16,6 +16,8 @@ import java.util.concurrent.TimeUnit
 
 @Command("WhatIs", "whois whos whothefuckis checkthis whats whatthefuckis")
 class WhoIs: Embeddables {
+    val dateFormat = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss")
+
     @CommandAlias("Retrieve more information about a role")
     fun execute(context: CommandContext, role: Role) {
         context(embed().apply {
@@ -23,7 +25,7 @@ class WhoIs: Embeddables {
             embTitle = "Role **${role.name}**"
 
             field("ID", role.id, true)
-            field("Created At", SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss").format(role.creationTime))
+            field("Created At", dateFormat.format(role.creationTime))
             field("Type", if (role.hasPermission(Permission.ADMINISTRATOR)) "Administrator"
                 else if (role.hasPermission(Permission.MANAGE_CHANNEL)) "ChatMod" else "Common", true)
             field("Position", "Number ${role.position}", true)
@@ -39,7 +41,7 @@ class WhoIs: Embeddables {
 
             field("ID", channel.id, true)
             field("Topic", channel.topic, true)
-            field("Created At", SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss").format(channel.creationTime))
+            field("Created At", dateFormat.format(channel.creationTime))
             field("Position", "Number ${channel.position}", true)
             field("Accessible by", if (channel.memberPermissionOverrides.isEmpty()) "Everyone" else "${channel.members.size} users")
         })
@@ -56,8 +58,8 @@ class WhoIs: Embeddables {
             if (member.nickname != null) field("Nickname", member.nickname, true)
             field("ID", user.id, true)
 
-            field("Joined This Server At", SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss").format(member.joinDate))
-            field("Joined Discord At", SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss").format(user.creationTime))
+            field("Joined This Server At", dateFormat.format(member.joinDate))
+            field("Joined Discord At", dateFormat.format(user.creationTime))
 
             if (member.game != null) field("Status", "${if (member.game.type.key == 0) "Playing " else "Streaming"} " +
                     member.game.name, true)

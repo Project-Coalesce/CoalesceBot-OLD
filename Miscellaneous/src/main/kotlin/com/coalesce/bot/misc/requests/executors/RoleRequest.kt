@@ -8,7 +8,6 @@ import com.coalesce.bot.misc.requests.Request
 import com.coalesce.bot.utilities.embDescription
 import com.coalesce.bot.utilities.readText
 import com.coalesce.bot.utilities.writeText
-import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
 import net.dv8tion.jda.core.entities.MessageEmbed
 import net.dv8tion.jda.core.entities.Role
@@ -20,8 +19,22 @@ import java.net.URL
 
 @Command("RoleRequest", "role getrole request")
 class RoleRequest @Inject constructor(val bot: Main): Request {
-    private val file = File(dataDirectory, "requestableRoleIDs.json")
-    private val acceptableRoles = gson.fromJson<List<Long>>(file.readText(), object: TypeToken<List<Long>>() {}.type).toMutableList()
+
+    private val file = File(dataDirectory, "requestableRoleIds.json")
+
+    private val acceptableRoles = mutableListOf<Long>()
+
+    init {
+        if (!file.parentFile.exists()) file.parentFile.mkdirs()
+        if (!file.exists()) {
+            file.apply {
+                createNewFile()
+                file.writeText(gson.toJson(acceptableRoles))
+            }
+        } else {
+            acceptableRoles.addAll(gson.fromJson(file.readText(), acceptableRoles.javaClass))
+        }
+    }
 
     @CommandAlias("Request a role.")
     fun request(context: CommandContext, role: Role) {

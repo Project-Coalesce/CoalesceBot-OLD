@@ -15,17 +15,16 @@ import java.awt.Color
 @UserCooldown(10L)
 class Info: Embeddables {
     @CommandAlias("Gives you info about the bot")
-    fun execute(context: CommandContext) =
-            context(embed().apply {
-                embColor = Color(0xBE58B6)
-                embTitle = "CoalesceBot v$VERSION"
+    fun execute(context: CommandContext) = context(embed().apply {
+            embColor = Color(0xBE58B6)
+            embTitle = "CoalesceBot v$VERSION"
 
-                embDescription = arrayOf(
-                        "Originally started by Lyxnx & Proximyst, and currently mantained by NahuLD and deprilula28; All members of the " +
-                        "Coalesce Team (Learn more: `!coalesce`).",
-                        "If you find any bugs, please report them at https://goo.gl/5rGeFJ.",
-                        "Abusing the bot's features or an exploit may lead into a blacklist.",
-                        "**Type `!help` for a list of commands.**")
-                .joinToString(separator = "\n")
-            })
+            embDescription = arrayOf(
+                    "Originally started by Lyxnx & Proximyst, and currently mantained by NahuLD and deprilula28; All members of the " +
+                    "Coalesce Team (Learn more: `!coalesce`).",
+                    "If you find any bugs, please report them at https://goo.gl/5rGeFJ.",
+                    "Abusing the bot's features or an exploit may lead into a blacklist.",
+                    "**Type `!help` for a list of commands.**")
+            .joinToString(separator = "\n")
+        })
 }

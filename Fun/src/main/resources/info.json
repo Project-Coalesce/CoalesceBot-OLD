@@ -1,6 +1,5 @@
 {
   "name": "Fun",
-  "main": "com.coalesce.bot.fun.FunPlugin",
   "packagesScan": [
     "com.coalesce.bot.fun.commands"
   ]

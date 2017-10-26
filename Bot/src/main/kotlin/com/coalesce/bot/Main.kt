@@ -1,6 +1,5 @@
 package com.coalesce.bot
 
-//import com.coalesce.bot.chatbot.ChatbotBrain
 import com.coalesce.bot.command.AdaptationArgsChecker
 import com.coalesce.bot.command.Listener
 import com.coalesce.bot.command.PluginManager
@@ -16,7 +15,10 @@ import com.google.gson.GsonBuilder
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Injector
-import net.dv8tion.jda.core.*
+import net.dv8tion.jda.core.AccountType
+import net.dv8tion.jda.core.JDA
+import net.dv8tion.jda.core.JDABuilder
+import net.dv8tion.jda.core.OnlineStatus
 import net.dv8tion.jda.core.entities.Game
 import java.io.File
 import java.io.PrintStream
@@ -31,8 +33,11 @@ import java.util.concurrent.ThreadLocalRandom
  *  Second number - Minor version
  *  Third number - Patch
  * */
-val VERSION = Main::class.java.getResourceAsStream("/.properties").readText()
-val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot")
+val VERSION = Main::class.java.getResourceAsStream("/.properties").readText() //TODO: Don't forget to update version
+
+val GAMES = arrayOf("mienkreft", "with myself", "with lolis", "with my components", "with dabBot",
+        "with spoopy skeletons", "with PI", "against humanity", "blame @deprilula28#3609 if anything borks",
+        "on a third world server")
 
 fun main(args: Array<String>) {
     Preconditions.checkArgument(args.isNotEmpty(), "You need to specify a token.")
@@ -55,7 +60,6 @@ class Main private constructor() {
         if (!dataDirectory.exists()) {
             dataDirectory.mkdirs()
         }
-
         jda = JDABuilder(AccountType.BOT).apply {
             setToken(token)
             setCorePoolSize(6)
@@ -67,8 +71,8 @@ class Main private constructor() {
 
         if (!logOnConsole) {
             tryLog("Failed to load print streams") {
-                System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById("315934708879982592"))))
-                System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById("315934723354656768"))))
+                System.setOut(PrintStream(ChatOutputStream(jda.getTextChannelById(SYS_OUT_CHANNEL))))
+                System.setErr(PrintStream(ChatOutputStream(jda.getTextChannelById(SYS_IN_CHANNEL))))
             }
         }
 
@@ -120,8 +124,13 @@ class Injects(val main: Main) : AbstractModule() {
     fun <T> addGuiceInjection(clazz: Class<T>, obj: Any) = bind(clazz).toInstance(obj as T)
 }
 
-const val commandPrefix = "!"
-const val commandPrefixLen = commandPrefix.length //Every nanosecond matters.
+const val TESTING_GUILD = 371446366049665034L
+const val COALESCE_GUILD = 268187052753944576L
+const val SYS_IN_CHANNEL = 371446583860002828L
+const val SYS_OUT_CHANNEL = 371446558211964930L
+const val COMMAND_PREFIX = "!"
+const val COMMAND_PREFIX_LENGTH = COMMAND_PREFIX.length //Every nanosecond matters.
+val tempDirectory = File(".${File.separatorChar}temp")
 val dataDirectory = File(".${File.separatorChar}data")
 val pluginsFolder = File("plugins")
 val usingPluginsFolder = File("using-plugins")
